@@ -6,6 +6,7 @@
 app_id = get_variable('project_id', 'io.github.tobagin.secrets')
 
 
+
 # UI files
 # We'll create secrets.ui soon.
 # If you use .blp (Blueprint) files, you'll need to set up blueprint-compiler

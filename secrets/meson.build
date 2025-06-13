@@ -4,7 +4,6 @@ python_sources = [
   'window.py',
   'app_info.py',
   'password_store.py'
-]
 
 install_data(python_sources, install_dir : python.get_install_dir() / 'secrets')
 

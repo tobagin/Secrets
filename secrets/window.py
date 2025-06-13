@@ -199,4 +199,4 @@ class SecretsWindow(Adw.ApplicationWindow):
         if success:
             self.toast_overlay.add_toast(Adw.Toast.new(f"Git push successful! {message}"))
         else:
-            self.toast_overlay.add_toast(Adw.Toast.new(f"Git push failed: {message}"))
+            self.toast_overlay.add_toast(Adw.Toast.new(f"Git push failed: {message}"
