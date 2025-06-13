@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+*.egg
+*.venv/
+venv/
+env/
+ENV/
+.env
+
+# Meson build system
+builddir/
+meson-private/
+meson-logs/
+
+# GTK / GNOME
+*.gresource
+
+# Common editor/OS files
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Secrets - if any specific untracked files are planned
+# e.g., local_config.ini

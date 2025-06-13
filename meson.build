@@ -5,7 +5,7 @@ project('secrets', 'python',
 
 python = import('python')
 
-project_id = 'com.example.secrets' # Placeholder App ID
+project_id = 'io.github.tobagin.secrets' # Placeholder App ID
 
 subdir('secrets')
 subdir('data')

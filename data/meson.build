@@ -3,7 +3,8 @@
 # For simplicity here, we'll redefine it or assume it's 'com.example.secrets'
 # A better way is to pass it via subproject_options or get it from project_source_root()
 # if it matches the app_id.
-app_id = get_variable('project_id', 'com.example.secrets')
+app_id = get_variable('project_id', 'io.github.tobagin.secrets')
+
 
 
 # UI files
@@ -17,7 +18,7 @@ install_data(
 
 # .desktop file
 desktop_file_name = app_id + '.desktop'
-desktop_file_input = 'com.example.secrets.desktop.in' # Keep consistent with file to be created
+desktop_file_input = 'io.github.tobagin.secrets.desktop.in' # Keep consistent with file to be created
 
 i18n.merge_file(
   input: desktop_file_input,
@@ -35,7 +36,7 @@ endif
 
 # AppStream metadata
 appstream_file_name = app_id + '.appdata.xml'
-appstream_file_input = 'com.example.secrets.appdata.xml.in' # Keep consistent
+appstream_file_input = 'io.github.tobagin.secrets.appdata.xml.in' # Keep consistent
 
 i18n.merge_file(
   input: appstream_file_input,
@@ -53,13 +54,12 @@ endif
 # Icons directory - create it so it can be used
 install_emptydir(get_option('datadir') / 'icons' / 'hicolor' / 'scalable' / 'apps')
 
-# Example for a scalable icon (replace with your actual icon file)
-# Make sure 'com.example.secrets.svg' exists in data/icons/
-# install_data(
-#   'icons/com.example.secrets.svg',
-#    install_dir: get_option('datadir') / 'icons' / 'hicolor' / 'scalable' / 'apps',
-#    rename: app_id + '.svg'
-# )
+# Scalable icon
+install_data(
+  'icons/io.github.tobagin.secrets.svg', # Assumes icon file will be named this in data/icons/
+   install_dir: get_option('datadir') / 'icons' / 'hicolor' / 'scalable' / 'apps',
+   rename: app_id + '.svg' # Ensures installed icon is named e.g. io.github.tobagin.secrets.svg
+)
 
 # GSettings (if you add them later)
 # gsettings_schemas = files('com.example.secrets.gschema.xml') # Placeholder
