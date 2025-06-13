@@ -126,6 +126,202 @@ class PasswordStore:
         except Exception as e:
             return False, f"An unexpected error occurred: {e}"
 
+    def delete_password(self, path_to_password):
+        """
+        Deletes the specified password using `pass rm --force`.
+        Returns True on success, False otherwise.
+        Includes the output/error message from the command.
+        """
+        if not path_to_password:
+            return False, "Password path cannot be empty."
+
+        # Validate path_to_password to prevent issues.
+        if ".." in path_to_password or path_to_password.startswith("/"):
+             return False, "Invalid password path."
+
+        try:
+            # Use `pass rm --force <path>`
+            # The `--force` flag bypasses confirmation from `pass` itself,
+            # as we'll handle confirmation in the GUI.
+            command = ["pass", "rm", "--force", path_to_password]
+
+            env = os.environ.copy()
+            if self.store_dir != os.path.expanduser("~/.password-store"):
+                 env["PASSWORD_STORE_DIR"] = self.store_dir
+
+            process = subprocess.run(command, capture_output=True, text=True, check=False, env=env)
+
+            if process.returncode == 0:
+                # `pass rm` might not output much on success
+                return True, f"Successfully deleted '{path_to_password}'."
+            else:
+                error_message = process.stderr.strip() if process.stderr.strip() else process.stdout.strip()
+                return False, f"Error deleting password '{path_to_password}': {error_message}"
+        except FileNotFoundError:
+            return False, "The 'pass' command was not found. Is it installed and in your PATH?"
+        except Exception as e:
+            return False, f"An unexpected error occurred while deleting: {e}"
+
+    def get_password_content(self, path_to_password):
+        """
+        Retrieves the content of the specified password file using `pass show`.
+        Returns a tuple (success_bool, content_or_error_string).
+        """
+        if not path_to_password:
+            return False, "Password path cannot be empty."
+
+        if ".." in path_to_password or path_to_password.startswith("/"):
+             return False, "Invalid password path."
+
+        try:
+            # Use `pass show <path>` (without -c, so it prints to stdout)
+            command = ["pass", "show", path_to_password]
+
+            env = os.environ.copy()
+            if self.store_dir != os.path.expanduser("~/.password-store"):
+                 env["PASSWORD_STORE_DIR"] = self.store_dir
+
+            process = subprocess.run(command, capture_output=True, text=True, check=False, env=env)
+
+            if process.returncode == 0:
+                # The first line is the password, subsequent lines are extra data.
+                # `pass show` outputs the full content of the decrypted file.
+                return True, process.stdout
+            else:
+                error_message = process.stderr.strip() if process.stderr.strip() else process.stdout.strip()
+                return False, f"Error showing password '{path_to_password}': {error_message}"
+        except FileNotFoundError:
+            return False, "The 'pass' command was not found. Is it installed and in your PATH?"
+        except Exception as e:
+            return False, f"An unexpected error occurred while showing password: {e}"
+
+    def get_password_path_and_content(self, path_to_password):
+        """
+        Retrieves the path and content of the specified password file.
+        Returns a dictionary {'path': path, 'content': content_string} on success,
+        or {'error': error_message_string} on failure.
+        """
+        success, content_or_error = self.get_password_content(path_to_password)
+
+        if success:
+            return {'path': path_to_password, 'content': content_or_error}
+        else:
+            # content_or_error is already the error message string here
+            return {'error': content_or_error}
+
+    def insert_password(self, path_to_password, content, multiline=True, force=True):
+        """
+        Inserts or updates a password using `pass insert`.
+        - path_to_password: The path for the password entry.
+        - content: The full content to be inserted.
+        - multiline: If True, uses -m flag for multiline input.
+        - force: If True, uses -f flag to overwrite if exists (useful for updates).
+        Returns True on success, False otherwise, along with an output/error message.
+        """
+        if not path_to_password:
+            return False, "Password path cannot be empty."
+
+        # Basic validation for the path
+        if ".." in path_to_password or path_to_password.startswith("/"):
+             return False, "Invalid password path."
+
+        try:
+            command = ["pass", "insert"]
+            if multiline:
+                command.append("-m") # or --multiline
+            if force:
+                command.append("-f") # or --force
+            command.append(path_to_password)
+
+            env = os.environ.copy()
+            if self.store_dir != os.path.expanduser("~/.password-store"):
+                 env["PASSWORD_STORE_DIR"] = self.store_dir
+
+            # The content needs to be passed via stdin to the `pass insert` command
+            process = subprocess.run(command, input=content, capture_output=True, text=True, check=False, env=env)
+
+            if process.returncode == 0:
+                # `pass insert` might not output much on success
+                return True, f"Successfully saved '{path_to_password}'."
+            else:
+                error_message = process.stderr.strip() if process.stderr.strip() else process.stdout.strip()
+                return False, f"Error saving password '{path_to_password}': {error_message}"
+        except FileNotFoundError:
+            return False, "The 'pass' command was not found. Is it installed and in your PATH?"
+        except Exception as e:
+            return False, f"An unexpected error occurred while saving: {e}"
+
+    def search_passwords(self, query):
+        """
+        Searches passwords using `pass grep`.
+        Returns a tuple (success_bool, list_of_matching_paths_or_error_string).
+        `pass grep` outputs matching entry names, one per line.
+        """
+        if not query:
+            return False, "Search query cannot be empty."
+
+        try:
+            # Use `pass grep <query>`
+            # Note: `pass grep` can be slow on very large stores.
+            # It searches the content of encrypted files.
+            command = ["pass", "grep", query] # Add any other flags if needed, e.g. -i for case-insensitive
+
+            env = os.environ.copy()
+            if self.store_dir != os.path.expanduser("~/.password-store"):
+                 env["PASSWORD_STORE_DIR"] = self.store_dir
+
+            process = subprocess.run(command, capture_output=True, text=True, check=False, env=env)
+
+            if process.returncode == 0:
+                # Output is a list of matching password names, one per line.
+                # Need to strip empty lines that might result from splitlines()
+                matching_paths = [line for line in process.stdout.splitlines() if line.strip()]
+                return True, matching_paths
+            elif process.returncode == 1: # `grep` returns 1 if no lines were selected
+                return True, [] # No matches found is not an error in this context
+            else:
+                # Other return codes indicate an error with `pass` or `grep` itself
+                error_message = process.stderr.strip() if process.stderr.strip() else process.stdout.strip()
+                return False, f"Error searching passwords: {error_message}"
+        except FileNotFoundError:
+            return False, "The 'pass' command was not found. Is it installed and in your PATH?"
+        except Exception as e:
+            return False, f"An unexpected error occurred during search: {e}"
+
+    def move_password(self, old_path, new_path):
+        """
+        Moves/renames a password entry using `pass mv`.
+        Returns True on success, False otherwise, along with an output/error message.
+        """
+        if not old_path or not new_path:
+            return False, "Old and new paths cannot be empty."
+
+        # Basic validation for paths
+        if ".." in old_path or old_path.startswith("/") or            ".." in new_path or new_path.startswith("/"):
+             return False, "Invalid old or new path."
+
+        if old_path == new_path:
+            return False, "Old and new paths cannot be the same."
+
+        try:
+            command = ["pass", "mv", old_path, new_path]
+
+            env = os.environ.copy()
+            if self.store_dir != os.path.expanduser("~/.password-store"):
+                 env["PASSWORD_STORE_DIR"] = self.store_dir
+
+            process = subprocess.run(command, capture_output=True, text=True, check=False, env=env)
+
+            if process.returncode == 0:
+                return True, f"Successfully moved '{old_path}' to '{new_path}'."
+            else:
+                error_message = process.stderr.strip() if process.stderr.strip() else process.stdout.strip()
+                return False, f"Error moving password: {error_message}"
+        except FileNotFoundError:
+            return False, "The 'pass' command was not found. Is it installed and in your PATH?"
+        except Exception as e:
+            return False, f"An unexpected error occurred while moving: {e}"
+
 if __name__ == '__main__':
     # Example Usage (for testing this module directly)
     try:
