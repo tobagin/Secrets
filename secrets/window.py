@@ -7,7 +7,8 @@ from gi.repository import Gtk, Adw, Gio, GObject # Added GObject for custom Tree
 import os # For path manipulation in list_passwords if needed, though logic is in PasswordStore
 
 from .password_store import PasswordStore
-from .edit_dialog import EditPasswordDialog # Added
+from .edit_dialog import EditPasswordDialog
+from .move_rename_dialog import MoveRenameDialog # Added
 
 @Gtk.Template(resource_path='/io/github/tobagin/secrets/ui/secrets.ui')
 class SecretsWindow(Adw.ApplicationWindow):
@@ -17,8 +18,9 @@ class SecretsWindow(Adw.ApplicationWindow):
     details_stack = Gtk.Template.Child()
     selected_password_label = Gtk.Template.Child()
     copy_password_button = Gtk.Template.Child()
-    edit_button = Gtk.Template.Child() # Added
-    remove_button = Gtk.Template.Child() # Added
+    edit_button = Gtk.Template.Child()
+    remove_button = Gtk.Template.Child()
+    move_rename_button = Gtk.Template.Child() # Added
     git_pull_button = Gtk.Template.Child()
     git_push_button = Gtk.Template.Child()
     toast_overlay = Gtk.Template.Child()
@@ -39,13 +41,15 @@ class SecretsWindow(Adw.ApplicationWindow):
         # Set initial state for details view
         self.details_stack.set_visible_child_name("placeholder")
         self.copy_password_button.set_sensitive(False)
-        self.edit_button.set_sensitive(False) # Added
-        self.remove_button.set_sensitive(False) # Added
+        self.edit_button.set_sensitive(False)
+        self.remove_button.set_sensitive(False)
+        self.move_rename_button.set_sensitive(False) # Added
 
         # Connect signals for buttons
         self.copy_password_button.connect("clicked", self.on_copy_password_clicked)
-        self.edit_button.connect("clicked", self.on_edit_button_clicked) # Added
-        self.remove_button.connect("clicked", self.on_remove_button_clicked) # Added
+        self.edit_button.connect("clicked", self.on_edit_button_clicked)
+        self.remove_button.connect("clicked", self.on_remove_button_clicked)
+        self.move_rename_button.connect("clicked", self.on_move_rename_button_clicked) # Added
         self.git_pull_button.connect("clicked", self.on_git_pull_clicked)
         self.git_push_button.connect("clicked", self.on_git_push_clicked)
         self.search_entry.connect("search-changed", self.on_search_entry_changed) # Added
@@ -172,15 +176,18 @@ class SecretsWindow(Adw.ApplicationWindow):
                 self.copy_password_button.set_sensitive(False)
                 self.edit_button.set_sensitive(False)
                 self.remove_button.set_sensitive(False)
+                # self.move_rename_button.set_sensitive(True) # Allow moving folders
             else: # It's a password file
                 self.copy_password_button.set_sensitive(True)
                 self.edit_button.set_sensitive(True)
                 self.remove_button.set_sensitive(True)
+            self.move_rename_button.set_sensitive(True) # Enable if any item (file or folder) is selected
         else:
             self.details_stack.set_visible_child_name("placeholder")
             self.copy_password_button.set_sensitive(False)
             self.edit_button.set_sensitive(False)
             self.remove_button.set_sensitive(False)
+            self.move_rename_button.set_sensitive(False)
 
     def on_copy_password_clicked(self, widget):
         model, tree_iter = self.treeview.get_selection().get_selected()
@@ -333,3 +340,34 @@ class SecretsWindow(Adw.ApplicationWindow):
             self.toast_overlay.add_toast(Adw.Toast.new(f"Search error: {result}"))
             # Optionally, restore full list on error:
             # self._load_passwords()
+
+    def on_move_rename_button_clicked(self, widget):
+        model, tree_iter = self.treeview.get_selection().get_selected()
+        if tree_iter is not None:
+            current_path = model.get_value(tree_iter, 1) # full_path
+
+            dialog = MoveRenameDialog(
+                current_path=current_path,
+                transient_for_window=self
+            )
+            dialog.connect("save-requested", self.on_move_rename_dialog_save_requested)
+            dialog.present()
+        else:
+            self.toast_overlay.add_toast(Adw.Toast.new("No item selected to move/rename."))
+
+    def on_move_rename_dialog_save_requested(self, dialog, old_path, new_path):
+        success, message = self.password_store.move_password(old_path, new_path)
+
+        if success:
+            self.toast_overlay.add_toast(Adw.Toast.new(message))
+            self._load_passwords() # Refresh the entire list as paths have changed
+            # Selection will be lost, on_treeview_selection_changed will handle UI reset
+            self.details_stack.set_visible_child_name("placeholder") # Explicitly reset view
+            self.copy_password_button.set_sensitive(False)
+            self.edit_button.set_sensitive(False)
+            self.remove_button.set_sensitive(False)
+            self.move_rename_button.set_sensitive(False)
+        else:
+            self.toast_overlay.add_toast(Adw.Toast.new(f"Error: {message}"))
+
+        dialog.close()
