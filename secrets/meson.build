@@ -5,7 +5,8 @@ python_sources = [
   'app_info.py',
   'password_store.py',
   'edit_dialog.py',
-  'move_rename_dialog.py'
+  'move_rename_dialog.py',
+  'add_password_dialog.py'
 ]
 
 install_data(python_sources, install_dir : python.get_install_dir() / 'secrets')

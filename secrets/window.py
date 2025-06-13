@@ -8,7 +8,8 @@ import os # For path manipulation in list_passwords if needed, though logic is i
 
 from .password_store import PasswordStore
 from .edit_dialog import EditPasswordDialog
-from .move_rename_dialog import MoveRenameDialog # Added
+from .move_rename_dialog import MoveRenameDialog
+from .add_password_dialog import AddPasswordDialog # Added
 
 @Gtk.Template(resource_path='/io/github/tobagin/secrets/ui/secrets.ui')
 class SecretsWindow(Adw.ApplicationWindow):
@@ -20,12 +21,13 @@ class SecretsWindow(Adw.ApplicationWindow):
     copy_password_button = Gtk.Template.Child()
     edit_button = Gtk.Template.Child()
     remove_button = Gtk.Template.Child()
-    move_rename_button = Gtk.Template.Child() # Added
+    move_rename_button = Gtk.Template.Child()
+    add_password_button = Gtk.Template.Child() # Added
     git_pull_button = Gtk.Template.Child()
     git_push_button = Gtk.Template.Child()
     toast_overlay = Gtk.Template.Child()
     treeview_scrolled_window = Gtk.Template.Child() # ScrolledWindow for TreeView
-    search_entry = Gtk.Template.Child() # Added
+    search_entry = Gtk.Template.Child()
 
     # We'll create the TreeView and its TreeStore programmatically
     # Gtk.TreeView itself is not easily templated if columns/renderers are complex.
@@ -49,10 +51,11 @@ class SecretsWindow(Adw.ApplicationWindow):
         self.copy_password_button.connect("clicked", self.on_copy_password_clicked)
         self.edit_button.connect("clicked", self.on_edit_button_clicked)
         self.remove_button.connect("clicked", self.on_remove_button_clicked)
-        self.move_rename_button.connect("clicked", self.on_move_rename_button_clicked) # Added
+        self.move_rename_button.connect("clicked", self.on_move_rename_button_clicked)
+        self.add_password_button.connect("clicked", self.on_add_password_button_clicked) # Added
         self.git_pull_button.connect("clicked", self.on_git_pull_clicked)
         self.git_push_button.connect("clicked", self.on_git_push_clicked)
-        self.search_entry.connect("search-changed", self.on_search_entry_changed) # Added
+        self.search_entry.connect("search-changed", self.on_search_entry_changed)
 
     def _build_treeview(self):
         # TreeStore: 0: display_name (str), 1: full_path (str), 2: is_folder (bool)
@@ -370,4 +373,45 @@ class SecretsWindow(Adw.ApplicationWindow):
         else:
             self.toast_overlay.add_toast(Adw.Toast.new(f"Error: {message}"))
 
+        dialog.close()
+
+    def on_add_password_button_clicked(self, widget):
+        suggested_path = ""
+        model, tree_iter = self.treeview.get_selection().get_selected()
+        if tree_iter is not None:
+            path = model.get_value(tree_iter, 1) # full_path
+            is_folder = model.get_value(tree_iter, 2) # is_folder
+            if is_folder:
+                suggested_path = path # Pass the folder path as suggestion
+            else:
+                # If a file is selected, suggest its parent folder
+                suggested_path = os.path.dirname(path) if os.path.dirname(path) else ""
+
+        dialog = AddPasswordDialog(
+            transient_for_window=self,
+            suggested_folder_path=suggested_path
+        )
+        dialog.connect("add-requested", self.on_add_dialog_add_requested)
+        dialog.present()
+
+    def on_add_dialog_add_requested(self, dialog, path, content):
+        # Use force=False to prevent overwriting existing entries by mistake.
+        # `pass insert` without -f will fail if the entry already exists.
+        success, message = self.password_store.insert_password(path, content, multiline=True, force=False)
+
+        if success:
+            self.toast_overlay.add_toast(Adw.Toast.new(message))
+            self._load_passwords() # Refresh the list
+        else:
+            # Check if the error message indicates it already exists
+            if "already exists" in message.lower(): # Crude check, but often pass says this
+                # More specific error for this case
+                error_toast_msg = f"Error: '{path}' already exists. Choose a different name or path."
+            else:
+                error_toast_msg = f"Error adding password: {message}"
+            self.toast_overlay.add_toast(Adw.Toast.new(error_toast_msg))
+
+        # Only close dialog on success, or provide a way for user to correct path?
+        # For now, let's close it always, user can re-open if path was bad.
+        # A better UX might keep dialog open on "already exists" and highlight path field.
         dialog.close()
