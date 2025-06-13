@@ -1,6 +1,7 @@
 import os
 import subprocess
 import glob # For listing files
+import re # Added
 
 class PasswordStore:
     def __init__(self, store_dir=None):
@@ -321,6 +322,76 @@ class PasswordStore:
             return False, "The 'pass' command was not found. Is it installed and in your PATH?"
         except Exception as e:
             return False, f"An unexpected error occurred while moving: {e}"
+
+    def get_parsed_password_details(self, path_to_password):
+        """
+        Retrieves and parses the content of the specified password file.
+        Extracts password (first line), username, URL, and other notes.
+        Returns a dictionary with parsed fields, or an error string.
+        Example return:
+        {
+            'password': 'actual_password',
+            'username': 'user123',
+            'url': 'https://example.com',
+            'notes': 'Other details...',
+            'full_content': 'raw_decrypted_content' # For edit dialog
+        }
+        Returns {'error': 'error message'} on failure to retrieve content.
+        Fields in the success dictionary can be None if not found.
+        """
+        success, full_content = self.get_password_content(path_to_password)
+
+        if not success:
+            return {'error': full_content} # full_content is the error message here
+
+        details = {
+            'password': None,
+            'username': None,
+            'url': None,
+            'notes': [], # Store notes as a list of lines initially
+            'full_content': full_content
+        }
+
+        lines = full_content.splitlines()
+
+        if not lines:
+            # Empty file, but content retrieval was successful
+            return details
+
+        # Password is the first line
+        details['password'] = lines[0]
+
+        # Process remaining lines for username, URL, etc.
+        other_lines = lines[1:]
+        unclaimed_lines = [] # Lines that aren't username or URL
+
+        # Regex for username (case-insensitive key, various separators)
+        # Allows 'login:', 'user :', 'Username = value' etc.
+        username_regex = re.compile(r"^(login|user(?:name)?)\s*[:=-]?\s*(.+)$", re.IGNORECASE)
+        # Regex for URL (simple version, assumes it starts with http/https or www.)
+        url_regex = re.compile(r"^(https?://[^\s]+|[wW]{3}\.[^\s]+)$") # More permissive: re.compile(r"^\S+://\S+$")
+
+        for line in other_lines:
+            username_match = username_regex.match(line)
+            if not details['username'] and username_match: # Take first username found
+                details['username'] = username_match.group(2).strip()
+                continue # Line claimed as username
+
+            # Check for URL after username, as some URLs might have 'user' in them
+            # A simple check: if the line looks like a URL.
+            # More robust URL detection can be complex.
+            url_match = url_regex.match(line.strip()) # Strip line for URL check
+            if not details['url'] and url_match: # Take first URL found
+                details['url'] = url_match.group(0) # The whole match is the URL
+                continue # Line claimed as URL
+
+            unclaimed_lines.append(line)
+
+        details['notes'] = "\n".join(unclaimed_lines).strip()
+        if not details['notes']: # Ensure notes is None if empty after join/strip
+            details['notes'] = None
+
+        return details
 
 if __name__ == '__main__':
     # Example Usage (for testing this module directly)

@@ -3,8 +3,8 @@ import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 
-from gi.repository import Gtk, Adw, Gio, GObject # Added GObject for custom TreeStore columns
-import os # For path manipulation in list_passwords if needed, though logic is in PasswordStore
+from gi.repository import Gtk, Adw, Gio, GObject, Gdk # Added Gdk, GObject
+import os
 
 from .password_store import PasswordStore
 from .edit_dialog import EditPasswordDialog
@@ -17,42 +17,60 @@ class SecretsWindow(Adw.ApplicationWindow):
 
     # Define template children for UI elements defined in secrets.ui
     details_stack = Gtk.Template.Child()
-    selected_password_label = Gtk.Template.Child()
-    copy_password_button = Gtk.Template.Child()
+    # selected_password_label = Gtk.Template.Child() # Replaced by path_row and specific labels
+    path_row = Gtk.Template.Child()
+    password_expander_row = Gtk.Template.Child()
+    password_display_label = Gtk.Template.Child()
+    show_hide_password_button = Gtk.Template.Child()
+    copy_password_button_in_row = Gtk.Template.Child()
+    username_row = Gtk.Template.Child()
+    copy_username_button = Gtk.Template.Child()
+    url_row = Gtk.Template.Child()
+    open_url_button = Gtk.Template.Child()
+    notes_display_label = Gtk.Template.Child()
+
     edit_button = Gtk.Template.Child()
     remove_button = Gtk.Template.Child()
     move_rename_button = Gtk.Template.Child()
-    add_password_button = Gtk.Template.Child() # Added
+    add_password_button = Gtk.Template.Child()
     git_pull_button = Gtk.Template.Child()
     git_push_button = Gtk.Template.Child()
     toast_overlay = Gtk.Template.Child()
-    treeview_scrolled_window = Gtk.Template.Child() # ScrolledWindow for TreeView
+    treeview_scrolled_window = Gtk.Template.Child()
     search_entry = Gtk.Template.Child()
 
     # We'll create the TreeView and its TreeStore programmatically
-    # Gtk.TreeView itself is not easily templated if columns/renderers are complex.
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.password_store = PasswordStore() # Instantiate the password store
+        self._password_visible = False
+        self._current_password = None # Store the actual password string when revealed
 
-        self._build_treeview() # Create and set up the TreeView
-        self._load_passwords() # Load passwords into the TreeView
+        self.password_store = PasswordStore()
+
+        self._build_treeview()
+        self._load_passwords()
 
         # Set initial state for details view
         self.details_stack.set_visible_child_name("placeholder")
-        self.copy_password_button.set_sensitive(False)
-        self.edit_button.set_sensitive(False)
-        self.remove_button.set_sensitive(False)
-        self.move_rename_button.set_sensitive(False) # Added
+        # Initial sensitivity of action buttons in details view is handled by on_treeview_selection_changed
+        # which is called indirectly by _load_passwords if items exist, or explicitly if not.
+        # Call it here to ensure correct initial state if store is empty.
+        self.on_treeview_selection_changed(self.treeview.get_selection())
+
 
         # Connect signals for buttons
-        self.copy_password_button.connect("clicked", self.on_copy_password_clicked)
+        # self.copy_password_button.connect("clicked", self.on_copy_password_clicked) # Old button, now part of row
+        self.copy_password_button_in_row.connect("clicked", self.on_copy_password_clicked)
+        self.show_hide_password_button.connect("toggled", self.on_show_hide_password_toggled)
+        self.copy_username_button.connect("clicked", self.on_copy_username_clicked)
+        self.open_url_button.connect("clicked", self.on_open_url_clicked)
+
         self.edit_button.connect("clicked", self.on_edit_button_clicked)
         self.remove_button.connect("clicked", self.on_remove_button_clicked)
         self.move_rename_button.connect("clicked", self.on_move_rename_button_clicked)
-        self.add_password_button.connect("clicked", self.on_add_password_button_clicked) # Added
+        self.add_password_button.connect("clicked", self.on_add_password_button_clicked)
         self.git_pull_button.connect("clicked", self.on_git_pull_clicked)
         self.git_push_button.connect("clicked", self.on_git_push_clicked)
         self.search_entry.connect("search-changed", self.on_search_entry_changed)
@@ -169,44 +187,111 @@ class SecretsWindow(Adw.ApplicationWindow):
     def on_treeview_selection_changed(self, selection):
         model, tree_iter = selection.get_selected()
         if tree_iter is not None:
-            full_path = model.get_value(tree_iter, 1) # column 1: full_path
-            is_folder = model.get_value(tree_iter, 2) # column 2: is_folder
+            full_path = model.get_value(tree_iter, 1)
+            is_folder = model.get_value(tree_iter, 2)
 
-            self.selected_password_label.set_text(os.path.basename(full_path)) # Show just name, not full path
             self.details_stack.set_visible_child_name("details")
 
             if is_folder:
-                self.copy_password_button.set_sensitive(False)
-                self.edit_button.set_sensitive(False)
-                self.remove_button.set_sensitive(False)
-                # self.move_rename_button.set_sensitive(True) # Allow moving folders
+                self.path_row.set_subtitle(full_path)
+                self.password_expander_row.set_subtitle("N/A for folders")
+                self._current_password = None
+                self._update_password_display(False)
+                self.username_row.set_subtitle("N/A for folders")
+                self.url_row.set_subtitle("N/A for folders")
+                self.notes_display_label.set_text("")
+
+                self.copy_password_button_in_row.set_sensitive(False)
+                self.show_hide_password_button.set_sensitive(False)
+                self.copy_username_button.set_sensitive(False)
+                self.open_url_button.set_sensitive(False)
+                self.edit_button.set_sensitive(False) # Cannot edit a folder's "content"
+                self.remove_button.set_sensitive(True) # Allow deleting empty folders (pass rm foldername)
+                self.move_rename_button.set_sensitive(True)
             else: # It's a password file
-                self.copy_password_button.set_sensitive(True)
-                self.edit_button.set_sensitive(True)
-                self.remove_button.set_sensitive(True)
-            self.move_rename_button.set_sensitive(True) # Enable if any item (file or folder) is selected
-        else:
+                details = self.password_store.get_parsed_password_details(full_path)
+                if 'error' in details:
+                    self.toast_overlay.add_toast(Adw.Toast.new(f"Error loading details: {details['error']}"))
+                    self.path_row.set_subtitle(full_path) # Still show path
+                    self.password_expander_row.set_subtitle("Error")
+                    self._current_password = None
+                    self._update_password_display(False)
+                    self.username_row.set_subtitle("Error")
+                    self.url_row.set_subtitle("Error")
+                    self.notes_display_label.set_text("Error loading details.")
+
+                    self.copy_password_button_in_row.set_sensitive(False)
+                    self.show_hide_password_button.set_sensitive(False)
+                    self.copy_username_button.set_sensitive(False)
+                    self.open_url_button.set_sensitive(False)
+                    # Allow edit/delete/move even if content parsing fails, as path is known
+                    self.edit_button.set_sensitive(True)
+                    self.remove_button.set_sensitive(True)
+                    self.move_rename_button.set_sensitive(True)
+                else:
+                    self.path_row.set_subtitle(full_path)
+                    self._current_password = details.get('password')
+                    self._update_password_display(False) # Init with password hidden
+
+                    username = details.get('username')
+                    self.username_row.set_subtitle(username if username else "Not set")
+                    self.copy_username_button.set_sensitive(bool(username))
+
+                    url = details.get('url')
+                    self.url_row.set_subtitle(url if url else "Not set")
+                    self.open_url_button.set_sensitive(bool(url))
+
+                    self.notes_display_label.set_text(details.get('notes') if details.get('notes') else "")
+
+                    self.copy_password_button_in_row.set_sensitive(bool(self._current_password))
+                    self.show_hide_password_button.set_sensitive(bool(self._current_password))
+                    self.edit_button.set_sensitive(True)
+                    self.remove_button.set_sensitive(True)
+                    self.move_rename_button.set_sensitive(True)
+        else: # No item selected
             self.details_stack.set_visible_child_name("placeholder")
-            self.copy_password_button.set_sensitive(False)
+            self._current_password = None # Clear any stored password
+            # Clear all detail fields
+            self.path_row.set_subtitle("")
+            self.password_expander_row.set_subtitle("")
+            self._update_password_display(False) # Reset password display
+            self.username_row.set_subtitle("")
+            self.url_row.set_subtitle("")
+            self.notes_display_label.set_text("")
+            # Disable all action buttons
+            self.copy_password_button_in_row.set_sensitive(False)
+            self.show_hide_password_button.set_sensitive(False)
+            self.copy_username_button.set_sensitive(False)
+            self.open_url_button.set_sensitive(False)
             self.edit_button.set_sensitive(False)
             self.remove_button.set_sensitive(False)
             self.move_rename_button.set_sensitive(False)
 
-    def on_copy_password_clicked(self, widget):
-        model, tree_iter = self.treeview.get_selection().get_selected()
-        if tree_iter is not None:
-            password_path = model.get_value(tree_iter, 1)
-            is_folder = model.get_value(tree_iter, 2)
-
-            if not is_folder:
-                success, message = self.password_store.copy_password(password_path)
-                if success:
-                    toast_message = f"Copied '{os.path.basename(password_path)}' to clipboard."
-                    self.toast_overlay.add_toast(Adw.Toast.new(toast_message))
+    def on_copy_password_clicked(self, widget): # Now refers to copy_password_button_in_row
+        # This method now primarily copies the currently stored self._current_password
+        # if it's visible or if an item is selected and it's a password.
+        # For direct clipboard interaction without revealing, `pass show -c` is better.
+        # Let's assume this button is for copying the displayed/stored password.
+        if self._current_password:
+            clipboard = Gtk.Clipboard.get_default(self.get_display())
+            clipboard.set_text(self._current_password, -1)
+            self.toast_overlay.add_toast(Adw.Toast.new(f"Password for '{os.path.basename(self.path_row.get_subtitle())}' copied to clipboard."))
+        else:
+            # Fallback or if called when no password selected/available
+            model, tree_iter = self.treeview.get_selection().get_selected()
+            if tree_iter is not None:
+                password_path = model.get_value(tree_iter, 1)
+                is_folder = model.get_value(tree_iter, 2)
+                if not is_folder:
+                    success, message = self.password_store.copy_password(password_path) # Uses pass -c
+                    if success:
+                         self.toast_overlay.add_toast(Adw.Toast.new(message)) # pass -c provides its own message
+                    else:
+                        self.toast_overlay.add_toast(Adw.Toast.new(f"Error: {message}"))
                 else:
-                    self.toast_overlay.add_toast(Adw.Toast.new(f"Error: {message}"))
+                    self.toast_overlay.add_toast(Adw.Toast.new("Cannot copy a folder."))
             else:
-                self.toast_overlay.add_toast(Adw.Toast.new("Cannot copy a folder."))
+                 self.toast_overlay.add_toast(Adw.Toast.new("No password selected to copy."))
 
 
     def on_git_pull_clicked(self, widget):
@@ -343,6 +428,54 @@ class SecretsWindow(Adw.ApplicationWindow):
             self.toast_overlay.add_toast(Adw.Toast.new(f"Search error: {result}"))
             # Optionally, restore full list on error:
             # self._load_passwords()
+
+    def _update_password_display(self, show_password):
+        if hasattr(self, '_current_password') and self._current_password:
+            if show_password:
+                self.password_display_label.set_text(self._current_password)
+                self.password_expander_row.set_subtitle(self._current_password) # Or "Visible"
+                self.show_hide_password_button.set_icon_name("view-conceal-symbolic")
+            else:
+                self.password_display_label.set_text("●" * len(self._current_password) if self._current_password else "")
+                self.password_expander_row.set_subtitle("●●●●●●●●") # Or "Hidden"
+                self.show_hide_password_button.set_icon_name("view-reveal-symbolic")
+            self._password_visible = show_password
+            self.show_hide_password_button.set_active(show_password) # Sync toggle button state
+        else: # No current password loaded
+            self.password_display_label.set_text("")
+            self.password_expander_row.set_subtitle("")
+            self.show_hide_password_button.set_icon_name("view-reveal-symbolic")
+            self.show_hide_password_button.set_active(False)
+            self._password_visible = False
+
+    def on_show_hide_password_toggled(self, toggle_button):
+        # state = toggle_button.get_active() # The button state has already changed
+        self._password_visible = toggle_button.get_active()
+        self._update_password_display(self._password_visible)
+
+    def on_copy_username_clicked(self, widget):
+        username = self.username_row.get_subtitle()
+        if username and username != "Not set" and username != "N/A for folders":
+            clipboard = Gtk.Clipboard.get_default(self.get_display())
+            clipboard.set_text(username, -1)
+            self.toast_overlay.add_toast(Adw.Toast.new(f"Username '{username}' copied to clipboard."))
+        else:
+            self.toast_overlay.add_toast(Adw.Toast.new("No username to copy."))
+
+    def on_open_url_clicked(self, widget):
+        url = self.url_row.get_subtitle()
+        if url and url != "Not set" and url != "N/A for folders" and (url.startswith("http://") or url.startswith("https://") or url.startswith("www.")):
+            try:
+                actual_url_to_open = url
+                if url.startswith("www."):
+                    actual_url_to_open = "http://" + url
+
+                Gtk.show_uri(None, actual_url_to_open, Gdk.CURRENT_TIME)
+                self.toast_overlay.add_toast(Adw.Toast.new(f"Attempting to open URL: {actual_url_to_open}"))
+            except Exception as e:
+                self.toast_overlay.add_toast(Adw.Toast.new(f"Error opening URL: {e}"))
+        else:
+            self.toast_overlay.add_toast(Adw.Toast.new("No valid URL to open."))
 
     def on_move_rename_button_clicked(self, widget):
         model, tree_iter = self.treeview.get_selection().get_selected()
