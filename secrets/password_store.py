@@ -2,13 +2,17 @@ import os
 import subprocess
 import glob # For listing files
 import re # Added
+import gi # Added
+gi.require_version("Adw", "1") # Added
+from gi.repository import Adw, Gio, GLib # Added GLib
 
 class PasswordStore:
     def __init__(self, store_dir=None):
-        self.store_dir = self._determine_store_dir(store_dir)
-        if not os.path.isdir(self.store_dir):
-            # Consider raising a custom exception
-            raise FileNotFoundError(f"Password store directory not found: {self.store_dir}")
+        self.store_dir_override = store_dir # Store the override if provided
+        self.store_dir = self._determine_store_dir(self.store_dir_override)
+        self.is_initialized = os.path.isdir(self.store_dir)
+        self.gpg_health_status = None  # Will be set by validate_gpg_setup()
+        # Don't raise error here immediately; let UI handle prompting.
 
     def _determine_store_dir(self, store_dir_override=None):
         """Determines the password store directory."""
@@ -23,12 +27,326 @@ class PasswordStore:
         # Default to ~/.password-store
         return os.path.expanduser("~/.password-store")
 
+    def validate_complete_setup(self):
+        """
+        Validates the complete setup including pass, GPG, and password store.
+        Returns a tuple (is_valid, status_dict) where status_dict contains:
+        - 'pass_installed': bool
+        - 'gpg_installed': bool
+        - 'gpg_keys_exist': bool
+        - 'store_gpg_id_exists': bool
+        - 'store_gpg_id': str or None
+        - 'error_message': str or None
+        - 'suggested_action': str or None
+        - 'missing_dependencies': list
+        - 'setup_required': bool
+        """
+        status = {
+            'pass_installed': False,
+            'gpg_installed': False,
+            'gpg_keys_exist': False,
+            'store_gpg_id_exists': False,
+            'store_gpg_id': None,
+            'error_message': None,
+            'suggested_action': None,
+            'missing_dependencies': [],
+            'setup_required': False
+        }
+
+        # Check if pass is installed
+        if not self._is_pass_installed():
+            status['missing_dependencies'].append('pass')
+            status['error_message'] = "The 'pass' command is not installed"
+            status['suggested_action'] = "Install pass (password-store) package"
+            status['setup_required'] = True
+            return False, status
+        else:
+            status['pass_installed'] = True
+
+        # Check if GPG is installed
+        try:
+            result = subprocess.run(["gpg", "--version"], capture_output=True, text=True, timeout=5)
+            if result.returncode == 0:
+                status['gpg_installed'] = True
+            else:
+                status['missing_dependencies'].append('gpg')
+                status['error_message'] = "GPG command failed"
+                status['suggested_action'] = "Install GnuPG (gpg)"
+                status['setup_required'] = True
+                return False, status
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            status['missing_dependencies'].append('gpg')
+            status['error_message'] = "GPG not found or not responding"
+            status['suggested_action'] = "Install GnuPG (gpg)"
+            status['setup_required'] = True
+            return False, status
+        except Exception as e:
+            status['missing_dependencies'].append('gpg')
+            status['error_message'] = f"Error checking GPG: {e}"
+            status['suggested_action'] = "Check GPG installation"
+            status['setup_required'] = True
+            return False, status
+
+        # Check if any GPG keys exist
+        try:
+            result = subprocess.run(["gpg", "--list-secret-keys", "--with-colons"],
+                                  capture_output=True, text=True, timeout=10)
+            if result.returncode == 0 and result.stdout.strip():
+                status['gpg_keys_exist'] = True
+            else:
+                status['error_message'] = "No GPG secret keys found"
+                status['suggested_action'] = "Create a GPG key automatically or manually"
+                status['setup_required'] = True
+                return False, status
+        except subprocess.TimeoutExpired:
+            status['error_message'] = "GPG key listing timed out (possible lock issue)"
+            status['suggested_action'] = "Restart GPG agent: gpgconf --kill gpg-agent"
+            status['setup_required'] = True
+            return False, status
+        except Exception as e:
+            status['error_message'] = f"Error listing GPG keys: {e}"
+            status['suggested_action'] = "Check GPG configuration"
+            status['setup_required'] = True
+            return False, status
+
+        # Check if password store has a GPG ID configured
+        if self.is_initialized:
+            gpg_id_file = os.path.join(self.store_dir, ".gpg-id")
+            if os.path.exists(gpg_id_file):
+                try:
+                    with open(gpg_id_file, 'r') as f:
+                        store_gpg_id = f.read().strip()
+                        status['store_gpg_id'] = store_gpg_id
+
+                        # Check if this GPG ID exists in the keyring
+                        result = subprocess.run(["gpg", "--list-keys", store_gpg_id],
+                                              capture_output=True, text=True, timeout=5)
+                        if result.returncode == 0:
+                            status['store_gpg_id_exists'] = True
+                            self.gpg_health_status = status
+                            return True, status
+                        else:
+                            status['error_message'] = f"Password store GPG key '{store_gpg_id}' not found in keyring"
+                            status['suggested_action'] = f"Import the key or re-initialize store"
+                            status['setup_required'] = True
+                            return False, status
+                except Exception as e:
+                    status['error_message'] = f"Error reading .gpg-id file: {e}"
+                    status['suggested_action'] = "Check password store directory permissions"
+                    status['setup_required'] = True
+                    return False, status
+            else:
+                status['error_message'] = "Password store exists but has no .gpg-id file"
+                status['suggested_action'] = "Re-initialize the password store"
+                status['setup_required'] = True
+                return False, status
+        else:
+            # Store not initialized, but GPG setup is valid
+            status['error_message'] = "Password store not initialized"
+            status['suggested_action'] = "Initialize password store automatically"
+            status['setup_required'] = True
+            return False, status
+
+    def validate_gpg_setup(self):
+        """
+        Backward compatibility method for GPG-only validation.
+        Use validate_complete_setup() for comprehensive validation.
+        """
+        is_valid, status = self.validate_complete_setup()
+        # Remove pass-specific fields for backward compatibility
+        gpg_status = {k: v for k, v in status.items()
+                     if k not in ['pass_installed', 'missing_dependencies', 'setup_required']}
+        return is_valid, gpg_status
+
+    def get_gpg_status_message(self, status=None):
+        """
+        Returns a user-friendly message about the current GPG setup status.
+        Can be called with a status dict or will use stored status from validate_gpg_setup().
+        """
+        if status is None:
+            status = self.gpg_health_status
+
+        if not status:
+            return "GPG status unknown. Run validation first."
+
+        if not status['gpg_installed']:
+            return "❌ GnuPG (gpg) is not installed or not working properly."
+
+        if not status['gpg_keys_exist']:
+            return "❌ No GPG keys found. You need to create a GPG key first."
+
+        if not self.is_initialized:
+            return "⚠️ Password store is not initialized. GPG is working but the store needs setup."
+
+        if not status['store_gpg_id_exists']:
+            gpg_id = status.get('store_gpg_id', 'unknown')
+            return f"❌ Password store is configured for GPG key '{gpg_id}' but this key is not in your keyring."
+
+        return "✅ GPG setup is working correctly."
+
+    def _is_pass_installed(self):
+        """Checks if the 'pass' command-line tool is installed and executable."""
+        try:
+            # Try running a simple, non-modifying pass command like 'pass version' or 'pass help'
+            # 'pass help' is generally safe and available.
+            process = subprocess.run(["pass", "help"], capture_output=True, text=True, check=False)
+            # If FileNotFoundError is not raised, pass is considered found.
+            # We don't strictly need to check process.returncode here,
+            # as we're only interested in whether the command itself can be executed.
+            return True
+        except FileNotFoundError:
+            return False
+        except Exception:
+            # Other potential errors during subprocess.run, assume pass is not usable.
+            return False
+
+
+    def ensure_store_initialized(self, parent_window=None):
+        """
+        Checks if the password store directory exists. If not, prompts the user
+        to create it. This method is intended to be called from the UI layer.
+        Returns True if the store is ready to use, False otherwise.
+        """
+        if self.is_initialized:
+            return True
+
+        if parent_window: # Only prompt if we have a parent window for the dialog
+            dialog = Adw.Dialog(
+                heading="Password Store Setup",
+                body=f"The password store directory at '{self.store_dir}' does not exist.\n\nWhat would you like to do?",
+                transient_for=parent_window,
+                modal=True
+            )
+            # Note: This code uses old MessageDialog API and needs updating to work with new Adw.Dialog
+            # For now, we'll use a simpler approach
+            dialog.add_response("cancel", "_Cancel")
+            dialog.add_response("create_and_init", "Create & _Initialize")
+
+            # Gtk.Dialog.run() is deprecated. For Adw.MessageDialog, present and connect to response.
+            # For simplicity in this step, we'll use a blocking approach if possible,
+            # or adapt to an async pattern if strictly necessary.
+            # Adw.MessageDialog doesn't have a direct run_sync().
+            # We'll need to handle the response asynchronously or use a Gtk.Dialog for sync.
+            # Let's keep it simple for now and assume a way to get a sync response or adapt.
+            # For a real app, an async approach with callbacks is better.
+            # This is a placeholder for a synchronous-like interaction:
+            response = None
+            loop = GLib.MainLoop()
+            def on_response(dialog_instance, res_id):
+                nonlocal response, loop
+                response = res_id
+                loop.quit()
+
+            dialog.connect("response", on_response)
+            dialog.present()
+            loop.run() # This blocks until loop.quit() is called
+            dialog.close() # Explicitly close after handling
+
+            if response == "create_only" or response == "create_and_init":
+                try:
+                    os.makedirs(self.store_dir, exist_ok=True)
+                    # Directory created. If only creating, self.is_initialized remains False.
+                    # If initializing, proceed to get GPG ID.
+                    if response == "create_and_init":
+                        if not self._is_pass_installed():
+                            # 'pass' command is not found, show a dialog to inform the user.
+                            pass_not_found_dialog = Adw.Dialog(
+                                heading="'pass' Command Not Found",
+                                body="The 'pass' command-line tool was not found on your system.\n\nPlease install 'pass' (the standard unix password manager) and try again.",
+                                transient_for=parent_window,
+                                modal=True
+                            )
+                            pass_not_found_dialog.add_response("ok_pass_missing", "_OK")
+                            pass_not_found_dialog.connect("response", lambda d, r: d.close())
+                            pass_not_found_dialog.present()
+                            # Do not proceed with GPG ID prompt or initialization.
+                        else:
+                            # 'pass' is installed, proceed to get GPG ID and initialize.
+                            gpg_id = self._prompt_for_gpg_id(parent_window)
+                            if gpg_id:
+                                init_success, init_message = self.init_store(gpg_id)
+                                if init_success:
+                                    self.is_initialized = True
+                                    # Optionally show a success toast from main window later
+                                else:
+                                    # Show error from init_store attempt
+                                    err_dialog = Adw.Dialog(
+                                        heading="Initialization Failed",
+                                        body=f"Failed to initialize the password store with GPG ID '{gpg_id}'.\n\nError: {init_message}\n\nPlease ensure the GPG ID is correct and try initializing manually from the terminal: 'pass init {gpg_id}'",
+                                        transient_for=parent_window,
+                                        modal=True
+                                    )
+                                    err_dialog.add_response("ok", "_OK")
+                                    err_dialog.connect("response", lambda d, r: d.close())
+                                    err_dialog.present()
+                            else:
+                                # User cancelled GPG ID input or entered empty GPG ID
+                                pass # self.is_initialized remains False
+                    # else (response == "create_only"):
+                    #   Directory created, but not initialized. self.is_initialized is still False.
+                    #   The main window will show a toast indicating manual init is needed.
+                except OSError as e:
+                    # Handle error (e.g., show another dialog)
+                    print(f"Error creating directory {self.store_dir}: {e}")
+                    # Show error dialog for directory creation failure
+                    err_dialog = Adw.Dialog(
+                        heading="Directory Creation Failed",
+                        body=f"Could not create the directory '{self.store_dir}'.\n\nError: {e}",
+                        transient_for=parent_window,
+                        modal=True
+                    )
+                    err_dialog.add_response("ok", "_OK")
+                    err_dialog.connect("response", lambda d, r: d.close())
+                    err_dialog.present()
+            # Return the current state of is_initialized
+            return self.is_initialized
+        else:
+            print(f"Password store directory not found: {self.store_dir}. Cannot prompt without parent window.")
+            return False
+
+    def _prompt_for_gpg_id(self, parent_window):
+        dialog = Adw.Dialog(
+            heading="Initialize Password Store",
+            body="Enter your GPG Key ID (e.g., email@example.com or a key fingerprint) to initialize the store.",
+            transient_for=parent_window,
+            modal=True
+        )
+        entry_row = Adw.EntryRow(title="GPG Key ID")
+        dialog.set_extra_child(entry_row)
+        dialog.add_response("cancel_init", "_Cancel")
+        dialog.add_response("initialize_store_action", "_Initialize")
+        dialog.set_default_response("initialize_store_action")
+
+        # Synchronous handling for simplicity here
+        response_id = None
+        loop = GLib.MainLoop()
+        def on_response(d, res_id):
+            nonlocal response_id, loop
+            response_id = res_id
+            loop.quit()
+        dialog.connect("response", on_response)
+        dialog.present()
+        loop.run()
+
+        gpg_id_text = None
+        if response_id == "initialize_store_action":
+            gpg_id_text = entry_row.get_text().strip()
+            if not gpg_id_text: # Basic validation
+                gpg_id_text = None # Treat empty as cancel
+        
+        dialog.close() # Ensure dialog is closed
+        return gpg_id_text
+
     def list_passwords(self):
         """
         Recursively scans the password store directory and returns a list of password entries.
         Each entry could be a dictionary or a custom object representing a password or folder.
         For now, it will return a flat list of paths relative to the store root.
         Ignores the .git directory and other non-password files.
+
+        Note: This method only lists .gpg files that exist. If GPG setup is invalid,
+        passwords may exist but not be accessible. Use validate_gpg_setup() to check
+        for GPG-related issues.
         """
         if not self.store_dir or not os.path.isdir(self.store_dir):
             return []
@@ -126,6 +444,35 @@ class PasswordStore:
             return False, "The 'pass' command was not found. Is it installed and in your PATH?"
         except Exception as e:
             return False, f"An unexpected error occurred: {e}"
+
+    def init_store(self, gpg_id):
+        """
+        Initializes the password store with `pass init <gpg_id>`.
+        Returns True on success, False otherwise, along with output/error.
+        """
+        if not gpg_id:
+            return False, "GPG ID cannot be empty."
+        try:
+            command = ["pass", "init", gpg_id]
+            env = os.environ.copy()
+            if self.store_dir != os.path.expanduser("~/.password-store"):
+                 env["PASSWORD_STORE_DIR"] = self.store_dir
+
+            process = subprocess.run(command, capture_output=True, text=True, check=False, env=env)
+
+            if process.returncode == 0:
+                # Check if .gpg-id file was created as a sign of success
+                if os.path.exists(os.path.join(self.store_dir, ".gpg-id")):
+                    return True, f"Password store initialized successfully with GPG ID: {gpg_id}."
+                else: # pass init might return 0 but fail to create .gpg-id if GPG ID is invalid
+                    return False, f"'{gpg_id}' may not be a valid GPG ID or GPG setup issue. Store not fully initialized."
+            else:
+                error_message = process.stderr.strip() if process.stderr.strip() else process.stdout.strip()
+                return False, f"Error initializing password store: {error_message}"
+        except FileNotFoundError:
+            return False, "The 'pass' command was not found. Is it installed and in your PATH?"
+        except Exception as e:
+            return False, f"An unexpected error occurred during initialization: {e}"
 
     def delete_password(self, path_to_password):
         """
@@ -238,8 +585,13 @@ class PasswordStore:
             if self.store_dir != os.path.expanduser("~/.password-store"):
                  env["PASSWORD_STORE_DIR"] = self.store_dir
 
+            # Debug: Print command and environment
+            print(f"DEBUG: Running command: {' '.join(command)}")
+            print(f"DEBUG: PATH: {env.get('PATH', 'Not set')}")
+
             # The content needs to be passed via stdin to the `pass insert` command
-            process = subprocess.run(command, input=content, capture_output=True, text=True, check=False, env=env)
+            # Add timeout to prevent hanging
+            process = subprocess.run(command, input=content, capture_output=True, text=True, check=False, env=env, timeout=30)
 
             if process.returncode == 0:
                 # `pass insert` might not output much on success
@@ -247,6 +599,8 @@ class PasswordStore:
             else:
                 error_message = process.stderr.strip() if process.stderr.strip() else process.stdout.strip()
                 return False, f"Error saving password '{path_to_password}': {error_message}"
+        except subprocess.TimeoutExpired:
+            return False, "The 'pass' command timed out. This might be due to GPG waiting for a passphrase or running in a sandboxed environment."
         except FileNotFoundError:
             return False, "The 'pass' command was not found. Is it installed and in your PATH?"
         except Exception as e:

@@ -1,0 +1,140 @@
+/* CSS styles for Secrets application */
+
+/* === LAYOUT AND MEASUREMENT FIXES === */
+
+/* Force all labels to have reasonable width constraints to prevent GTK measurement warnings */
+label {
+    min-width: 50px;
+    font-size: 0.95em; /* Slightly smaller font to reduce width requirements */
+}
+
+/* Aggressive constraints to prevent 345px measurement warnings */
+label, .title, .subtitle, row label, actionrow label {
+    min-width: 50px;
+}
+
+/* Force password label to have a fixed width to prevent GTK measurement warnings */
+.password-label {
+    min-width: 200px;
+}
+
+/* === DIALOG IMPROVEMENTS === */
+
+/* Ensure dialogs have proper spacing and appearance */
+window.dialog {
+    border-radius: 12px;
+}
+
+window.dialog headerbar {
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+/* Dialog content spacing */
+window.dialog box {
+    margin: 18px;
+}
+
+/* === BUTTON STYLING === */
+
+/* Improve button spacing in action areas */
+.dialog-action-area button {
+    margin: 0 6px;
+    min-width: 80px;
+}
+
+/* Button groups in main window */
+.password-actions button {
+    margin-end: 6px;
+}
+
+/* === PASSWORD DISPLAY === */
+
+/* Ensure password visible state is highlighted */
+.password-visible {
+    background-color: alpha(@accent_color, 0.1);
+    border-radius: 6px;
+    padding: 6px;
+}
+
+/* Password field styling */
+.password-field {
+    font-family: monospace;
+    background-color: alpha(@window_bg_color, 0.5);
+    border-radius: 6px;
+    padding: 8px;
+}
+
+/* === TYPOGRAPHY === */
+
+/* Monospace font for shortcuts and code */
+.monospace {
+    font-family: monospace;
+}
+
+/* Improved text hierarchy */
+.dialog-title {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.dialog-subtitle {
+    opacity: 0.7;
+    font-size: 0.9em;
+}
+
+/* === SPACING AND LAYOUT === */
+
+/* Consistent margins for preference groups */
+preferencesgroup {
+    margin-bottom: 18px;
+}
+
+/* Better spacing for action rows */
+row {
+    padding: 8px 12px;
+}
+
+/* Improved list spacing */
+listbox {
+    border-radius: 8px;
+}
+
+listbox row {
+    border-radius: 6px;
+    margin: 2px 4px;
+}
+
+/* === ANIMATIONS === */
+
+/* Smooth transitions for interactive elements */
+button, row, entry {
+    transition: all 200ms ease-in-out;
+}
+
+/* Hover effects */
+button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px alpha(@accent_color, 0.2);
+}
+
+row:hover {
+    background-color: alpha(@accent_color, 0.05);
+}
+
+/* === ACCESSIBILITY === */
+
+/* Focus indicators */
+*:focus {
+    outline: 2px solid @accent_color;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .password-visible {
+        background-color: @accent_color;
+        color: @accent_fg_color;
+    }
+}

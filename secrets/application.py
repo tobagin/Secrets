@@ -3,7 +3,7 @@ import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 
-from gi.repository import Gtk, Adw, Gio
+from gi.repository import Gtk, Adw, Gio, Gdk
 from .app_info import APP_ID, VERSION
 
 # SecretsWindow is imported locally in methods where needed to avoid circular imports
@@ -16,15 +16,46 @@ class SecretsApplication(Adw.Application):
     def do_startup(self):
         Adw.Application.do_startup(self)
 
+        # Load CSS styles
+        self._load_css()
+
         self.set_accels_for_action("app.quit", ["<Primary>q"])
-        self.set_accels_for_action("app.about", ["<Primary>comma"])
-        self.set_accels_for_action("app.preferences", ["<Primary>p"]) # Example
+        self.set_accels_for_action("app.about", ["<Primary>question"])
+        self.set_accels_for_action("app.preferences", ["<Primary>comma"])
+        self.set_accels_for_action("app.git-pull", ["<Primary><Shift>p"])
+        self.set_accels_for_action("app.git-push", ["<Primary><Shift>u"])
+
+        # Window-specific shortcuts
+        self.set_accels_for_action("win.add-password", ["<Primary>n"])
+        self.set_accels_for_action("win.edit-password", ["<Primary>e"])
+        self.set_accels_for_action("win.delete-password", ["Delete"])
+        self.set_accels_for_action("win.copy-password", ["<Primary>c"])
+        self.set_accels_for_action("win.copy-username", ["<Primary><Shift>c"])
+        self.set_accels_for_action("win.focus-search", ["<Primary>f"])
+        self.set_accels_for_action("win.clear-search", ["Escape"])
+        self.set_accels_for_action("win.refresh", ["F5"])
+        self.set_accels_for_action("win.toggle-password", ["<Primary>h"])
+        self.set_accels_for_action("win.generate-password", ["<Primary>g"])
 
         self._make_action("quit", self.on_quit_action)
         self._make_action("about", self.on_about_action)
         self._make_action("preferences", self.on_preferences_action)
         self._make_action("git-pull", self.on_git_pull_action)
         self._make_action("git-push", self.on_git_push_action)
+
+    def _load_css(self):
+        """Load CSS styles for the application."""
+        try:
+            css_provider = Gtk.CssProvider()
+            css_path = "/io/github/tobagin/secrets/ui/style.css"
+            css_provider.load_from_resource(css_path)
+
+            display = Gdk.Display.get_default()
+            Gtk.StyleContext.add_provider_for_display(
+                display, css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+            )
+        except Exception as e:
+            print(f"Failed to load CSS: {e}")
 
     def _make_action(self, name, callback_fn):
         action = Gio.SimpleAction.new(name, None)
@@ -64,11 +95,18 @@ class SecretsApplication(Adw.Application):
         self.quit()
 
     def on_preferences_action(self, action, param):
+        from .preferences_dialog import PreferencesDialog
+        from .window import SecretsWindow
+
         active_window = self.get_active_window()
-        if active_window and hasattr(active_window, 'toast_overlay'):
-            active_window.toast_overlay.add_toast(Adw.Toast.new("Preferences not yet implemented."))
+        if isinstance(active_window, SecretsWindow):
+            preferences_dialog = PreferencesDialog(
+                parent_window=active_window,
+                config_manager=active_window.config_manager
+            )
+            preferences_dialog.present()
         else:
-            print("Preferences action triggered. No active window with toast_overlay found.")
+            print("Preferences action triggered. No active SecretsWindow found.")
 
     def _call_window_method(self, method_name):
         from .window import SecretsWindow # Local import

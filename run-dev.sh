@@ -14,4 +14,4 @@ fi
 # 'secrets-dev' is the name of the executable defined in the root meson.build
 # meson devenv will set up PYTHONPATH and other env vars.
 echo "Running secrets-dev from ${BUILD_DIR}..."
-meson devenv -C "${BUILD_DIR}" ./secrets-dev "$@"
+meson devenv -C "${BUILD_DIR}" python3 -m secrets "$@"

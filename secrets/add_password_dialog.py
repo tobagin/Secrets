@@ -5,6 +5,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 
 from gi.repository import Gtk, Adw, GObject
+from .ui_utils import DialogManager, UIConstants, AccessibilityHelper
 
 class AddPasswordDialog(Adw.Window):
     __gtype_name__ = "AddPasswordDialog"
@@ -16,9 +17,17 @@ class AddPasswordDialog(Adw.Window):
         super().__init__(modal=True, transient_for=transient_for_window, **kwargs)
 
         self.set_title("Add New Password")
-        self.set_default_size(450, 400) # Similar to Edit dialog
+        self.set_default_size(*UIConstants.MEDIUM_DIALOG)
+        self.set_resizable(True)
 
-        main_vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        # Add dialog styling
+        self.add_css_class("dialog")
+
+        # Set up accessibility
+        AccessibilityHelper.set_accessible_name(self, "Add new password dialog")
+        AccessibilityHelper.set_accessible_description(self, "Dialog for creating a new password entry")
+
+        main_vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         self.set_content(main_vbox)
 
         # Header Bar
@@ -27,7 +36,7 @@ class AddPasswordDialog(Adw.Window):
 
         save_button = Gtk.Button(label="_Save", use_underline=True)
         save_button.connect("clicked", self.on_save_clicked)
-        save_button.get_style_context().add_class("suggested-action")
+        save_button.add_css_class("suggested-action")
         header_bar.pack_end(save_button)
 
         cancel_button = Gtk.Button(label="_Cancel", use_underline=True)
@@ -44,13 +53,19 @@ class AddPasswordDialog(Adw.Window):
         page.add(group)
 
         # New Password Path Entry
-        self.path_entry = Adw.EntryRow(title="Path")
-        self.path_entry.set_placeholder_text("e.g., Services/website.com/username")
+        self.path_entry = Adw.EntryRow()
+        self.path_entry.set_title("Path")
         if suggested_folder_path and not suggested_folder_path.endswith('/'):
             suggested_folder_path += '/'
         self.path_entry.set_text(suggested_folder_path) # Pre-fill if a folder was selected
         self.path_entry.connect("activate", self.on_path_entry_activated) # Go to content on Enter
         group.add(self.path_entry)
+
+        # Add a description row for the path format
+        path_description = Adw.ActionRow()
+        path_description.set_title("Examples: websites/github, email/gmail")
+        path_description.add_css_class("dim-label")
+        group.add(path_description)
 
         # Content TextView (within its own group or just below)
         content_group = Adw.PreferencesGroup(title="Password Content")

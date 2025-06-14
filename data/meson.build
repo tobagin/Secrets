@@ -1,3 +1,5 @@
+i18n = import('i18n')
+
 # Get project_id from the main meson.build file
 # This requires project_id to be defined in the root meson.build
 # For simplicity here, we'll redefine it or assume it's 'com.example.secrets'
@@ -6,12 +8,12 @@
 app_id = get_variable('project_id', 'io.github.tobagin.secrets')
 
 
-# UI files
+# UI files and CSS
 # We'll create secrets.ui soon.
 # If you use .blp (Blueprint) files, you'll need to set up blueprint-compiler
 # and change how these are handled.
 install_data(
-  ['secrets.ui'], # Add other .ui files here if you have them
+  ['secrets.ui', 'style.css'], # Add other .ui files here if you have them
   install_dir: get_option('datadir') / app_id / 'ui'
 )
 
@@ -51,14 +53,14 @@ if appstream_util.found()
 endif
 
 # Icons directory - create it so it can be used
-install_emptydir(get_option('datadir') / 'icons' / 'hicolor' / 'scalable' / 'apps')
+# install_emptydir(get_option('datadir') / 'icons' / 'hicolor' / 'scalable' / 'apps')
 
 # Scalable icon
-install_data(
-  'icons/io.github.tobagin.secrets.svg', # Assumes icon file will be named this in data/icons/
-   install_dir: get_option('datadir') / 'icons' / 'hicolor' / 'scalable' / 'apps',
-   rename: app_id + '.svg' # Ensures installed icon is named e.g. io.github.tobagin.secrets.svg
-)
+# install_data(
+#   'icons/io.github.tobagin.secrets.svg',
+#   install_dir: get_option('datadir') / 'icons' / 'hicolor' / 'scalable' / 'apps',
+#   rename: app_id + '.svg'
+# )
 
 # GSettings (if you add them later)
 # gsettings_schemas = files('com.example.secrets.gschema.xml') # Placeholder

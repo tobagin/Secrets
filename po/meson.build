@@ -1,10 +1,9 @@
-gnome = import('gnome')
 i18n = import('i18n')
 
 # Replace 'secrets' with your app's Gettext domain if different
 gettext_package_name = project_id
 
-gnome.gettext(gettext_package_name,
+i18n.gettext(gettext_package_name,
   args: ['--directory=' + meson.project_source_root()]
 )
 
