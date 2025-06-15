@@ -69,18 +69,20 @@ else
     echo "⚠️  appstream-util not found, skipping validation"
 fi
 
-# Test Flatpak build (if flatpak-builder is available)
+# Test Flatpak build (if flatpak-builder is available and not skipped)
 echo -e "${YELLOW}📦 Testing Flatpak build...${NC}"
-if command -v flatpak-builder >/dev/null 2>&1; then
+if [ "${SKIP_FLATPAK_TEST}" = "1" ]; then
+    echo "⚠️  Flatpak build test skipped (SKIP_FLATPAK_TEST=1)"
+elif command -v flatpak-builder >/dev/null 2>&1; then
     echo "Building Flatpak (this may take a while)..."
     flatpak-builder --force-clean flatpak-build io.github.tobagin.secrets.yml --install-deps-from=flathub
     echo "✅ Flatpak builds successfully"
-    
+
     # Test run
     echo "Testing Flatpak run..."
     timeout 10s flatpak-builder --run flatpak-build io.github.tobagin.secrets.yml io.github.tobagin.secrets --help || true
     echo "✅ Flatpak runs successfully"
-    
+
     # Cleanup
     rm -rf flatpak-build
 else
