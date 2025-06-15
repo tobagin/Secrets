@@ -45,24 +45,37 @@ Currently implemented features include:
     ```
 
 3.  **Run:**
-    You can run the application directly from the source tree (after building) for development:
+    The easiest way to run the application for development:
     ```bash
     ./run-dev.sh
     ```
-    (Assuming `run-dev.sh` is a script that sets up environment variables like `PYTHONPATH` and executes `python -m secrets` or the development executable. We might need to create this script or adjust the run command, e.g., `python -m secrets` if path is set up, or directly `./builddir/secrets-dev` if that's the executable from `meson.build`.)
 
-    Alternatively, to run the development executable directly (path might vary based on exact Meson setup):
+    Or use the simple launcher:
     ```bash
-    ./builddir/secrets-dev
+    ./secrets-dev
     ```
-    (Note: The executable name `secrets-dev` was defined in the root `meson.build`.)
 
-    For the GResources to be found correctly when running uninstalled, Meson's `devenv` might be useful:
+    **Development Script Options:**
     ```bash
-    meson devenv -C builddir
-    # Then, from within the environment:
-    # python -m secrets
-    # or ./secrets-dev (if builddir is added to PATH by devenv)
+    ./run-dev.sh --help          # Show all options
+    ./run-dev.sh                 # Run with meson devenv (default, recommended)
+    ./run-dev.sh --meson         # Run with meson devenv (explicit)
+    ./run-dev.sh --direct        # Run directly without meson
+    ```
+
+    **Alternative Methods:**
+    ```bash
+    # Run with meson run target
+    meson compile -C builddir secrets-dev
+
+    # Run the generated entry point script
+    ./builddir/secrets-dev
+
+    # Run with meson devenv directly
+    meson devenv -C builddir python3 -m secrets.main
+
+    # Run the module directly (fallback)
+    python3 -m secrets.main
     ```
 
 ## Future Enhancements

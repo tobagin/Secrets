@@ -12,7 +12,19 @@ subdir('po')
 
 py_mod = python.find_installation(pure: false)
 
+# Create a proper entry point script for development
+configure_file(
+  input: 'secrets-dev.in',
+  output: 'secrets-dev',
+  configuration: {
+    'PYTHON': py_mod.full_path(),
+    'PROJECT_ROOT': meson.project_source_root(),
+  },
+  install: false
+)
+
 # Executable for running directly (not for flatpak main binary)
 run_target('secrets-dev',
-  command: [py_mod, 'secrets/__init__.py']
+  command: [py_mod, '-m', 'secrets.main'],
+  env: {'PYTHONPATH': meson.project_source_root()}
 )

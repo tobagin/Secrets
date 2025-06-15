@@ -228,7 +228,6 @@ class SecretsWindow(Adw.ApplicationWindow):
         if is_valid:
             # Setup is valid, load passwords
             self.folder_controller.load_passwords()
-            self.toast_manager.show_info("Password manager is ready to use")
         else:
             # This shouldn't happen if setup wizard worked correctly
             self.toast_manager.show_error("Setup validation failed. Please restart the application.")

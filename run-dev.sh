@@ -50,7 +50,7 @@ check_gresource() {
 run_with_meson() {
     echo -e "${GREEN}Running with meson devenv (recommended)...${NC}"
     cd "$PROJECT_ROOT"
-    meson devenv -C "${BUILD_DIR}" python3 secrets/main.py "$@"
+    meson devenv -C "${BUILD_DIR}" python3 -m secrets.main "$@"
 }
 
 # Function to run directly (fallback method)
@@ -58,7 +58,7 @@ run_direct() {
     echo -e "${GREEN}Running directly...${NC}"
     cd "$PROJECT_ROOT"
     export PYTHONPATH="$PROJECT_ROOT:$PYTHONPATH"
-    python3 secrets/main.py "$@"
+    python3 -m secrets.main "$@"
 }
 
 # Function to show usage
@@ -71,13 +71,13 @@ show_usage() {
     echo "  --help       Show this help message"
     echo
     echo "Examples:"
-    echo "  $0                    # Run with meson devenv"
+    echo "  $0                    # Run with meson devenv (default)"
     echo "  $0 --direct          # Run directly"
     echo "  $0 --verbose         # Pass --verbose to the application"
 }
 
 # Parse command line arguments
-USE_MESON=true
+USE_MESON=true  # Default back to meson method now that it's fixed
 SHOW_HELP=false
 
 for arg in "$@"; do

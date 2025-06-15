@@ -5,6 +5,7 @@ py_install_dir = py_mod.get_install_dir()
 # Main module files
 python_sources = [
   '__init__.py',
+  '__main__.py',
   'application.py',
   'window.py',
   'app_info.py',
@@ -17,9 +18,7 @@ python_sources = [
   'error_handling.py',
   'performance.py',
   'main.py',
-  'shortcuts_window.py',
-  'dependency_setup_dialog.py',
-  'gpg_setup_dialog.py'
+  'shortcuts_window.py'
 ]
 
 # UI module files
@@ -46,7 +45,9 @@ controller_sources = [
   'controllers/password_details_controller.py',
   'controllers/password_list_controller.py',
   'controllers/setup_controller.py',
-  'controllers/window_state_manager.py'
+  'controllers/window_state_manager.py',
+  'controllers/dynamic_folder_controller.py',
+  'controllers/static_folder_controller.py'
 ]
 
 # Setup wizard files
@@ -92,5 +93,12 @@ gresource = custom_target('secrets.gresource',
     '@INPUT@'
   ],
   install: true,
-  install_dir: py_install_dir / 'secrets'
+  install_dir: py_install_dir / 'secrets',
+  build_by_default: true  # Ensure it's built for development
 )
+
+# Create a development environment setup
+meson.add_devenv({
+  'PYTHONPATH': meson.project_source_root(),
+  'SECRETS_RESOURCE_PATH': meson.project_build_root() / 'secrets' / 'secrets.gresource'
+})
