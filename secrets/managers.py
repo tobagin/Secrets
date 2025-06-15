@@ -145,13 +145,11 @@ class PasswordDisplayManager:
         if self._visible:
             self.password_label.set_text(self._current_password)
             self.expander_row.set_subtitle("Visible")
-            self.expander_row.add_css_class("password-visible")
             self.toggle_button.set_icon_name("eye-open-negative-filled-symbolic")
             self._start_auto_hide_timer()
         else:
             self.password_label.set_text("●●●●●●●●")
             self.expander_row.set_subtitle("Hidden")
-            self.expander_row.remove_css_class("password-visible")
             self.toggle_button.set_icon_name("eye-not-looking-symbolic")
             self._cancel_auto_hide_timer()
     

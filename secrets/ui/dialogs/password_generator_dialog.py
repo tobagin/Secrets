@@ -51,7 +51,6 @@ class PasswordGeneratorDialog(Adw.Window):
         
         # Use button
         self.use_button = Gtk.Button(label="Use Password")
-        self.use_button.add_css_class("suggested-action")
         self.use_button.connect("clicked", self._on_use_password)
         header_bar.pack_end(self.use_button)
         
@@ -70,7 +69,6 @@ class PasswordGeneratorDialog(Adw.Window):
         self.password_entry = Gtk.Entry()
         self.password_entry.set_editable(False)
         self.password_entry.set_hexpand(True)
-        self.password_entry.add_css_class("monospace")
         
         # Copy button
         copy_button = Gtk.Button()
@@ -161,7 +159,6 @@ class PasswordGeneratorDialog(Adw.Window):
         self.strength_row.set_title("Password Strength")
         
         self.strength_label = Gtk.Label()
-        self.strength_label.add_css_class("caption")
         self.strength_row.add_suffix(self.strength_label)
         
         strength_group.add(self.strength_row)
@@ -220,9 +217,7 @@ class PasswordGeneratorDialog(Adw.Window):
         self.strength_label.set_text(strength_text)
         
         # Remove old CSS classes and add new one
-        for cls in ["error", "warning", "accent", "success"]:
-            self.strength_label.remove_css_class(cls)
-        self.strength_label.add_css_class(css_class)
+        # CSS styling will be handled in UI files
     
     def _calculate_strength(self, password):
         """Calculate password strength score (0-100)."""

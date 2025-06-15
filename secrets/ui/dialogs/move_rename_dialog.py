@@ -23,8 +23,7 @@ class MoveRenameDialog(Adw.Window):
         self.set_default_size(*UIConstants.SMALL_DIALOG)
         self.set_resizable(True)
 
-        # Add dialog styling
-        self.add_css_class("dialog")
+
 
         # Set up accessibility
         AccessibilityHelper.set_accessible_name(self, f"Move or rename dialog for {os.path.basename(current_path)}")
@@ -39,7 +38,6 @@ class MoveRenameDialog(Adw.Window):
 
         save_button = Gtk.Button(label="_Save", use_underline=True)
         save_button.connect("clicked", self.on_save_clicked)
-        save_button.add_css_class("suggested-action")
         header_bar.pack_end(save_button)
 
         cancel_button = Gtk.Button(label="_Cancel", use_underline=True)

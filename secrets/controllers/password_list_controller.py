@@ -10,7 +10,7 @@ from gi.repository import Gtk, Adw, Gio, GObject
 import os
 from typing import Optional, Callable
 
-from ..models import PasswordListItem
+from ..models import PasswordListItem, PasswordEntry
 from ..managers import ToastManager
 
 
@@ -72,7 +72,10 @@ class PasswordListController:
 
         # Create the list view with improved scrolling behavior
         self.list_view = Gtk.ListView(model=self.selection_model, factory=factory)
-        self.list_view.set_single_click_activate(False)  # Require double-click for activation
+        self.list_view.set_single_click_activate(True)  # Enable single-click activation for folders
+
+        # Connect activation signal for folder expansion
+        self.list_view.connect("activate", self._on_item_activated)
 
         # Add the list view to the scrolled window
         self.treeview_scrolled_window.set_child(self.list_view)
@@ -86,31 +89,64 @@ class PasswordListController:
     def _on_list_item_bind(self, factory, list_item):
         """Bind data to list item widget."""
         row_widget = list_item.get_child()  # This is the Adw.ActionRow
-        item_data = list_item.get_item()  # This is our PasswordListItem
+        tree_list_row = list_item.get_item()  # This is a TreeListRow when using TreeListModel
 
-        if item_data:
-            row_widget.set_title(item_data.name)
-            
-            # Add icons to distinguish folders from password entries
-            icon_name = "folder-symbolic" if item_data.is_folder else "dialog-password-symbolic"
-            image = Gtk.Image.new_from_icon_name(icon_name)
-            
-            # Clear any existing prefix widgets to avoid duplicates when rows are reused
-            for child in row_widget.get_prefix_widgets():
-                row_widget.remove(child)
-            
-            row_widget.add_prefix(image)
-            
-            # Add subtle styling based on item type
-            if item_data.is_folder:
-                row_widget.add_css_class("folder-item")
-            else:
-                row_widget.add_css_class("password-item")
+        if tree_list_row:
+            # Get the actual PasswordListItem from the TreeListRow
+            item_data = tree_list_row.get_item()
 
-    def _on_selection_changed(self, selection_model, param):
+            if item_data:
+                row_widget.set_title(item_data.name)
+
+                # Add icons to distinguish folders from password entries
+                if item_data.is_folder:
+                    # For folders, show expand/collapse arrow
+                    is_expanded = tree_list_row.get_expanded()
+                    icon_name = "folder-open-symbolic" if is_expanded else "folder-symbolic"
+                else:
+                    icon_name = "dialog-password-symbolic"
+
+                # Store the icon in the row widget to avoid recreating it
+                if not hasattr(row_widget, '_icon_widget'):
+                    row_widget._icon_widget = Gtk.Image.new_from_icon_name(icon_name)
+                    row_widget.add_prefix(row_widget._icon_widget)
+                else:
+                    # Update existing icon
+                    row_widget._icon_widget.set_from_icon_name(icon_name)
+
+                # Add expand/collapse arrow for folders
+                if item_data.is_folder:
+                    if not hasattr(row_widget, '_expand_widget'):
+                        row_widget._expand_widget = Gtk.Image.new_from_icon_name(
+                            "pan-down-symbolic" if is_expanded else "pan-end-symbolic"
+                        )
+                        row_widget.add_suffix(row_widget._expand_widget)
+                    else:
+                        # Update existing expand arrow
+                        arrow_icon = "pan-down-symbolic" if is_expanded else "pan-end-symbolic"
+                        row_widget._expand_widget.set_from_icon_name(arrow_icon)
+
+                # Item type is handled by UI styling
+
+    def _on_selection_changed(self, selection_model, *args):
         """Handle selection changes and notify parent."""
         if self.on_selection_changed:
-            self.on_selection_changed(selection_model, param)
+            self.on_selection_changed(selection_model, *args)
+
+    def _on_item_activated(self, list_view, position):
+        """Handle item activation (single-click) for folder expansion."""
+        tree_list_row = self.selection_model.get_item(position)
+        if tree_list_row:
+            item_data = tree_list_row.get_item()
+            if item_data and item_data.is_folder:
+                # Toggle folder expansion
+                is_expanded = tree_list_row.get_expanded()
+                tree_list_row.set_expanded(not is_expanded)
+
+                # The visual update will happen automatically when the bind function
+                # is called again due to the model change
+                return True  # Handled
+        return False  # Not handled
 
     def load_passwords(self):
         """Load and display passwords in the list."""
@@ -156,7 +192,9 @@ class PasswordListController:
 
                 if part_name not in current_parent_dict:
                     is_folder = not is_password_file
-                    new_item = PasswordListItem(name=part_name, full_path=current_full_path, is_folder=is_folder)
+                    # Create PasswordEntry first, then PasswordListItem
+                    entry = PasswordEntry(path=current_full_path, is_folder=is_folder)
+                    new_item = PasswordListItem(entry)
                     current_parent_dict[part_name] = new_item
                     current_parent_list_store.append(new_item)
 
@@ -199,7 +237,9 @@ class PasswordListController:
         if success:
             if result:  # If there are matching paths
                 for path_str in sorted(result):
-                    item = PasswordListItem(name=path_str, full_path=path_str, is_folder=False)
+                    # Create PasswordEntry first, then PasswordListItem
+                    entry = PasswordEntry(path=path_str, is_folder=False)
+                    item = PasswordListItem(entry)
                     search_results_store.append(item)
                 
                 # Update the list view with search results
@@ -219,13 +259,15 @@ class PasswordListController:
         """Update the list view with search results while preserving selection state."""
         # Save current selection if any
         selected_path = None
-        selected_item = self.selection_model.get_selected_item()
-        if selected_item:
-            selected_path = selected_item.full_path
-        
+        tree_list_row = self.selection_model.get_selected_item()
+        if tree_list_row:
+            selected_item = tree_list_row.get_item()
+            if selected_item:
+                selected_path = selected_item.full_path
+
         # Replace the list store with search results
         self.list_store.remove_all()
-        
+
         # Copy items from search results to main list store
         for i in range(search_results_store.get_n_items()):
             self.list_store.append(search_results_store.get_item(i))
@@ -233,7 +275,9 @@ class PasswordListController:
     def get_selected_item(self):
         """Get the currently selected item."""
         if self.selection_model:
-            return self.selection_model.get_selected_item()
+            tree_list_row = self.selection_model.get_selected_item()
+            if tree_list_row:
+                return tree_list_row.get_item()  # Get the actual PasswordListItem
         return None
 
     def clear_selection(self):

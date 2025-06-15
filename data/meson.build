@@ -31,7 +31,8 @@ install_data(
 
 # Setup wizard UI files
 install_data(
-  ['ui/setup/setup_wizard.ui', 'ui/setup/wizard_dialog.ui', 'ui/setup/dependencies_page.ui'],
+  ['ui/setup/setup_wizard.ui', 'ui/setup/wizard_dialog.ui', 'ui/setup/dependencies_page.ui',
+   'ui/setup/install_pass_page.ui', 'ui/setup/create_gpg_page.ui', 'ui/setup/setup_complete_page.ui'],
   install_dir: get_option('datadir') / app_id / 'ui' / 'setup'
 )
 

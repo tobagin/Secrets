@@ -86,13 +86,17 @@ class PasswordDetailsController:
     def update_details(self, selected_item):
         """Update the details panel with the selected item."""
         self._current_item = selected_item
-        
+
         if selected_item:
-            full_path = selected_item.full_path
+            # Handle both PasswordEntry and PasswordListItem objects
+            if hasattr(selected_item, 'full_path'):
+                full_path = selected_item.full_path
+            else:
+                full_path = selected_item.path
             is_folder = selected_item.is_folder
-            
+
             self.details_stack.set_visible_child_name("details")
-            
+
             if is_folder:
                 self._display_folder_details(full_path)
             else:
@@ -209,8 +213,6 @@ class PasswordDetailsController:
                 display_password = display_password[:7] + "..."
             self.password_display_label.set_text(display_password)
             self.password_expander_row.set_subtitle("Visible")
-            # Add a CSS class to highlight that password is visible
-            self.password_expander_row.add_css_class("password-visible")
         else:
             if self._current_password:
                 self.password_display_label.set_text("●●●●●●●●")
@@ -218,8 +220,7 @@ class PasswordDetailsController:
             else:
                 self.password_display_label.set_text("None")
             
-            # Remove the highlight class
-            self.password_expander_row.remove_css_class("password-visible")
+
         
         # Update button icon to match state
         icon_name = "eye-open-negative-filled-symbolic" if show_password else "eye-not-looking-symbolic"
@@ -247,14 +248,20 @@ class PasswordDetailsController:
     def _on_copy_password_clicked(self, widget):
         """Handle copy password button click using command pattern."""
         if self._current_item and not self._current_item.is_folder:
+            # Handle both PasswordEntry and PasswordListItem objects
+            if hasattr(self._current_item, 'full_path'):
+                path = self._current_item.full_path
+            else:
+                path = self._current_item.path
+
             # Create a PasswordEntry from the current selection
             entry = PasswordEntry(
-                path=self._current_item.full_path,
+                path=path,
                 password=self._current_password,
                 is_folder=False
             )
             self.app_state.set_selected_entry(entry)
-            
+
             # Execute the copy command
             self.command_invoker.execute_command("copy_password")
         else:
@@ -264,15 +271,21 @@ class PasswordDetailsController:
         """Handle copy username using command pattern."""
         if self._current_item and not self._current_item.is_folder:
             username = self.username_row.get_subtitle()
-            
+
+            # Handle both PasswordEntry and PasswordListItem objects
+            if hasattr(self._current_item, 'full_path'):
+                path = self._current_item.full_path
+            else:
+                path = self._current_item.path
+
             # Create a PasswordEntry with username
             entry = PasswordEntry(
-                path=self._current_item.full_path,
+                path=path,
                 username=username if username not in ["Not set", "N/A for folders"] else None,
                 is_folder=False
             )
             self.app_state.set_selected_entry(entry)
-            
+
             # Execute the copy username command
             self.command_invoker.execute_command("copy_username")
         else:
@@ -282,15 +295,21 @@ class PasswordDetailsController:
         """Handle open URL using command pattern."""
         if self._current_item and not self._current_item.is_folder:
             url = self.url_row.get_subtitle()
-            
+
+            # Handle both PasswordEntry and PasswordListItem objects
+            if hasattr(self._current_item, 'full_path'):
+                path = self._current_item.full_path
+            else:
+                path = self._current_item.path
+
             # Create a PasswordEntry with URL
             entry = PasswordEntry(
-                path=self._current_item.full_path,
+                path=path,
                 url=url if url not in ["Not set", "N/A for folders"] else None,
                 is_folder=False
             )
             self.app_state.set_selected_entry(entry)
-            
+
             # Execute the open URL command
             self.command_invoker.execute_command("open_url")
         else:

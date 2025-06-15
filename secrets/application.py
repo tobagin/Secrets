@@ -79,6 +79,7 @@ class SecretsApplication(Adw.Application):
         # Simple check without full validation to avoid hanging
         import os
         import shutil
+        import subprocess
 
         # Check if pass is installed
         if not shutil.which('pass'):
@@ -98,7 +99,18 @@ class SecretsApplication(Adw.Application):
         if not os.path.exists(gpg_id_file):
             return True
 
-        # Basic checks passed, assume setup is complete
+        # Check if there are any GPG secret keys
+        try:
+            result = subprocess.run(['gpg', '--batch', '--list-secret-keys', '--with-colons'],
+                                  capture_output=True, text=True, timeout=3)
+            has_gpg_keys = result.returncode == 0 and result.stdout.strip()
+            if not has_gpg_keys:
+                return True
+        except:
+            # If we can't check GPG keys, assume setup is needed
+            return True
+
+        # All checks passed, setup is complete
         return False
 
     def _show_setup_wizard(self):
@@ -111,7 +123,7 @@ class SecretsApplication(Adw.Application):
 
         # Create and show the setup wizard as a dialog over the main window
         setup_wizard = SetupWizard(parent_window=main_window)
-        setup_wizard.connect("setup-complete", self._on_setup_complete)
+        setup_wizard.connect("closed", self._on_wizard_closed)
 
         # Present the main window first, then the setup wizard
         main_window.present()
@@ -124,9 +136,8 @@ class SecretsApplication(Adw.Application):
         win = SecretsWindow(application=self)
         win.present()
 
-    def _on_setup_complete(self, setup_wizard):
-        """Called when setup wizard completes successfully."""
-        setup_wizard.close()
+    def _on_wizard_closed(self, setup_wizard):
+        """Called when setup wizard is closed."""
         # Main window is already shown, just trigger the setup completion
         main_window = setup_wizard.parent_window
         if hasattr(main_window, '_verify_setup_and_load'):

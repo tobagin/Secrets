@@ -153,7 +153,32 @@ All import statements have been updated to reflect the new structure:
 ✅ **Build System**: Successfully builds with `ninja`
 ✅ **Import Paths**: All import statements updated and working
 ✅ **Resource Loading**: GResource compilation successful
-✅ **Application Launch**: Application starts without errors
+✅ **Application Launch**: Application starts and runs successfully
+✅ **UI Loading**: Setup wizard displays correctly
+✅ **Module Structure**: All refactored modules load properly
+
+## Debugging Issues Fixed
+
+### 1. Services Import Error
+**Issue**: `ImportError: cannot import name 'PasswordService' from 'secrets.services'`
+**Solution**:
+- Moved `services.py` to `secrets/services/password_service.py`
+- Updated `services/__init__.py` to properly import from the new location
+- Fixed relative imports in the moved file
+
+### 2. Resource Path Errors
+**Issue**: Setup wizard UI files not found in new resource structure
+**Solution**:
+- Updated resource paths in `dependencies_page.py` and `wizard_dialog.py`
+- Changed from `/data/` to `/ui/setup/` paths
+- Ensured all UI files are properly included in gresource.xml
+
+### 3. Build System Updates
+**Issue**: Meson build files not reflecting new structure
+**Solution**:
+- Updated `secrets/meson.build` with all new file paths
+- Added proper `preserve_path: true` for subdirectory installations
+- Removed references to moved files from main sources list
 
 ## Future Improvements
 

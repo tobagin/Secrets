@@ -81,7 +81,7 @@
                         </child>
                         <child>
                           <object class="AdwClamp" id="search_clamp">
-                            <property name="visible">False</property>
+                            <property name="visible">True</property>
                             <property name="margin-start">12</property>
                             <property name="margin-end">12</property>
                             <property name="margin-bottom">6</property>
@@ -99,7 +99,129 @@
                             <child>
                               <object class="GtkListBox" id="folders_listbox">
                                 <property name="selection-mode">single</property>
-                                <!-- Folders and passwords will be populated dynamically -->
+                                <child>
+                                  <object class="AdwExpanderRow" id="folder_1">
+                                    <property name="icon-name">folder-symbolic</property>
+                                    <property name="title">Folder 1</property>
+                                    <property name="subtitle">folder 1 subtitle</property>
+                                    <child>
+                                      <object class="AdwActionRow" id="folder_1_pass_1">
+                                        <property name="icon-name">dialog-password-symbolic</property>
+                                        <property name="title">Password 1</property>
+                                        <property name="subtitle">password 1 subtitle</property>
+                                        <child type="suffix">
+                                          <object class="GtkButton">
+                                            <property name="icon-name">go-next-symbolic</property>
+                                            <property name="tooltip-text">Edit</property>
+                                            <property name="valign">center</property>
+                                            <style>
+                                              <class name="flat"/>
+                                            </style>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="AdwActionRow" id="folder_1_pass_2">
+                                        <property name="icon-name">dialog-password-symbolic</property>
+                                        <property name="title">Password 2</property>
+                                        <property name="subtitle">password 2 subtitle</property>
+                                        <child type="suffix">
+                                          <object class="GtkButton">
+                                            <property name="icon-name">go-next-symbolic</property>
+                                            <property name="tooltip-text">Edit</property>
+                                            <property name="valign">center</property>
+                                            <style>
+                                              <class name="flat"/>
+                                            </style>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="AdwExpanderRow" id="folder_2">
+                                    <property name="icon-name">folder-symbolic</property>
+                                    <property name="title">Folder 2</property>
+                                    <property name="subtitle">folder 2 subtitle</property>
+                                    <child>
+                                      <object class="AdwActionRow" id="folder_2_pass_1">
+                                        <property name="icon-name">dialog-password-symbolic</property>
+                                        <property name="title">Password 1</property>
+                                        <property name="subtitle">password 1 subtitle</property>
+                                        <child type="suffix">
+                                          <object class="GtkButton">
+                                            <property name="icon-name">go-next-symbolic</property>
+                                            <property name="tooltip-text">Edit</property>
+                                            <property name="valign">center</property>
+                                            <style>
+                                              <class name="flat"/>
+                                            </style>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="AdwActionRow" id="folder_2_pass_2">
+                                        <property name="icon-name">dialog-password-symbolic</property>
+                                        <property name="title">Password 2</property>
+                                        <property name="subtitle">password 2 subtitle</property>
+                                        <child type="suffix">
+                                          <object class="GtkButton">
+                                            <property name="icon-name">go-next-symbolic</property>
+                                            <property name="tooltip-text">Edit</property>
+                                            <property name="valign">center</property>
+                                            <style>
+                                              <class name="flat"/>
+                                            </style>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="AdwExpanderRow" id="folder_3">
+                                    <property name="icon-name">folder-symbolic</property>
+                                    <property name="title">Folder 3</property>
+                                    <property name="subtitle">folder 3 subtitle</property>
+                                    <child>
+                                      <object class="AdwActionRow" id="folder_3_pass_1">
+                                        <property name="icon-name">dialog-password-symbolic</property>
+                                        <property name="title">Password 1</property>
+                                        <property name="subtitle">password 1 subtitle</property>
+                                        <child type="suffix">
+                                          <object class="GtkButton">
+                                            <property name="icon-name">go-next-symbolic</property>
+                                            <property name="tooltip-text">Edit</property>
+                                            <property name="valign">center</property>
+                                            <style>
+                                              <class name="flat"/>
+                                            </style>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="AdwActionRow" id="folder_3_pass_2">
+                                        <property name="icon-name">dialog-password-symbolic</property>
+                                        <property name="title">Password 2</property>
+                                        <property name="subtitle">password 2 subtitle</property>
+                                        <child type="suffix">
+                                          <object class="GtkButton">
+                                            <property name="icon-name">go-next-symbolic</property>
+                                            <property name="tooltip-text">Edit</property>
+                                            <property name="valign">center</property>
+                                            <style>
+                                              <class name="flat"/>
+                                            </style>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </child>
                                 <style>
                                   <class name="navigation-sidebar"/>
                                 </style>

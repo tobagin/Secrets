@@ -291,3 +291,99 @@ class SystemSetupHelper:
             ]
         
         return status
+
+    @staticmethod
+    def run_installation_command(command: str, timeout: int = 300) -> Dict[str, any]:
+        """
+        Run an installation command with proper error handling.
+
+        Args:
+            command: The command to run
+            timeout: Timeout in seconds (default: 5 minutes)
+
+        Returns:
+            Dictionary with success status and result/error information
+        """
+        try:
+            # Split command into parts for subprocess
+            cmd_parts = command.split()
+
+            # Run the command
+            result = subprocess.run(
+                cmd_parts,
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+                check=False  # Don't raise exception on non-zero exit
+            )
+
+            # Check for success based on return code
+            # Many package managers output informational messages to stderr even on success
+            if result.returncode == 0:
+                return {
+                    'success': True,
+                    'output': result.stdout,
+                    'error': result.stderr,  # Keep stderr for informational purposes
+                    'return_code': result.returncode
+                }
+            else:
+                # For some commands like 'yum check-update', non-zero exit codes are normal
+                # when updates are available, so we need to be more intelligent about errors
+                error_message = result.stderr or result.stdout or f"Command failed with exit code {result.returncode}"
+
+                # Special handling for specific package managers
+                cmd_parts = command.split()
+                if len(cmd_parts) > 0:
+                    # For sudo commands, get the actual package manager command
+                    pkg_manager_cmd = cmd_parts[1] if cmd_parts[0] == 'sudo' and len(cmd_parts) > 1 else cmd_parts[0]
+                    pkg_manager = pkg_manager_cmd.split('/')[-1]  # Get command name without path
+
+                    # yum/dnf check-update returns 100 when updates are available (not an error)
+                    if ('yum' in pkg_manager or 'dnf' in pkg_manager) and 'check-update' in command and result.returncode == 100:
+                        return {
+                            'success': True,
+                            'output': result.stdout,
+                            'error': result.stderr,
+                            'return_code': result.returncode
+                        }
+
+                    # zypper refresh might return non-zero but still succeed
+                    if 'zypper' in pkg_manager and 'refresh' in command:
+                        # Check if the output indicates success
+                        combined_output = (result.stdout + result.stderr).lower()
+                        if 'repositories loaded' in combined_output or 'repository' in combined_output:
+                            return {
+                                'success': True,
+                                'output': result.stdout,
+                                'error': result.stderr,
+                                'return_code': result.returncode
+                            }
+
+                return {
+                    'success': False,
+                    'output': result.stdout,
+                    'error': error_message,
+                    'return_code': result.returncode
+                }
+
+        except subprocess.TimeoutExpired:
+            return {
+                'success': False,
+                'output': '',
+                'error': f"Command timed out after {timeout} seconds",
+                'return_code': -1
+            }
+        except FileNotFoundError:
+            return {
+                'success': False,
+                'output': '',
+                'error': f"Command not found: {cmd_parts[0] if cmd_parts else command}",
+                'return_code': -1
+            }
+        except Exception as e:
+            return {
+                'success': False,
+                'output': '',
+                'error': f"Unexpected error: {str(e)}",
+                'return_code': -1
+            }

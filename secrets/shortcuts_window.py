@@ -106,10 +106,8 @@ class ShortcutsWindow(Adw.Window):
         row = Adw.ActionRow()
         row.set_title(title)
 
-        # Create shortcut label with monospace styling
+        # Create shortcut label
         shortcut_label = Gtk.Label(label=shortcut)
-        shortcut_label.add_css_class("monospace")
-        shortcut_label.add_css_class("caption")
         shortcut_label.set_valign(Gtk.Align.CENTER)
 
         row.add_suffix(shortcut_label)

@@ -31,6 +31,7 @@ from .controllers import (
     WindowStateManager,
     ActionController
 )
+from .controllers.dynamic_folder_controller import DynamicFolderController
 
 # Define a GObject for items in our ListView
 class PasswordListItem(GObject.Object):
@@ -56,11 +57,35 @@ class PasswordListItem(GObject.Object):
 class SecretsWindow(Adw.ApplicationWindow):
     __gtype_name__ = "SecretsWindow"
 
-    # Define template children for UI elements defined in secrets.ui
+    # Template widgets
+    toast_overlay = Gtk.Template.Child()
+    split_view = Gtk.Template.Child()
+
+    # Sidebar widgets
+    sidebar_page = Gtk.Template.Child()
+    sidebar_header = Gtk.Template.Child()
+    action_buttons_bar = Gtk.Template.Child()
+    add_password_button = Gtk.Template.Child()
+    add_folder_button = Gtk.Template.Child()
+    git_push_button = Gtk.Template.Child()
+    git_pull_button = Gtk.Template.Child()
+    search_toggle_button = Gtk.Template.Child()
+    search_clamp = Gtk.Template.Child()
+    search_entry = Gtk.Template.Child()
+    folders_scrolled = Gtk.Template.Child()
+    folders_listbox = Gtk.Template.Child()
+
+
+
+    # Content area widgets
+    content_page = Gtk.Template.Child()
+    content_header = Gtk.Template.Child()
+    main_menu_button = Gtk.Template.Child()
     details_stack = Gtk.Template.Child()
-    placeholder_page = Gtk.Template.Child() # Added: AdwStatusPage from UI
-    details_page_box = Gtk.Template.Child() # Added: GtkBox from UI for details
-    # selected_password_label = Gtk.Template.Child() # Replaced by path_row and specific labels
+    placeholder_page = Gtk.Template.Child()
+
+    # Details page widgets (keeping existing ones for compatibility)
+    details_page_box = Gtk.Template.Child()
     path_row = Gtk.Template.Child()
     password_expander_row = Gtk.Template.Child()
     password_display_label = Gtk.Template.Child()
@@ -71,16 +96,14 @@ class SecretsWindow(Adw.ApplicationWindow):
     url_row = Gtk.Template.Child()
     open_url_button = Gtk.Template.Child()
     notes_display_label = Gtk.Template.Child()
-
     edit_button = Gtk.Template.Child()
-    remove_button = Gtk.Template.Child()
     move_rename_button = Gtk.Template.Child()
-    add_password_button = Gtk.Template.Child()
-    git_pull_button = Gtk.Template.Child()
-    git_push_button = Gtk.Template.Child()
-    toast_overlay = Gtk.Template.Child()
-    treeview_scrolled_window = Gtk.Template.Child()
-    search_entry = Gtk.Template.Child()
+    remove_button = Gtk.Template.Child()
+
+    # Additional widgets that might be missing
+    sidebar_content = Gtk.Template.Child()
+    content_toolbar = Gtk.Template.Child()
+    sidebar_toolbar = Gtk.Template.Child()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -118,8 +141,12 @@ class SecretsWindow(Adw.ApplicationWindow):
         self.remove_button.connect("clicked", self.on_remove_button_clicked)
         self.move_rename_button.connect("clicked", self.on_move_rename_button_clicked)
         self.add_password_button.connect("clicked", self.on_add_password_button_clicked)
+        self.add_folder_button.connect("clicked", self.on_add_folder_button_clicked)
         self.git_pull_button.connect("clicked", self.on_git_pull_clicked)
         self.git_push_button.connect("clicked", self.on_git_push_clicked)
+        self.search_toggle_button.connect("toggled", self.on_search_toggle_clicked)
+
+        # Folder signals are handled by the DynamicFolderController
 
     def _initialize_controllers(self):
         """Initialize all controller components."""
@@ -135,11 +162,11 @@ class SecretsWindow(Adw.ApplicationWindow):
             on_setup_complete=self._on_setup_complete
         )
 
-        # Password list controller
-        self.list_controller = PasswordListController(
+        # Dynamic folder controller - creates AdwExpanderRow and AdwActionRow dynamically
+        self.folder_controller = DynamicFolderController(
             self.password_store,
             self.toast_manager,
-            self.treeview_scrolled_window,
+            self.folders_listbox,
             self.search_entry,
             on_selection_changed=self._on_selection_changed
         )
@@ -180,9 +207,9 @@ class SecretsWindow(Adw.ApplicationWindow):
             on_delete_password=self.on_remove_button_clicked,
             on_copy_password=self.details_controller._on_copy_password_clicked,
             on_copy_username=self.details_controller._on_copy_username_clicked,
-            on_focus_search=self.list_controller.focus_search,
-            on_clear_search=self.list_controller.clear_search,
-            on_refresh=self.list_controller.load_passwords,
+            on_focus_search=self.folder_controller.focus_search,
+            on_clear_search=self.folder_controller.clear_search,
+            on_refresh=self.folder_controller.load_passwords,
             on_toggle_password=self.details_controller.toggle_password_visibility,
             on_generate_password=self._on_generate_password,
             on_show_help=self._on_show_help_overlay,
@@ -191,7 +218,8 @@ class SecretsWindow(Adw.ApplicationWindow):
 
         # Setup validation is now handled by the setup wizard before this window is shown
         # Just verify that setup is complete and load passwords
-        self._verify_setup_and_load()
+        # Use GLib.idle_add to ensure this happens after the window is fully initialized
+        GLib.idle_add(self._verify_setup_and_load)
 
     def _verify_setup_and_load(self):
         """Verify that setup is complete and load passwords."""
@@ -199,7 +227,7 @@ class SecretsWindow(Adw.ApplicationWindow):
 
         if is_valid:
             # Setup is valid, load passwords
-            self.list_controller.load_passwords()
+            self.folder_controller.load_passwords()
             self.toast_manager.show_info("Password manager is ready to use")
         else:
             # This shouldn't happen if setup wizard worked correctly
@@ -207,11 +235,11 @@ class SecretsWindow(Adw.ApplicationWindow):
 
     def _on_setup_complete(self):
         """Called when setup is complete and valid."""
-        self.list_controller.load_passwords()
+        self.folder_controller.load_passwords()
 
-    def _on_selection_changed(self, selection_model, param):
-        """Handle selection changes from the list controller."""
-        selected_item = self.list_controller.get_selected_item()
+    def _on_selection_changed(self, selection_model, *args):
+        """Handle selection changes from the folder controller."""
+        selected_item = self.folder_controller.get_selected_item()
         self.details_controller.update_details(selected_item)
 
     def _setup_commands(self):
@@ -227,7 +255,7 @@ class SecretsWindow(Adw.ApplicationWindow):
         # Delete command
         delete_cmd = DeletePasswordCommand(
             self.password_service, self.toast_manager, self.app_state, self,
-            on_success_callback=lambda: self.list_controller.load_passwords()
+            on_success_callback=lambda: self.folder_controller.load_passwords()
         )
 
         # URL command
@@ -238,7 +266,7 @@ class SecretsWindow(Adw.ApplicationWindow):
         # Git commands
         git_pull_cmd = GitSyncCommand(
             self.password_service, self.toast_manager, self.app_state, "pull",
-            on_success_callback=lambda: self.list_controller.load_passwords()
+            on_success_callback=lambda: self.folder_controller.load_passwords()
         )
         git_push_cmd = GitSyncCommand(
             self.password_service, self.toast_manager, self.app_state, "push"
@@ -260,10 +288,28 @@ class SecretsWindow(Adw.ApplicationWindow):
         """Handle git push using command pattern."""
         self.command_invoker.execute_command("git_push")
 
+    def on_add_folder_button_clicked(self, widget):
+        """Handle add folder button click."""
+        # For now, show a simple dialog to create a folder
+        self.toast_manager.show_info("Add folder functionality coming soon!")
+
+    def on_search_toggle_clicked(self, widget):
+        """Handle search toggle button click."""
+        is_active = widget.get_active()
+        self.search_clamp.set_visible(is_active)
+        if is_active:
+            self.search_entry.grab_focus()
+        else:
+            self.search_entry.set_text("")  # Clear search when hiding
+
     def on_edit_button_clicked(self, widget):
-        selected_item_obj = self.list_controller.get_selected_item()
+        selected_item_obj = self.folder_controller.get_selected_item()
         if selected_item_obj:
-            password_path = selected_item_obj.full_path
+            # Handle both PasswordEntry and PasswordListItem objects
+            if hasattr(selected_item_obj, 'full_path'):
+                password_path = selected_item_obj.full_path
+            else:
+                password_path = selected_item_obj.path
             is_folder_flag = selected_item_obj.is_folder
 
             if is_folder_flag:
@@ -295,18 +341,28 @@ class SecretsWindow(Adw.ApplicationWindow):
         if success:
             self.toast_manager.show_success(message)
             # Refresh the details view to show updated content
-            selected_item = self.list_controller.get_selected_item()
-            if selected_item and selected_item.full_path == path:
-                self.details_controller.update_details(selected_item)
+            selected_item = self.folder_controller.get_selected_item()
+            if selected_item:
+                # Handle both PasswordEntry and PasswordListItem objects
+                if hasattr(selected_item, 'full_path'):
+                    item_path = selected_item.full_path
+                else:
+                    item_path = selected_item.path
+                if item_path == path:
+                    self.details_controller.update_details(selected_item)
         else:
             self.toast_manager.show_error(f"Error saving: {message}")
 
         dialog.close() # Close the dialog after handling
 
     def on_remove_button_clicked(self, widget):
-        selected_item_obj = self.list_controller.get_selected_item()
+        selected_item_obj = self.folder_controller.get_selected_item()
         if selected_item_obj:
-            password_path = selected_item_obj.full_path
+            # Handle both PasswordEntry and PasswordListItem objects
+            if hasattr(selected_item_obj, 'full_path'):
+                password_path = selected_item_obj.full_path
+            else:
+                password_path = selected_item_obj.path
             is_folder_flag = selected_item_obj.is_folder
 
             if is_folder_flag: # For now, only allow deleting password files via UI
@@ -320,26 +376,22 @@ class SecretsWindow(Adw.ApplicationWindow):
                 dialog_type="question",
                 default_size=UIConstants.SMALL_DIALOG
             )
-            # Note: This code needs to be updated to use the new Adw.Dialog API
-            # For now, keeping the old API calls as comments for reference
-            # dialog.add_response("cancel", "_Cancel")
-            # dialog.add_response("delete", "_Delete")
-            # dialog.set_response_appearance("delete", Adw.ResponseAppearance.DESTRUCTIVE)
-            # dialog.set_default_response("cancel")
-            dialog.connect("response", self.on_delete_confirm_response, password_path) # Pass path to handler
 
-            # Set up proper dialog behavior
-            DialogManager.setup_dialog_keyboard_navigation(dialog)
-            DialogManager.center_dialog_on_parent(dialog, self)
+            # Add response buttons
+            DialogManager.add_dialog_response(dialog, "cancel", "_Cancel", "default")
+            DialogManager.add_dialog_response(dialog, "delete", "_Delete", "destructive")
+            dialog.set_default_response("cancel")
 
-            dialog.present()
+            dialog.connect("response", self.on_delete_confirm_response, password_path)
+
+            dialog.present(self)
 
     def on_delete_confirm_response(self, dialog, response_id, password_path):
         if response_id == "delete":
             success, message = self.password_store.delete_password(password_path)
             if success:
                 self.toast_manager.show_success(message)
-                self.list_controller.load_passwords() # Refresh the list
+                self.folder_controller.load_passwords() # Refresh the list
                 # Clear details view after deletion
                 self.details_controller.update_details(None)
             else:
@@ -353,9 +405,13 @@ class SecretsWindow(Adw.ApplicationWindow):
 
 
     def on_move_rename_button_clicked(self, widget):
-        selected_item_obj = self.list_controller.get_selected_item()
+        selected_item_obj = self.folder_controller.get_selected_item()
         if selected_item_obj:
-            current_path = selected_item_obj.full_path
+            # Handle both PasswordEntry and PasswordListItem objects
+            if hasattr(selected_item_obj, 'full_path'):
+                current_path = selected_item_obj.full_path
+            else:
+                current_path = selected_item_obj.path
 
             dialog = MoveRenameDialog(
                 current_path=current_path,
@@ -371,7 +427,7 @@ class SecretsWindow(Adw.ApplicationWindow):
 
         if success:
             self.toast_manager.show_success(message)
-            self.list_controller.load_passwords() # Refresh the entire list as paths have changed
+            self.folder_controller.load_passwords() # Refresh the entire list as paths have changed
             # Clear details view after move/rename
             self.details_controller.update_details(None)
         else:
@@ -381,9 +437,13 @@ class SecretsWindow(Adw.ApplicationWindow):
 
     def on_add_password_button_clicked(self, widget):
         suggested_path = ""
-        selected_item_obj = self.list_controller.get_selected_item()
+        selected_item_obj = self.folder_controller.get_selected_item()
         if selected_item_obj:
-            path = selected_item_obj.full_path
+            # Handle both PasswordEntry and PasswordListItem objects
+            if hasattr(selected_item_obj, 'full_path'):
+                path = selected_item_obj.full_path
+            else:
+                path = selected_item_obj.path
             is_folder_flag = selected_item_obj.is_folder
             if is_folder_flag:
                 suggested_path = path
@@ -405,7 +465,7 @@ class SecretsWindow(Adw.ApplicationWindow):
 
         if success:
             self.toast_manager.show_success(message)
-            self.list_controller.load_passwords() # Refresh the list
+            self.folder_controller.load_passwords() # Refresh the list
         else:
             # Check if the error message indicates it already exists
             if "already exists" in message.lower(): # Crude check, but often pass says this

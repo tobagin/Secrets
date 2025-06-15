@@ -9,9 +9,12 @@ gi.require_version("Adw", "1")
 from gi.repository import Gtk, Adw, GLib, GObject
 from ..app_info import APP_ID
 from .dependencies_page import DependenciesPage
+from .install_pass_page import InstallPassPage
+from .create_gpg_page import CreateGpgPage
+from .setup_complete_page import SetupCompletePage
 
 
-@Gtk.Template(resource_path=f'/{APP_ID.replace(".", "/")}/data/wizard_dialog.ui')
+@Gtk.Template(resource_path=f'/{APP_ID.replace(".", "/")}/ui/setup/wizard_dialog.ui')
 class SetupWizard(Adw.Dialog):
     """
     Main setup wizard dialog that coordinates the setup process.
@@ -103,6 +106,63 @@ class SetupWizard(Adw.Dialog):
         """Handle create GPG key request from dependencies page."""
         self._navigate_to_gpg_create_page()
 
+    # Navigation methods
+    def _navigate_to_pass_install_page(self):
+        """Navigate to the pass installation page."""
+        install_page = InstallPassPage()
+        install_page.connect('installation-complete', self._on_installation_complete)
+        install_page.connect('installation-cancelled', self._on_installation_cancelled)
+        self.navigation_view.push(install_page)
+
+    def _navigate_to_gpg_create_page(self):
+        """Navigate to the GPG key creation page."""
+        gpg_page = CreateGpgPage()
+        gpg_page.connect('gpg-created', self._on_gpg_created)
+        gpg_page.connect('creation-cancelled', self._on_creation_cancelled)
+        self.navigation_view.push(gpg_page)
+
+    def _navigate_to_complete_page(self):
+        """Navigate to the completion page."""
+        complete_page = SetupCompletePage()
+        complete_page.connect('close-wizard', self._on_close_wizard)
+        self.navigation_view.push(complete_page)
+
+    # New signal handlers for the separate page classes
+    def _on_installation_complete(self, _page):
+        """Handle installation completion."""
+        self._show_toast("Pass and GPG installed successfully!")
+        # Navigate back to dependencies page and refresh
+        self.navigation_view.pop()
+        # Add a small delay to allow system to update before rechecking
+        if hasattr(self.dependencies_page, 'recheck_dependencies'):
+            GLib.timeout_add_seconds(1, lambda: (self.dependencies_page.recheck_dependencies(), False)[1])
+
+    def _on_installation_cancelled(self, _page):
+        """Handle installation cancellation."""
+        self.navigation_view.pop()
+
+    def _on_gpg_created(self, _page, gpg_id):
+        """Handle GPG key creation."""
+        self._show_toast(f"GPG key created successfully! ID: {gpg_id}")
+
+        # Store the GPG key ID in the dependencies page for later use
+        if hasattr(self.dependencies_page, 'set_created_gpg_key_id'):
+            self.dependencies_page.set_created_gpg_key_id(gpg_id)
+
+        # Navigate back to dependencies page and refresh
+        self.navigation_view.pop()
+        # Add a small delay to allow system to update before rechecking
+        if hasattr(self.dependencies_page, 'recheck_dependencies'):
+            GLib.timeout_add_seconds(1, lambda: (self.dependencies_page.recheck_dependencies(), False)[1])
+
+    def _on_creation_cancelled(self, _page):
+        """Handle GPG creation cancellation."""
+        self.navigation_view.pop()
+
+    def _on_close_wizard(self, _page):
+        """Handle wizard close request."""
+        self.close()
+
     # Dialog event handlers
     def _on_close_attempt(self, _dialog):
         """Handle close attempt - allow closing and quit application."""
@@ -120,185 +180,10 @@ class SetupWizard(Adw.Dialog):
         toast = Adw.Toast.new(message)
         self.toast_overlay.add_toast(toast)
 
-    # Temporary page creation methods (to be extracted later)
-    def _create_pass_install_page(self):
-        """Create the pass installation page."""
-        toolbar_view = Adw.ToolbarView()
-        
-        # Add header bar
-        header_bar = Adw.HeaderBar()
-        header_bar.set_title_widget(Gtk.Label(label="Install Pass"))
-        toolbar_view.add_top_bar(header_bar)
-        
-        # Create content
-        content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        content.set_margin_top(18)
-        content.set_margin_bottom(18)
-        content.set_margin_start(18)
-        content.set_margin_end(18)
 
-        # Header
-        header_label = Gtk.Label(label="Install Pass (Password Store)")
-        header_label.set_halign(Gtk.Align.START)
-        header_label.set_margin_bottom(6)
-        header_label.add_css_class("title-4")
-        content.append(header_label)
-        
-        desc_label = Gtk.Label(label="Installing the pass password manager...")
-        desc_label.set_halign(Gtk.Align.START)
-        desc_label.set_margin_bottom(12)
-        desc_label.add_css_class("dim-label")
-        content.append(desc_label)
 
-        # Installation status row
-        status_listbox = Gtk.ListBox()
-        status_listbox.set_selection_mode(Gtk.SelectionMode.NONE)
-        status_listbox.add_css_class("boxed-list")
-        content.append(status_listbox)
 
-        install_row = Adw.ActionRow()
-        install_row.set_title("Installation Status")
-        install_row.set_subtitle("Ready to install pass package")
-        
-        # Add an icon to show this is an installation process
-        install_icon = Gtk.Image.new_from_icon_name("system-software-install-symbolic")
-        install_row.add_prefix(install_icon)
-        
-        status_listbox.append(install_row)
 
-        # Progress indicator
-        progress_bar = Gtk.ProgressBar()
-        progress_bar.set_show_text(True)
-        progress_bar.set_text("Ready to install")
-        progress_bar.set_margin_top(12)
-        content.append(progress_bar)
 
-        # Install button
-        button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
-        button_box.set_halign(Gtk.Align.CENTER)
-        button_box.set_margin_top(24)
-        content.append(button_box)
 
-        install_button = Gtk.Button(label="Start Installation")
-        install_button.add_css_class("suggested-action")
-        install_button.connect("clicked", lambda b: self._show_toast("Installation not implemented yet"))
-        button_box.append(install_button)
 
-        toolbar_view.set_content(content)
-        return toolbar_view
-
-    def _create_gpg_create_page(self):
-        """Create the GPG key creation page."""
-        toolbar_view = Adw.ToolbarView()
-        
-        # Add header bar
-        header_bar = Adw.HeaderBar()
-        header_bar.set_title_widget(Gtk.Label(label="Create GPG Key"))
-        toolbar_view.add_top_bar(header_bar)
-        
-        # Create content
-        content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        content.set_margin_top(18)
-        content.set_margin_bottom(18)
-        content.set_margin_start(18)
-        content.set_margin_end(18)
-
-        # Header
-        header_label = Gtk.Label(label="Create GPG Key")
-        header_label.set_halign(Gtk.Align.START)
-        header_label.set_margin_bottom(6)
-        header_label.add_css_class("title-4")
-        content.append(header_label)
-        
-        desc_label = Gtk.Label(label="Enter your information to create a new GPG key:")
-        desc_label.set_halign(Gtk.Align.START)
-        desc_label.set_margin_bottom(12)
-        desc_label.add_css_class("dim-label")
-        content.append(desc_label)
-
-        # Form container
-        form_listbox = Gtk.ListBox()
-        form_listbox.set_selection_mode(Gtk.SelectionMode.NONE)
-        form_listbox.add_css_class("boxed-list")
-        content.append(form_listbox)
-
-        # Name entry
-        name_row = Adw.EntryRow()
-        name_row.set_title("Full Name")
-        form_listbox.append(name_row)
-
-        # Email entry
-        email_row = Adw.EntryRow()
-        email_row.set_title("Email Address")
-        form_listbox.append(email_row)
-
-        # Passphrase entry
-        passphrase_row = Adw.PasswordEntryRow()
-        passphrase_row.set_title("Passphrase (optional)")
-        form_listbox.append(passphrase_row)
-
-        # Create GPG Key button
-        button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
-        button_box.set_halign(Gtk.Align.CENTER)
-        button_box.set_margin_top(24)
-        content.append(button_box)
-
-        create_button = Gtk.Button(label="Create GPG Key")
-        create_button.add_css_class("suggested-action")
-        create_button.connect("clicked", lambda b: self._show_toast("GPG creation not implemented yet"))
-        button_box.append(create_button)
-
-        toolbar_view.set_content(content)
-        return toolbar_view
-
-    def _create_complete_page(self):
-        """Create the completion page."""
-        toolbar_view = Adw.ToolbarView()
-        
-        # Add header bar
-        header_bar = Adw.HeaderBar()
-        header_bar.set_title_widget(Gtk.Label(label="Setup Complete"))
-        toolbar_view.add_top_bar(header_bar)
-        
-        # Create content
-        content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        content.set_margin_top(18)
-        content.set_margin_bottom(18)
-        content.set_margin_start(18)
-        content.set_margin_end(18)
-
-        # Success message
-        success_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        success_box.set_halign(Gtk.Align.CENTER)
-        success_box.set_valign(Gtk.Align.CENTER)
-        content.append(success_box)
-
-        # Success icon
-        success_icon = Gtk.Image.new_from_icon_name("emblem-ok-symbolic")
-        success_icon.set_pixel_size(64)
-        success_icon.add_css_class("success")
-        success_box.append(success_icon)
-
-        # Success title
-        success_title = Gtk.Label(label="Setup Complete!")
-        success_title.add_css_class("title-1")
-        success_box.append(success_title)
-
-        # Success description
-        success_desc = Gtk.Label(label="Your password manager is now ready to use.")
-        success_desc.add_css_class("dim-label")
-        success_box.append(success_desc)
-
-        # Start using button
-        button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
-        button_box.set_halign(Gtk.Align.CENTER)
-        button_box.set_margin_top(24)
-        content.append(button_box)
-
-        start_button = Gtk.Button(label="Start Using Secrets")
-        start_button.add_css_class("suggested-action")
-        start_button.connect("clicked", lambda b: self.emit("setup-complete"))
-        button_box.append(start_button)
-
-        toolbar_view.set_content(content)
-        return toolbar_view

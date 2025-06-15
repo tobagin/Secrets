@@ -11,7 +11,6 @@ python_sources = [
   'password_store.py',
   'models.py',
   'managers.py',
-  'services.py',
   'commands.py',
   'config.py',
   'async_operations.py',
@@ -54,7 +53,10 @@ controller_sources = [
 setup_wizard_sources = [
   'setup_wizard/__init__.py',
   'setup_wizard/dependencies_page.py',
-  'setup_wizard/wizard_dialog.py'
+  'setup_wizard/wizard_dialog.py',
+  'setup_wizard/install_pass_page.py',
+  'setup_wizard/create_gpg_page.py',
+  'setup_wizard/setup_complete_page.py'
 ]
 
 # Utility files
@@ -67,7 +69,8 @@ utils_sources = [
 
 # Services files
 services_sources = [
-  'services/__init__.py'
+  'services/__init__.py',
+  'services/password_service.py'
 ]
 
 # Install all Python files

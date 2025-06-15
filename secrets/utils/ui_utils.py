@@ -84,13 +84,7 @@ class DialogManager:
         dialog.set_content_width(default_size[0])
         dialog.set_content_height(default_size[1])
 
-        # Add appropriate styling based on type
-        if dialog_type == "error":
-            dialog.add_css_class("error")
-        elif dialog_type == "warning":
-            dialog.add_css_class("warning")
-        elif dialog_type == "question":
-            dialog.add_css_class("question")
+        # Dialog styling will be handled in UI files
 
         return dialog
 
@@ -148,8 +142,7 @@ class DialogManager:
         dialog.set_default_size(*default_size)
         dialog.set_resizable(resizable)
         
-        # Add dialog styling
-        dialog.add_css_class("dialog")
+        # Dialog styling will be handled in UI files
         
         return dialog
     
@@ -174,17 +167,20 @@ class DialogManager:
         dialog.add_controller(escape_controller)
     
     @staticmethod
-    def ensure_dialog_focus(dialog: Adw.Window):
+    def ensure_dialog_focus(dialog: Adw.Window, focus_widget: Optional[Gtk.Widget] = None):
         """
         Ensure proper focus management for a dialog.
-        
+
         Args:
             dialog: The dialog window
             focus_widget: Widget to focus (if None, finds first focusable widget)
         """
         def on_dialog_shown(dialog):
-            DialogManager._focus_first_widget(dialog)
-        
+            if focus_widget and focus_widget.get_can_focus() and focus_widget.get_sensitive() and focus_widget.get_visible():
+                focus_widget.grab_focus()
+            else:
+                DialogManager._focus_first_widget(dialog)
+
         dialog.connect("show", on_dialog_shown)
     
     @staticmethod

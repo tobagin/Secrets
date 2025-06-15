@@ -20,9 +20,6 @@ class AddPasswordDialog(Adw.Window):
         self.set_default_size(*UIConstants.MEDIUM_DIALOG)
         self.set_resizable(True)
 
-        # Add dialog styling
-        self.add_css_class("dialog")
-
         # Set up accessibility
         AccessibilityHelper.set_accessible_name(self, "Add new password dialog")
         AccessibilityHelper.set_accessible_description(self, "Dialog for creating a new password entry")
@@ -36,7 +33,6 @@ class AddPasswordDialog(Adw.Window):
 
         save_button = Gtk.Button(label="_Save", use_underline=True)
         save_button.connect("clicked", self.on_save_clicked)
-        save_button.add_css_class("suggested-action")
         header_bar.pack_end(save_button)
 
         cancel_button = Gtk.Button(label="_Cancel", use_underline=True)
@@ -64,7 +60,6 @@ class AddPasswordDialog(Adw.Window):
         # Add a description row for the path format
         path_description = Adw.ActionRow()
         path_description.set_title("Examples: websites/github, email/gmail")
-        path_description.add_css_class("dim-label")
         group.add(path_description)
 
         # Content TextView (within its own group or just below)

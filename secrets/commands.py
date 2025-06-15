@@ -132,19 +132,22 @@ class DeletePasswordCommand(PasswordCommand):
         
         entry = self.app_state.selected_entry
         
+        # Import DialogManager for consistent dialog creation
+        from ..utils.ui_utils import DialogManager, UIConstants
+
         # Show confirmation dialog
-        dialog = Adw.Dialog(
+        dialog = DialogManager.create_message_dialog(
+            parent=self.parent_window,
             heading=f"Delete '{entry.name}'?",
             body=f"Are you sure you want to permanently delete the password entry for '{entry.path}'?",
-            transient_for=self.parent_window,
-            modal=True
+            dialog_type="question",
+            default_size=UIConstants.SMALL_DIALOG
         )
-        # Note: This code needs to be updated to use the new Adw.Dialog API
-        # For now, keeping the old API calls as comments for reference
-        # dialog.add_response("cancel", "_Cancel")
-        # dialog.add_response("delete", "_Delete")
-        # dialog.set_response_appearance("delete", Adw.ResponseAppearance.DESTRUCTIVE)
-        # dialog.set_default_response("cancel")
+
+        # Add response buttons
+        DialogManager.add_dialog_response(dialog, "cancel", "_Cancel", "default")
+        DialogManager.add_dialog_response(dialog, "delete", "_Delete", "destructive")
+        dialog.set_default_response("cancel")
 
         def on_response(dialog, response_id):
             if response_id == "delete":
@@ -158,9 +161,8 @@ class DeletePasswordCommand(PasswordCommand):
                     self.toast_manager.show_error(message)
             dialog.close()
 
-        # Note: This needs to be updated for new API
         dialog.connect("response", on_response)
-        dialog.present()
+        dialog.present(self.parent_window)
         return True  # Command was initiated successfully
     
     @property

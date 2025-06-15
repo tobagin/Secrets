@@ -21,8 +21,7 @@ class PreferencesDialog(Adw.PreferencesWindow):
         self.set_title("Preferences")
         self.set_default_size(*UIConstants.LARGE_DIALOG)
 
-        # Add dialog styling
-        self.add_css_class("dialog")
+
 
         # Set up accessibility
         AccessibilityHelper.set_accessible_name(self, "Preferences dialog")

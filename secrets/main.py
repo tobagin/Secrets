@@ -1,6 +1,10 @@
 import sys
 import os # Added
+import warnings
 import gi
+
+# Suppress the module name conflict warning
+warnings.filterwarnings("ignore", message=".*'secrets.main' found in sys.modules.*")
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")

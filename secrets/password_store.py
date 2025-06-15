@@ -18,9 +18,16 @@ class PasswordStore:
     def __init__(self, store_dir=None):
         self.store_dir_override = store_dir # Store the override if provided
         self.store_dir = self._determine_store_dir(self.store_dir_override)
-        self.is_initialized = os.path.isdir(self.store_dir)
         self.gpg_health_status = None  # Will be set by validate_gpg_setup()
         # Don't raise error here immediately; let UI handle prompting.
+
+    @property
+    def is_initialized(self):
+        """Check if the password store is properly initialized with a .gpg-id file."""
+        if not os.path.isdir(self.store_dir):
+            return False
+        gpg_id_file = os.path.join(self.store_dir, ".gpg-id")
+        return os.path.exists(gpg_id_file)
 
     def _determine_store_dir(self, store_dir_override=None):
         """Determines the password store directory."""
@@ -274,10 +281,7 @@ class PasswordStore:
                             gpg_id = self._prompt_for_gpg_id(parent_window)
                             if gpg_id:
                                 init_success, init_message = self.init_store(gpg_id)
-                                if init_success:
-                                    self.is_initialized = True
-                                    # Optionally show a success toast from main window later
-                                else:
+                                if not init_success:
                                     # Show error from init_store attempt
                                     err_dialog = Adw.Dialog(
                                         heading="Initialization Failed",
@@ -597,9 +601,7 @@ class PasswordStore:
             if self.store_dir != os.path.expanduser("~/.password-store"):
                  env["PASSWORD_STORE_DIR"] = self.store_dir
 
-            # Debug: Print command and environment
-            print(f"DEBUG: Running command: {' '.join(command)}")
-            print(f"DEBUG: PATH: {env.get('PATH', 'Not set')}")
+
 
             # The content needs to be passed via stdin to the `pass insert` command
             # Add timeout to prevent hanging

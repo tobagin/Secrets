@@ -28,8 +28,7 @@ class EditPasswordDialog(Adw.Window):
         self.set_default_size(*UIConstants.MEDIUM_DIALOG)
         self.set_resizable(True)
 
-        # Add dialog styling
-        self.add_css_class("dialog")
+
 
         # Set up accessibility
         AccessibilityHelper.set_accessible_name(self, f"Edit password dialog for {os.path.basename(password_path)}")
@@ -47,7 +46,6 @@ class EditPasswordDialog(Adw.Window):
         # Action buttons with improved styling
         save_button = Gtk.Button(label="_Save", use_underline=True)
         save_button.connect("clicked", self.on_save_clicked)
-        save_button.add_css_class("suggested-action")
         save_button.set_tooltip_text("Save changes to password entry")
         AccessibilityHelper.set_accessible_name(save_button, "Save password changes")
         header_bar.pack_end(save_button)
@@ -79,7 +77,6 @@ class EditPasswordDialog(Adw.Window):
 
         path_row = Adw.ActionRow(title="Path")
         path_row.set_subtitle(self.password_path)
-        path_row.add_css_class("property")
         AccessibilityHelper.set_accessible_name(path_row, f"Password path: {self.password_path}")
         path_group.add(path_row)
 
@@ -94,7 +91,6 @@ class EditPasswordDialog(Adw.Window):
         self.text_view.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
         self.text_view.get_buffer().set_text(self.initial_content)
         self.text_view.set_vexpand(True)
-        self.text_view.add_css_class("password-field")
         AccessibilityHelper.set_accessible_name(self.text_view, "Password content editor")
         AccessibilityHelper.set_accessible_description(self.text_view, "Multi-line text editor for password entry content")
 

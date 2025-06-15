@@ -3,9 +3,9 @@ Service layer for password operations and business logic.
 """
 from typing import Tuple, List, Optional, Dict, Any
 import os
-from .models import PasswordEntry
-from .password_store import PasswordStore
-from .performance import password_cache, performance_monitor, memoize_with_ttl
+from ..models import PasswordEntry
+from ..password_store import PasswordStore
+from ..performance import password_cache, performance_monitor, memoize_with_ttl
 
 
 class PasswordService:
