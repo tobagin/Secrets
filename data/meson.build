@@ -56,7 +56,7 @@ endif
 
 # AppStream metadata
 appstream_file_name = app_id + '.appdata.xml'
-appstream_file_input = 'io.github.tobagin.secrets.appdata.xml.in' # Keep consistent
+appstream_file_input = 'io.github.tobagin.secrets.appdata.xml.in'
 
 i18n.merge_file(
   input: appstream_file_input,
@@ -71,15 +71,12 @@ if appstream_util.found()
   test('Validate appstream file', appstream_util, args : ['validate', '--nonet', appstream_file_name])
 endif
 
-# Icons directory - create it so it can be used
-# install_emptydir(get_option('datadir') / 'icons' / 'hicolor' / 'scalable' / 'apps')
-
 # Scalable icon
-# install_data(
-#   'icons/io.github.tobagin.secrets.svg',
-#   install_dir: get_option('datadir') / 'icons' / 'hicolor' / 'scalable' / 'apps',
-#   rename: app_id + '.svg'
-# )
+install_data(
+  'icons/io.github.tobagin.secrets.svg',
+  install_dir: get_option('datadir') / 'icons' / 'hicolor' / 'scalable' / 'apps',
+  rename: app_id + '.svg'
+)
 
 # GSettings (if you add them later)
 # gsettings_schemas = files('com.example.secrets.gschema.xml') # Placeholder

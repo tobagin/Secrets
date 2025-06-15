@@ -23,6 +23,20 @@ configure_file(
   install: false
 )
 
+# Create the main executable script for installation
+executable_script = configure_file(
+  input: 'secrets.in',
+  output: project_id,
+  configuration: {
+    'PYTHON': py_mod.full_path(),
+    'INSTALLED_PYTHONPATH': py_mod.get_install_dir(),
+    'PROJECT_ID': project_id,
+  },
+  install: true,
+  install_dir: get_option('bindir'),
+  install_mode: 'rwxr-xr-x'
+)
+
 # Executable for running directly (not for flatpak main binary)
 run_target('secrets-dev',
   command: [py_mod, '-m', 'secrets.main'],

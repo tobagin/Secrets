@@ -78,6 +78,46 @@ Currently implemented features include:
     python3 -m secrets.main
     ```
 
+## Installation
+
+### From Flathub (Recommended)
+
+*Coming soon - the application will be available on Flathub once submitted and approved.*
+
+```bash
+flatpak install flathub io.github.tobagin.secrets
+flatpak run io.github.tobagin.secrets
+```
+
+### Building Flatpak Locally
+
+```bash
+# Install flatpak-builder
+sudo dnf install flatpak-builder  # Fedora
+sudo apt install flatpak-builder  # Ubuntu/Debian
+
+# Build the Flatpak
+flatpak-builder build-dir io.github.tobagin.secrets.yml --force-clean --install-deps-from=flathub
+
+# Install locally
+flatpak-builder --user --install --force-clean build-dir io.github.tobagin.secrets.yml
+
+# Run the installed Flatpak
+flatpak run io.github.tobagin.secrets
+```
+
+### System Installation
+
+```bash
+# Build and install system-wide
+meson setup builddir --prefix=/usr
+meson compile -C builddir
+sudo meson install -C builddir
+
+# Run the installed application
+io.github.tobagin.secrets
+```
+
 ## Future Enhancements
 
 This project aims to incorporate many more features from the `pass` ecosystem and enhance user experience. See the project's issue tracker or future roadmap discussions for details.
