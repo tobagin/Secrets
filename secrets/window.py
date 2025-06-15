@@ -289,8 +289,24 @@ class SecretsWindow(Adw.ApplicationWindow):
 
     def on_add_folder_button_clicked(self, widget):
         """Handle add folder button click."""
-        # For now, show a simple dialog to create a folder
-        self.toast_manager.show_info("Add folder functionality coming soon!")
+        from .ui.dialogs.add_folder_dialog import AddFolderDialog
+
+        # Get suggested parent folder from current selection
+        suggested_parent = ""
+        selected_item_obj = self.folder_controller.get_selected_item()
+        if selected_item_obj and selected_item_obj.is_folder:
+            # If a folder is selected, suggest it as parent
+            if hasattr(selected_item_obj, 'full_path'):
+                suggested_parent = selected_item_obj.full_path
+            else:
+                suggested_parent = selected_item_obj.path
+
+        dialog = AddFolderDialog(
+            transient_for_window=self,
+            suggested_parent_path=suggested_parent
+        )
+        dialog.connect("folder-create-requested", self.on_add_folder_dialog_create_requested)
+        dialog.present()
 
     def on_search_toggle_clicked(self, widget):
         """Handle search toggle button click."""
@@ -456,6 +472,24 @@ class SecretsWindow(Adw.ApplicationWindow):
         )
         dialog.connect("add-requested", self.on_add_dialog_add_requested)
         dialog.present()
+
+    def on_add_folder_dialog_create_requested(self, dialog, folder_path):
+        """Handle folder creation request from add folder dialog."""
+        try:
+            # Create the folder in the password store
+            success, message = self.password_store.create_folder(folder_path)
+
+            if success:
+                self.toast_manager.show_success(f"Folder '{folder_path}' created successfully")
+                # Refresh the folder list to show the new folder
+                self.folder_controller.load_passwords()
+                dialog.close()
+            else:
+                self.toast_manager.show_error(f"Failed to create folder: {message}")
+
+        except Exception as e:
+            self.toast_manager.show_error(f"Error creating folder: {str(e)}")
+            print(f"Error creating folder '{folder_path}': {e}")
 
     def on_add_dialog_add_requested(self, dialog, path, content):
         # Use force=False to prevent overwriting existing entries by mistake.

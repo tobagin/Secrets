@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <requires lib="libadwaita" version="1.0"/>
+  
+  <template class="AddFolderDialog" parent="AdwDialog">
+    <property name="title">Create New Folder</property>
+    
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <property name="spacing">0</property>
+        
+        <child>
+          <object class="AdwHeaderBar">
+            <property name="title-widget">
+              <object class="AdwWindowTitle">
+                <property name="title">Create New Folder</property>
+              </object>
+            </property>
+            
+            <child type="start">
+              <object class="GtkButton" id="cancel_button">
+                <property name="label">Cancel</property>
+                <signal name="clicked" handler="on_cancel_clicked"/>
+              </object>
+            </child>
+            
+            <child type="end">
+              <object class="GtkButton" id="create_button">
+                <property name="label">Create</property>
+                <property name="sensitive">False</property>
+                <style>
+                  <class name="suggested-action"/>
+                </style>
+                <signal name="clicked" handler="on_create_clicked"/>
+              </object>
+            </child>
+          </object>
+        </child>
+        
+        <child>
+          <object class="AdwClamp">
+            <property name="maximum-size">400</property>
+            <property name="margin-top">24</property>
+            <property name="margin-bottom">24</property>
+            <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
+            
+            <child>
+              <object class="AdwPreferencesPage">
+                <child>
+                  <object class="AdwPreferencesGroup">
+                    <property name="title">Folder Details</property>
+                    <property name="description">Create a new folder to organize your passwords</property>
+                    
+                    <child>
+                      <object class="AdwEntryRow" id="path_entry">
+                        <property name="title">Folder Path</property>
+                        <signal name="changed" handler="on_path_changed"/>
+                        <signal name="activate" handler="on_path_activated"/>
+                      </object>
+                    </child>
+                    
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title">Examples: websites, email/work, social</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

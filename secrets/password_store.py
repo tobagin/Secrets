@@ -691,6 +691,50 @@ class PasswordStore:
         except Exception as e:
             return False, f"An unexpected error occurred while moving: {e}"
 
+    def create_folder(self, folder_path):
+        """
+        Create a folder in the password store.
+
+        Args:
+            folder_path (str): The path of the folder to create (e.g., "websites", "email/work")
+
+        Returns:
+            tuple: (success: bool, message: str)
+        """
+        if not folder_path or not folder_path.strip():
+            return False, "Folder path cannot be empty"
+
+        # Clean the folder path
+        folder_path = folder_path.strip().strip('/')
+
+        # Validate folder path (no invalid characters)
+        invalid_chars = ['<', '>', ':', '"', '|', '?', '*']
+        for char in invalid_chars:
+            if char in folder_path:
+                return False, f"Folder path cannot contain '{char}'"
+
+        try:
+            # Create the full path in the password store
+            full_folder_path = os.path.join(self.store_dir, folder_path)
+
+            # Check if folder already exists
+            if os.path.exists(full_folder_path):
+                return False, f"Folder '{folder_path}' already exists"
+
+            # Create the directory
+            os.makedirs(full_folder_path, exist_ok=True)
+
+            # Verify creation
+            if os.path.isdir(full_folder_path):
+                return True, f"Folder '{folder_path}' created successfully"
+            else:
+                return False, f"Failed to create folder '{folder_path}'"
+
+        except OSError as e:
+            return False, f"Error creating folder: {str(e)}"
+        except Exception as e:
+            return False, f"Unexpected error creating folder: {str(e)}"
+
     def get_parsed_password_details(self, path_to_password):
         """
         Retrieves and parses the content of the specified password file.
