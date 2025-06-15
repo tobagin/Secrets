@@ -10,8 +10,7 @@ gi.require_version("Adw", "1")
 from gi.repository import Gtk, Adw, GLib
 import subprocess
 import threading
-from .system_setup_helper import SystemSetupHelper
-from .gpg_setup_helper import GPGSetupHelper
+from .utils import SystemSetupHelper, GPGSetupHelper
 
 
 class DependencySetupDialog(Adw.Window):
@@ -266,7 +265,7 @@ class DependencySetupDialog(Adw.Window):
     
     def _on_show_commands_clicked(self, button):
         """Show the installation commands that would be executed."""
-        from .ui_utils import DialogManager
+        from .utils import DialogManager
 
         commands = self.system_status['installation_commands']
 

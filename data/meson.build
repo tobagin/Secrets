@@ -8,13 +8,31 @@ i18n = import('i18n')
 app_id = get_variable('project_id', 'io.github.tobagin.secrets')
 
 
-# UI files and CSS
-# We'll create secrets.ui soon.
-# If you use .blp (Blueprint) files, you'll need to set up blueprint-compiler
-# and change how these are handled.
+# UI files and CSS - organized structure
+# Main UI files
 install_data(
-  ['secrets.ui', 'style.css'], # Add other .ui files here if you have them
+  ['ui/main_window.ui', 'style.css'],
   install_dir: get_option('datadir') / app_id / 'ui'
+)
+
+# Component UI files
+install_data(
+  ['ui/components/header_bar.ui', 'ui/components/password_list.ui',
+   'ui/components/password_details.ui', 'ui/components/main_menu.ui'],
+  install_dir: get_option('datadir') / app_id / 'ui' / 'components'
+)
+
+# Dialog UI files
+install_data(
+  ['ui/dialogs/add_password_dialog.ui', 'ui/dialogs/edit_password_dialog.ui',
+   'ui/dialogs/move_rename_dialog.ui'],
+  install_dir: get_option('datadir') / app_id / 'ui' / 'dialogs'
+)
+
+# Setup wizard UI files
+install_data(
+  ['ui/setup/setup_wizard.ui', 'ui/setup/wizard_dialog.ui', 'ui/setup/dependencies_page.ui'],
+  install_dir: get_option('datadir') / app_id / 'ui' / 'setup'
 )
 
 # .desktop file

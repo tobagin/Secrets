@@ -2,15 +2,13 @@ python = import('python')
 py_mod = python.find_installation()
 py_install_dir = py_mod.get_install_dir()
 
+# Main module files
 python_sources = [
   '__init__.py',
   'application.py',
   'window.py',
   'app_info.py',
   'password_store.py',
-  'edit_dialog.py',
-  'move_rename_dialog.py',
-  'add_password_dialog.py',
   'models.py',
   'managers.py',
   'services.py',
@@ -18,10 +16,67 @@ python_sources = [
   'config.py',
   'async_operations.py',
   'error_handling.py',
-  'performance.py'
+  'performance.py',
+  'main.py',
+  'shortcuts_window.py',
+  'dependency_setup_dialog.py',
+  'gpg_setup_dialog.py'
 ]
 
+# UI module files
+ui_sources = [
+  'ui/__init__.py',
+  'ui/components/__init__.py',
+  'ui/components/header_bar.py',
+  'ui/components/password_list.py',
+  'ui/components/password_details.py',
+  'ui/dialogs/__init__.py',
+  'ui/dialogs/add_password_dialog.py',
+  'ui/dialogs/edit_password_dialog.py',
+  'ui/dialogs/move_rename_dialog.py',
+  'ui/dialogs/preferences_dialog.py',
+  'ui/dialogs/password_generator_dialog.py',
+  'ui/dialogs/import_export_dialog.py',
+  'ui/widgets/__init__.py'
+]
+
+# Controller files
+controller_sources = [
+  'controllers/__init__.py',
+  'controllers/action_controller.py',
+  'controllers/password_details_controller.py',
+  'controllers/password_list_controller.py',
+  'controllers/setup_controller.py',
+  'controllers/window_state_manager.py'
+]
+
+# Setup wizard files
+setup_wizard_sources = [
+  'setup_wizard/__init__.py',
+  'setup_wizard/dependencies_page.py',
+  'setup_wizard/wizard_dialog.py'
+]
+
+# Utility files
+utils_sources = [
+  'utils/__init__.py',
+  'utils/ui_utils.py',
+  'utils/system_utils.py',
+  'utils/gpg_utils.py'
+]
+
+# Services files
+services_sources = [
+  'services/__init__.py'
+]
+
+# Install all Python files
 install_data(python_sources, install_dir : py_install_dir / 'secrets')
+install_data(ui_sources, install_dir : py_install_dir / 'secrets', preserve_path: true)
+install_data(controller_sources, install_dir : py_install_dir / 'secrets', preserve_path: true)
+install_data(setup_wizard_sources, install_dir : py_install_dir / 'secrets', preserve_path: true)
+install_data(utils_sources, install_dir : py_install_dir / 'secrets', preserve_path: true)
+install_data(services_sources, install_dir : py_install_dir / 'secrets', preserve_path: true)
 
 # Compile GResources for Python: generate .gresource file, not C code
 gresource = custom_target('secrets.gresource',

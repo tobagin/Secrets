@@ -63,11 +63,74 @@ class SecretsApplication(Adw.Application):
         self.add_action(action)
 
     def do_activate(self):
-        from .window import SecretsWindow # Local import
+        """Activate the application - check setup first, then show appropriate window."""
         win = self.get_active_window()
         if not win:
-            win = SecretsWindow(application=self)
+            # Check if setup is needed before showing main window
+            if self._needs_setup():
+                self._show_setup_wizard()
+            else:
+                self._show_main_window()
+        else:
+            win.present()
+
+    def _needs_setup(self):
+        """Check if the application needs setup (pass/GPG/store)."""
+        # Simple check without full validation to avoid hanging
+        import os
+        import shutil
+
+        # Check if pass is installed
+        if not shutil.which('pass'):
+            return True
+
+        # Check if GPG is installed
+        if not shutil.which('gpg'):
+            return True
+
+        # Check if password store directory exists
+        store_dir = os.path.expanduser("~/.password-store")
+        if not os.path.exists(store_dir):
+            return True
+
+        # Check if .gpg-id file exists
+        gpg_id_file = os.path.join(store_dir, ".gpg-id")
+        if not os.path.exists(gpg_id_file):
+            return True
+
+        # Basic checks passed, assume setup is complete
+        return False
+
+    def _show_setup_wizard(self):
+        """Show the setup wizard dialog over the main window."""
+        from .window import SecretsWindow
+        from .setup_wizard import SetupWizard
+
+        # Create the main window first (but don't show it yet)
+        main_window = SecretsWindow(application=self)
+
+        # Create and show the setup wizard as a dialog over the main window
+        setup_wizard = SetupWizard(parent_window=main_window)
+        setup_wizard.connect("setup-complete", self._on_setup_complete)
+
+        # Present the main window first, then the setup wizard
+        main_window.present()
+        setup_wizard.present(main_window)
+
+    def _show_main_window(self):
+        """Show the main application window."""
+        from .window import SecretsWindow
+
+        win = SecretsWindow(application=self)
         win.present()
+
+    def _on_setup_complete(self, setup_wizard):
+        """Called when setup wizard completes successfully."""
+        setup_wizard.close()
+        # Main window is already shown, just trigger the setup completion
+        main_window = setup_wizard.parent_window
+        if hasattr(main_window, '_verify_setup_and_load'):
+            main_window._verify_setup_and_load()
 
     def on_about_action(self, action, param):
         from .window import SecretsWindow # Local import
@@ -95,7 +158,7 @@ class SecretsApplication(Adw.Application):
         self.quit()
 
     def on_preferences_action(self, action, param):
-        from .preferences_dialog import PreferencesDialog
+        from .ui.dialogs import PreferencesDialog
         from .window import SecretsWindow
 
         active_window = self.get_active_window()

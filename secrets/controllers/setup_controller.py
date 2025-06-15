@@ -190,3 +190,17 @@ class SetupController:
     def force_revalidation(self):
         """Force a revalidation of the setup."""
         self.validate_and_setup_store()
+
+    def validate_setup_silent(self):
+        """
+        Validate setup without showing any dialogs.
+        Returns True if setup is complete and valid, False otherwise.
+        """
+        is_valid, status = self.password_store.validate_complete_setup()
+
+        if is_valid and self.password_store.is_initialized:
+            self._gpg_setup_valid = True
+            return True
+        else:
+            self._gpg_setup_valid = False
+            return False

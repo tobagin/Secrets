@@ -8,9 +8,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 
 from gi.repository import Gtk, Adw, GLib
-from .gpg_setup_helper import GPGSetupHelper
-from .ui_utils import DialogManager, UIConstants, AccessibilityHelper
-from .system_setup_helper import SystemSetupHelper
+from .utils import GPGSetupHelper, DialogManager, UIConstants, AccessibilityHelper, SystemSetupHelper
 
 
 class GPGSetupDialog(Adw.Window):
@@ -160,7 +158,7 @@ class GPGSetupDialog(Adw.Window):
     
     def _show_auto_setup_dialog(self):
         """Show dialog for automatic setup."""
-        from .ui_utils import DialogManager
+        from .utils import DialogManager
 
         dialog = DialogManager.create_message_dialog(
             parent=self,

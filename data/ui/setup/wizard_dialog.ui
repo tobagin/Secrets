@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <requires lib="libadwaita" version="1.0"/>
+  
+  <template class="SetupWizard" parent="AdwDialog">
+    <property name="content-width">600</property>
+    <property name="content-height">400</property>
+    <property name="child">
+      <object class="AdwToastOverlay" id="toast_overlay">
+        <property name="child">
+          <object class="AdwNavigationView" id="navigation_view">
+            <!-- Pages will be added programmatically -->
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>

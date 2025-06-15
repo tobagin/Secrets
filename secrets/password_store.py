@@ -2,9 +2,17 @@ import os
 import subprocess
 import glob # For listing files
 import re # Added
-import gi # Added
-gi.require_version("Adw", "1") # Added
-from gi.repository import Adw, Gio, GLib # Added GLib
+
+# GTK imports are conditional to avoid hanging in headless environments
+_gtk_available = False
+try:
+    import gi
+    gi.require_version("Adw", "1")
+    from gi.repository import Adw, Gio, GLib
+    _gtk_available = True
+except (ImportError, ValueError):
+    # GTK not available or wrong version
+    pass
 
 class PasswordStore:
     def __init__(self, store_dir=None):
@@ -89,8 +97,9 @@ class PasswordStore:
 
         # Check if any GPG keys exist
         try:
-            result = subprocess.run(["gpg", "--list-secret-keys", "--with-colons"],
-                                  capture_output=True, text=True, timeout=10)
+            # Use a shorter timeout and add --batch flag to prevent hanging
+            result = subprocess.run(["gpg", "--batch", "--list-secret-keys", "--with-colons"],
+                                  capture_output=True, text=True, timeout=5)
             if result.returncode == 0 and result.stdout.strip():
                 status['gpg_keys_exist'] = True
             else:
@@ -119,7 +128,7 @@ class PasswordStore:
                         status['store_gpg_id'] = store_gpg_id
 
                         # Check if this GPG ID exists in the keyring
-                        result = subprocess.run(["gpg", "--list-keys", store_gpg_id],
+                        result = subprocess.run(["gpg", "--batch", "--list-keys", store_gpg_id],
                                               capture_output=True, text=True, timeout=5)
                         if result.returncode == 0:
                             status['store_gpg_id_exists'] = True
@@ -189,12 +198,12 @@ class PasswordStore:
         try:
             # Try running a simple, non-modifying pass command like 'pass version' or 'pass help'
             # 'pass help' is generally safe and available.
-            process = subprocess.run(["pass", "help"], capture_output=True, text=True, check=False)
+            process = subprocess.run(["pass", "help"], capture_output=True, text=True, check=False, timeout=5)
             # If FileNotFoundError is not raised, pass is considered found.
             # We don't strictly need to check process.returncode here,
             # as we're only interested in whether the command itself can be executed.
             return True
-        except FileNotFoundError:
+        except (FileNotFoundError, subprocess.TimeoutExpired):
             return False
         except Exception:
             # Other potential errors during subprocess.run, assume pass is not usable.
@@ -210,7 +219,7 @@ class PasswordStore:
         if self.is_initialized:
             return True
 
-        if parent_window: # Only prompt if we have a parent window for the dialog
+        if parent_window and _gtk_available: # Only prompt if we have a parent window and GTK is available
             dialog = Adw.Dialog(
                 heading="Password Store Setup",
                 body=f"The password store directory at '{self.store_dir}' does not exist.\n\nWhat would you like to do?",
@@ -305,6 +314,9 @@ class PasswordStore:
             return False
 
     def _prompt_for_gpg_id(self, parent_window):
+        if not _gtk_available:
+            return None
+
         dialog = Adw.Dialog(
             heading="Initialize Password Store",
             body="Enter your GPG Key ID (e.g., email@example.com or a key fingerprint) to initialize the store.",

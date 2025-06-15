@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <requires lib="libadwaita" version="1.0"/>
+  
+  <object class="AdwHeaderBar" id="main_header_bar">
+    <property name="title-widget">
+      <object class="AdwWindowTitle">
+        <property name="title">Secrets</property>
+        <property name="subtitle">Password Manager</property>
+      </object>
+    </property>
+    <child type="start">
+      <object class="GtkBox">
+        <property name="orientation">horizontal</property>
+        <property name="spacing">6</property>
+        <child>
+          <object class="GtkButton" id="add_password_button">
+            <property name="icon-name">list-add-symbolic</property>
+            <property name="tooltip-text" translatable="yes">Add New Password</property>
+            <style><class name="suggested-action"/></style>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSeparator">
+            <property name="orientation">vertical</property>
+            <property name="margin-start">6</property>
+            <property name="margin-end">6</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="git_pull_button">
+            <property name="icon-name">vcs-pull-symbolic</property>
+            <property name="tooltip-text" translatable="yes">Pull changes</property>
+            <style><class name="flat"/></style>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="git_push_button">
+            <property name="icon-name">vcs-push-symbolic</property>
+            <property name="tooltip-text" translatable="yes">Push changes</property>
+            <style><class name="flat"/></style>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child type="end">
+      <object class="GtkMenuButton" id="main_menu_button">
+        <property name="icon-name">open-menu-symbolic</property>
+        <property name="menu-model">main_menu</property>
+      </object>
+    </child>
+  </object>
+</interface>

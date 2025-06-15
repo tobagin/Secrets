@@ -7,11 +7,12 @@ from gi.repository import Gtk, Adw, Gio, GObject, Gdk, GLib # Added GLib
 import os
 
 from .password_store import PasswordStore
-from .edit_dialog import EditPasswordDialog
-from .move_rename_dialog import MoveRenameDialog
-from .add_password_dialog import AddPasswordDialog # Added
+from .ui.dialogs import EditPasswordDialog, MoveRenameDialog, AddPasswordDialog
 from .app_info import APP_ID # Added to construct resource path programmatically
-from .ui_utils import DialogManager, UIConstants, AccessibilityHelper
+from .utils import DialogManager, UIConstants, AccessibilityHelper
+
+# Import UI components
+from .ui.components import HeaderBarComponent, PasswordListComponent, PasswordDetailsComponent
 
 # Import new architecture components
 from .models import PasswordEntry, PasswordListItem, AppState
@@ -51,7 +52,7 @@ class PasswordListItem(GObject.Object):
         elif children_model is not None: # Allow passing pre-filled model
             self.children_model = children_model
 
-@Gtk.Template(resource_path=f'/{APP_ID.replace(".", "/")}/data/secrets.ui')
+@Gtk.Template(resource_path=f'/{APP_ID.replace(".", "/")}/ui/main_window.ui')
 class SecretsWindow(Adw.ApplicationWindow):
     __gtype_name__ = "SecretsWindow"
 
@@ -188,8 +189,21 @@ class SecretsWindow(Adw.ApplicationWindow):
             on_import_export=self._on_import_export
         )
 
-        # Start setup validation
-        self.setup_controller.validate_and_setup_store()
+        # Setup validation is now handled by the setup wizard before this window is shown
+        # Just verify that setup is complete and load passwords
+        self._verify_setup_and_load()
+
+    def _verify_setup_and_load(self):
+        """Verify that setup is complete and load passwords."""
+        is_valid, status = self.password_store.validate_complete_setup()
+
+        if is_valid:
+            # Setup is valid, load passwords
+            self.list_controller.load_passwords()
+            self.toast_manager.show_info("Password manager is ready to use")
+        else:
+            # This shouldn't happen if setup wizard worked correctly
+            self.toast_manager.show_error("Setup validation failed. Please restart the application.")
 
     def _on_setup_complete(self):
         """Called when setup is complete and valid."""
@@ -408,7 +422,7 @@ class SecretsWindow(Adw.ApplicationWindow):
 
     def _on_generate_password(self, action=None, param=None):
         """Show password generator dialog."""
-        from .password_generator import PasswordGeneratorDialog
+        from .ui.dialogs import PasswordGeneratorDialog
 
         generator_dialog = PasswordGeneratorDialog(parent_window=self)
         generator_dialog.connect("password-generated", self._on_password_generated)
@@ -430,7 +444,7 @@ class SecretsWindow(Adw.ApplicationWindow):
 
     def _on_import_export(self, action=None, param=None):
         """Show import/export dialog."""
-        from .import_export import ImportExportDialog
+        from .ui.dialogs import ImportExportDialog
 
         import_export_dialog = ImportExportDialog(
             parent_window=self,

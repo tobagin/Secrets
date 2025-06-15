@@ -5,7 +5,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 
 from gi.repository import Gtk, Adw, GObject
-from .ui_utils import DialogManager, UIConstants, AccessibilityHelper
+from ...utils import DialogManager, UIConstants, AccessibilityHelper
 
 class AddPasswordDialog(Adw.Window):
     __gtype_name__ = "AddPasswordDialog"

@@ -4,8 +4,8 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 
 from gi.repository import Gtk, Adw, GObject
-from .config import ConfigManager, ThemeManager
-from .ui_utils import DialogManager, UIConstants, AccessibilityHelper
+from ...config import ConfigManager, ThemeManager
+from ...utils import DialogManager, UIConstants, AccessibilityHelper
 
 
 class PreferencesDialog(Adw.PreferencesWindow):
