@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2024 Thiago Fernandes -->
+<component type="desktop-application">
+  <id>io.github.tobagin.secrets</id>
+  <name>Secrets</name>
+  <summary>A clean interface for managing a pass repository</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <description>
+    <p>
+      Secrets provides a user-friendly graphical interface for managing passwords
+      stored with 'pass', the standard unix password manager.
+    </p>
+    <p>Key Features:</p>
+    <ul>
+      <li>Browse your password store in a tree view.</li>
+      <li>Copy passwords to the clipboard (cleared automatically after a timeout).</li>
+      <li>Add new passwords and edit existing ones through a dialog.</li>
+      <li>Generate strong, random passwords.</li>
+      <li>Synchronize changes with a remote git repository (git pull/push).</li>
+    </ul>
+  </description>
+  <launchable type="desktop-id">io.github.tobagin.secrets.desktop</launchable>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/tobagin/Secrets/main/data/screenshots/main-window.png</image>
+      <caption>Main window showing password store</caption>
+    </screenshot>
+  </screenshots>
+  <releases>
+    <release version="0.1.0" date="2025-06-15">
+      <description>
+        <p>Initial release of Secrets Password Manager.</p>
+        <ul>
+          <li>Clean GTK4/Libadwaita interface</li>
+          <li>Full pass compatibility</li>
+          <li>Password generation and management</li>
+          <li>Git synchronization support</li>
+          <li>Automatic GPG setup wizard</li>
+        </ul>
+      </description>
+    </release>
+  </releases>
+  <content_rating type="oars-1.1"/>
+  <url type="homepage">https://github.com/tobagin/Secrets</url>
+  <url type="bugtracker">https://github.com/tobagin/Secrets/issues</url>
+  <developer_name>Thiago Fernandes</developer_name>
+  <provides>
+    <binary>io.github.tobagin.secrets</binary>
+  </provides>
+  <categories>
+    <category>Utility</category>
+    <category>Security</category>
+  </categories>
+  <keywords>
+    <keyword>password</keyword>
+    <keyword>manager</keyword>
+    <keyword>security</keyword>
+    <keyword>gpg</keyword>
+    <keyword>pass</keyword>
+  </keywords>
+</component>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="keyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3584e4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1c71d8;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="lockGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f6f5f4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#deddda;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="64" cy="64" r="60" fill="url(#keyGradient)" stroke="#1a5fb4" stroke-width="2"/>
+  
+  <!-- Lock body -->
+  <rect x="44" y="58" width="40" height="32" rx="4" ry="4" fill="url(#lockGradient)" stroke="#77767b" stroke-width="1"/>
+  
+  <!-- Lock shackle -->
+  <path d="M 52 58 L 52 48 Q 52 38 64 38 Q 76 38 76 48 L 76 58" 
+        fill="none" stroke="url(#lockGradient)" stroke-width="4" stroke-linecap="round"/>
+  
+  <!-- Keyhole -->
+  <circle cx="64" cy="70" r="4" fill="#77767b"/>
+  <rect x="62" y="70" width="4" height="8" fill="#77767b"/>
+  
+  <!-- Key accent -->
+  <path d="M 84 44 L 94 44 L 94 48 L 88 48 L 88 52 L 84 52 Z" 
+        fill="#f9f06b" stroke="#f5c211" stroke-width="1"/>
+</svg>

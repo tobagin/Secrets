@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <requires lib="libadwaita" version="1.0"/>
+  
+  <object class="GtkBox" id="password_list_container">
+    <property name="orientation">vertical</property>
+    <property name="spacing">6</property>
+    <child>
+      <object class="GtkSearchEntry" id="search_entry">
+        <property name="placeholder-text" translatable="yes">Search passwords...</property>
+        <property name="margin-top">6</property>
+        <property name="margin-bottom">6</property>
+        <property name="margin-start">6</property>
+        <property name="margin-end">6</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkScrolledWindow" id="treeview_scrolled_window">
+        <property name="hscrollbar-policy">never</property>
+        <property name="vscrollbar-policy">automatic</property>
+        <property name="min-content-width">250</property>
+        <property name="vexpand">true</property>
+        <property name="has-frame">true</property>
+      </object>
+    </child>
+  </object>
+</interface>

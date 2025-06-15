@@ -1,0 +1,5 @@
+[Runtime]
+name=io.github.tobagin.secrets.Debug
+
+[ExtensionOf]
+ref=app/io.github.tobagin.secrets/aarch64/master

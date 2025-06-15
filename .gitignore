@@ -18,6 +18,11 @@ builddir/
 meson-private/
 meson-logs/
 
+# Flatpak build system
+.flatpak-builder/
+flatpak-build/
+*.flatpak
+
 # GTK / GNOME
 *.gresource
 

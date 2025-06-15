@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <requires lib="libadwaita" version="1.0"/>
+  
+  <template class="MoveRenameDialog" parent="AdwWindow">
+    <property name="modal">true</property>
+    <property name="title">Move/Rename Password</property>
+    <property name="default-width">450</property>
+    <property name="default-height">300</property>
+    <property name="resizable">true</property>
+    <style>
+      <class name="dialog"/>
+    </style>
+    
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <property name="spacing">0</property>
+        
+        <child>
+          <object class="AdwHeaderBar">
+            <property name="title-widget">
+              <object class="AdwWindowTitle">
+                <property name="title">Move/Rename Password</property>
+                <property name="subtitle">Change password location or name</property>
+              </object>
+            </property>
+            
+            <child type="start">
+              <object class="GtkButton" id="cancel_button">
+                <property name="label" translatable="yes">_Cancel</property>
+                <property name="use-underline">true</property>
+              </object>
+            </child>
+            
+            <child type="end">
+              <object class="GtkButton" id="save_button">
+                <property name="label" translatable="yes">_Save</property>
+                <property name="use-underline">true</property>
+                <style>
+                  <class name="suggested-action"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+        
+        <child>
+          <object class="AdwPreferencesPage">
+            <child>
+              <object class="AdwPreferencesGroup">
+                <property name="title">Current Location</property>
+                
+                <child>
+                  <object class="AdwActionRow" id="current_path_row">
+                    <property name="title">Current Path</property>
+                    <style>
+                      <class name="property"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+            
+            <child>
+              <object class="AdwPreferencesGroup">
+                <property name="title">New Location</property>
+                <property name="description">Enter the new path for this password entry</property>
+                
+                <child>
+                  <object class="AdwEntryRow" id="new_path_entry">
+                    <property name="title">New Path</property>
+                  </object>
+                </child>
+                
+                <child>
+                  <object class="AdwActionRow">
+                    <property name="title">Examples: websites/github, email/personal/gmail</property>
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

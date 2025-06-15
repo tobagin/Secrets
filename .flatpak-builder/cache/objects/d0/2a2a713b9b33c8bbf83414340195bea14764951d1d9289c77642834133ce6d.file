@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <requires lib="libadwaita" version="1.0"/>
+
+  <template class="SetupWizard" parent="AdwDialog">
+    <property name="content-width">600</property>
+    <property name="content-height">400</property>
+    <property name="child">
+      <object class="AdwToastOverlay" id="toast_overlay">
+        <property name="child">
+          <object class="AdwNavigationView" id="navigation_view">
+            <!-- Dependencies Page -->
+            <child>
+              <object class="AdwNavigationPage" id="dependencies_page">
+                <property name="title">Check Dependencies</property>
+                <property name="child">
+                  <object class="AdwToolbarView">
+                    <child type="top">
+                      <object class="AdwHeaderBar">
+                        <property name="title-widget">
+                          <object class="GtkLabel">
+                            <property name="label">Setup Requirements</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <property name="content">
+                      <object class="GtkBox">
+                        <property name="orientation">vertical</property>
+                        <property name="spacing">12</property>
+                        <property name="margin-top">18</property>
+                        <property name="margin-bottom">18</property>
+                        <property name="margin-start">18</property>
+                        <property name="margin-end">18</property>
+
+                        <!-- Header -->
+                        <child>
+                          <object class="GtkLabel" id="setup_header">
+                            <property name="label">Setup Requirements</property>
+                            <property name="halign">start</property>
+                            <property name="margin-bottom">6</property>
+                            <style><class name="title-4"/></style>
+                          </object>
+                        </child>
+
+                        <child>
+                          <object class="GtkLabel" id="setup_description">
+                            <property name="label">Install or create the missing components below:</property>
+                            <property name="halign">start</property>
+                            <property name="margin-bottom">12</property>
+                            <style><class name="dim-label"/></style>
+                          </object>
+                        </child>
+
+                        <!-- Pass status -->
+                        <child>
+                          <object class="AdwActionRow" id="pass_status_row">
+                            <property name="title">pass (password-store)</property>
+                            <property name="subtitle">The standard Unix password manager</property>
+                            <property name="margin-bottom">6</property>
+                            <style><class name="card"/></style>
+                          </object>
+                        </child>
+
+                        <!-- GPG status -->
+                        <child>
+                          <object class="AdwActionRow" id="gpg_status_row">
+                            <property name="title">GnuPG (gpg)</property>
+                            <property name="subtitle">GNU Privacy Guard for encryption</property>
+                            <property name="margin-bottom">6</property>
+                            <style><class name="card"/></style>
+                          </object>
+                        </child>
+
+                        <!-- Store directory status -->
+                        <child>
+                          <object class="AdwActionRow" id="store_dir_status_row">
+                            <property name="title">Password Store Directory</property>
+                            <property name="subtitle">~/.password-store directory</property>
+                            <property name="margin-bottom">6</property>
+                            <style><class name="card"/></style>
+                          </object>
+                        </child>
+
+                        <!-- GPG Key status -->
+                        <child>
+                          <object class="AdwActionRow" id="gpg_key_status_row">
+                            <property name="title">GPG Key</property>
+                            <property name="subtitle">Encryption key for securing passwords</property>
+                            <property name="margin-bottom">6</property>
+                            <style><class name="card"/></style>
+                          </object>
+                        </child>
+
+                        <!-- Continue button -->
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">horizontal</property>
+                            <property name="spacing">12</property>
+                            <property name="halign">center</property>
+                            <property name="margin-top">24</property>
+                            <child>
+                              <object class="GtkButton" id="deps_continue_button">
+                                <property name="label">Continue</property>
+                                <property name="visible">false</property>
+                                <style><class name="suggested-action"/></style>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </property>
+                  </object>
+                </property>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>

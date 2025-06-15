@@ -1,0 +1,22 @@
+[Application]
+name=io.github.tobagin.secrets
+runtime=org.gnome.Platform/aarch64/46
+sdk=org.gnome.Sdk/aarch64/46
+command=io.github.tobagin.secrets
+
+[Context]
+shared=network;ipc;
+sockets=x11;wayland;fallback-x11;ssh-auth;gpg-agent;
+filesystems=home;
+
+[Session Bus Policy]
+org.freedesktop.portal.Secret=talk
+org.freedesktop.secrets=talk
+
+[Extension io.github.tobagin.secrets.Debug]
+directory=lib/debug
+autodelete=true
+no-autodownload=true
+
+[Build]
+built-extensions=io.github.tobagin.secrets.Debug;
