@@ -56,15 +56,20 @@ class TestPasswordService(unittest.TestCase):
     
     def test_get_entry_details_success(self):
         """Test getting entry details successfully."""
+        # Mock list_passwords to return an iterable for _is_folder_path check
+        self.mock_password_store.list_passwords.return_value = [
+            "Services/Gmail",
+            "Services/GitHub"
+        ]
         self.mock_password_store.get_parsed_password_details.return_value = {
             'password': 'secret123',
             'username': 'user@example.com',
             'url': 'https://example.com',
             'notes': 'Test notes'
         }
-        
+
         success, entry = self.service.get_entry_details("Services/Gmail")
-        
+
         self.assertTrue(success)
         self.assertEqual(entry.path, "Services/Gmail")
         self.assertEqual(entry.password, "secret123")
@@ -75,12 +80,17 @@ class TestPasswordService(unittest.TestCase):
     
     def test_get_entry_details_error(self):
         """Test getting entry details with error."""
+        # Mock list_passwords to return an iterable for _is_folder_path check
+        self.mock_password_store.list_passwords.return_value = [
+            "Services/Gmail",
+            "Services/GitHub"
+        ]
         self.mock_password_store.get_parsed_password_details.return_value = {
             'error': 'Failed to decrypt'
         }
-        
+
         success, entry = self.service.get_entry_details("Services/Gmail")
-        
+
         self.assertFalse(success)
         self.assertEqual(entry.path, "Services/Gmail")
         self.assertIsNone(entry.password)
@@ -91,13 +101,14 @@ class TestPasswordService(unittest.TestCase):
             "Services/Gmail",
             "Services/GitHub"
         ])
-        
+
         success, entries = self.service.search_entries("gmail")
-        
+
         self.assertTrue(success)
         self.assertEqual(len(entries), 2)
-        self.assertEqual(entries[0].path, "Services/Gmail")
-        self.assertEqual(entries[1].path, "Services/GitHub")
+        # Results are sorted alphabetically, so GitHub comes before Gmail
+        self.assertEqual(entries[0].path, "Services/GitHub")
+        self.assertEqual(entries[1].path, "Services/Gmail")
     
     def test_search_entries_empty_query(self):
         """Test searching with empty query returns all entries."""

@@ -115,8 +115,9 @@ class TestCopyPasswordCommand(unittest.TestCase):
         """Test can_execute when entry has no password."""
         entry = PasswordEntry(path="test", password=None, is_folder=False)
         self.app_state.set_selected_entry(entry)
-        
-        self.assertFalse(self.command.can_execute())
+
+        # Should be able to execute because we have fallback to pass command
+        self.assertTrue(self.command.can_execute())
     
     def test_execute_with_password(self):
         """Test executing command with password."""

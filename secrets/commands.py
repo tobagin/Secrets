@@ -54,7 +54,9 @@ class CopyPasswordCommand(PasswordCommand):
     
     def can_execute(self) -> bool:
         entry = self.app_state.selected_entry
-        return entry is not None and not entry.is_folder and entry.password is not None
+        # Allow execution if we have an entry that's not a folder
+        # We can copy either from memory (entry.password) or via pass command (fallback)
+        return entry is not None and not entry.is_folder
     
     def execute(self) -> bool:
         if not self.can_execute():
