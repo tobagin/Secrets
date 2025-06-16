@@ -438,6 +438,9 @@ class PasswordStore:
              return False, "Invalid password path."
 
         try:
+            # Ensure GUI pinentry is configured for Flatpak
+            GPGSetupHelper.ensure_gui_pinentry()
+
             # Use `pass show -c <path>`
             # The `-c` flag copies to clipboard.
             # `pass show <path>` would print to stdout.
@@ -576,6 +579,9 @@ class PasswordStore:
              return False, "Invalid password path."
 
         try:
+            # Ensure GUI pinentry is configured for Flatpak
+            GPGSetupHelper.ensure_gui_pinentry()
+
             # Use `pass show <path>` (without -c, so it prints to stdout)
             command = ["pass", "show", path_to_password]
 
@@ -629,6 +635,9 @@ class PasswordStore:
              return False, "Invalid password path."
 
         try:
+            # Ensure GUI pinentry is configured for Flatpak
+            GPGSetupHelper.ensure_gui_pinentry()
+
             command = ["pass", "insert"]
             if multiline:
                 command.append("-m") # or --multiline
@@ -668,6 +677,9 @@ class PasswordStore:
             return False, "Search query cannot be empty."
 
         try:
+            # Ensure GUI pinentry is configured for Flatpak
+            GPGSetupHelper.ensure_gui_pinentry()
+
             # Use `pass grep <query>`
             # Note: `pass grep` can be slow on very large stores.
             # It searches the content of encrypted files.

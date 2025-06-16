@@ -260,7 +260,10 @@ Expire-Date: 0
             'default-cache-ttl 28800',  # 8 hours
             'max-cache-ttl 86400',      # 24 hours
             'allow-loopback-pinentry',
-            'enable-ssh-support'
+            'enable-ssh-support',
+            'no-grab',  # Don't grab keyboard/mouse in Flatpak
+            'no-allow-external-cache',  # Security in sandboxed environment
+            'disable-scdaemon'  # Disable smartcard daemon in Flatpak
         ])
 
         # Write configuration
@@ -272,14 +275,56 @@ Expire-Date: 0
             os.chmod(gpg_agent_conf, 0o600)
 
             # Restart GPG agent to apply new configuration
-            try:
-                subprocess.run(['gpgconf', '--kill', 'gpg-agent'],
-                             capture_output=True, timeout=5)
-            except:
-                pass  # Ignore errors, agent will restart automatically
+            GPGSetupHelper.restart_gpg_agent()
 
         except Exception as e:
             print(f"Warning: Could not configure GPG agent: {e}")
+
+    @staticmethod
+    def restart_gpg_agent():
+        """
+        Force restart GPG agent to apply new configuration.
+        """
+        try:
+            # Kill existing agent
+            subprocess.run(['gpgconf', '--kill', 'gpg-agent'],
+                         capture_output=True, timeout=5)
+
+            # Wait a moment for the agent to fully stop
+            import time
+            time.sleep(0.5)
+
+            # Start agent with new configuration
+            env = GPGSetupHelper.setup_gpg_environment()
+            subprocess.run(['gpg-connect-agent', '/bye'],
+                         capture_output=True, timeout=5, env=env)
+
+        except Exception as e:
+            print(f"Warning: Could not restart GPG agent: {e}")
+
+    @staticmethod
+    def ensure_gui_pinentry():
+        """
+        Ensure GPG agent is configured for GUI pinentry in Flatpak.
+        This should be called before any GPG operations that might need a passphrase.
+        """
+        try:
+            # Configure agent
+            GPGSetupHelper.configure_gpg_agent()
+
+            # Set environment variables for this session
+            env = GPGSetupHelper.setup_gpg_environment()
+
+            # Force the environment variables into the current process
+            for key, value in env.items():
+                if key.startswith('GPG') or key == 'GNUPGHOME' or key == 'PINENTRY_USER_DATA':
+                    os.environ[key] = value
+
+            # Restart agent to ensure it picks up the new configuration
+            GPGSetupHelper.restart_gpg_agent()
+
+        except Exception as e:
+            print(f"Warning: Could not ensure GUI pinentry: {e}")
 
     @staticmethod
     def test_gpg_operation() -> Tuple[bool, str]:

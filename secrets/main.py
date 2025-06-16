@@ -79,9 +79,9 @@ def main(argv=None):
 
     # Configure GPG environment for Flatpak compatibility
     try:
-        GPGSetupHelper.configure_gpg_agent()
+        GPGSetupHelper.ensure_gui_pinentry()
     except Exception as e:
-        print(f"Warning: Could not configure GPG agent: {e}")
+        print(f"Warning: Could not configure GPG environment: {e}")
 
     app = SecretsApplication(application_id=APP_ID)
     return app.run(argv)
