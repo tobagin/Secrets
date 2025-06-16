@@ -97,24 +97,26 @@ def update_manifest_dependency(manifest_path: Path, package_name: str, new_info:
     """Update a specific dependency in the Flatpak manifest."""
     with open(manifest_path, 'r') as f:
         content = f.read()
-    
-    # Pattern to match the file entry for this package
+
+    # Pattern to match the file entry for this package (more precise)
     pattern = rf'(\s+- type: file\s+url: https://files\.pythonhosted\.org/packages/[^/]+/[^/]+/[^/]+/{re.escape(package_name)}-[^-]+-py3-none-any\.whl\s+sha256: [a-f0-9]+)'
-    
-    match = re.search(pattern, content, re.MULTILINE)
+
+    match = re.search(pattern, content, re.MULTILINE | re.DOTALL)
     if match:
         old_entry = match.group(1)
-        new_entry = f"""      - type: file
-        url: {new_info['url']}
-        sha256: {new_info['sha256']}"""
-        
+        # Preserve the original indentation
+        indent = re.match(r'(\s+)', old_entry).group(1)
+        new_entry = f"""{indent}- type: file
+{indent}  url: {new_info['url']}
+{indent}  sha256: {new_info['sha256']}"""
+
         updated_content = content.replace(old_entry, new_entry)
-        
+
         with open(manifest_path, 'w') as f:
             f.write(updated_content)
-        
+
         return True
-    
+
     return False
 
 def main():
