@@ -45,8 +45,7 @@ controller_sources = [
   'controllers/password_list_controller.py',
   'controllers/setup_controller.py',
   'controllers/window_state_manager.py',
-  'controllers/dynamic_folder_controller.py',
-  'controllers/static_folder_controller.py'
+  'controllers/dynamic_folder_controller.py'
 ]
 
 # Setup wizard files
