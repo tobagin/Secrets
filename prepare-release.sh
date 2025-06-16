@@ -79,7 +79,7 @@ if [ "${SKIP_FLATPAK_TEST}" = "1" ]; then
     echo "⚠️  Flatpak build test skipped (SKIP_FLATPAK_TEST=1)"
 elif command -v flatpak-builder >/dev/null 2>&1; then
     echo "Building Flatpak (this may take a while)..."
-    flatpak-builder --force-clean flatpak-build io.github.tobagin.secrets.yml --install-deps-from=flathub
+    flatpak-builder --force-clean --disable-rofiles-fuse flatpak-build io.github.tobagin.secrets.yml --install-deps-from=flathub
     echo "✅ Flatpak builds successfully"
 
     # Test run
