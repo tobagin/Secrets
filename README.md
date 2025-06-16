@@ -27,13 +27,25 @@ Secrets is a modern desktop application that provides a clean and user-friendly 
 - **Responsive design** that works on different screen sizes
 
 ### 🔧 **Advanced Features**
-- **Git synchronization** (push/pull) for backup and sync
+- **Advanced Git integration** with platform support and repository management
 - **GPG integration** with automatic setup wizard
 - **Flatpak compatibility** with enhanced GPG environment setup
 - **Import/export** functionality (JSON, CSV formats)
 - **Comprehensive preferences** with security settings
 - **Automatic clipboard clearing** for enhanced security
 - **Internationalization** support for multiple languages
+
+### 🌐 **Git Integration & Platform Support**
+- **Multi-platform support**: GitHub, GitLab, Codeberg, and custom Git servers
+- **Repository setup wizard** with guided configuration
+- **Automatic repository detection** and status monitoring
+- **Real-time Git status** with ahead/behind indicators
+- **Auto-commit and auto-push** options for seamless synchronization
+- **Repository management** through preferences with setup and status dialogs
+- **Git history viewer** with commit details and author information
+- **Conflict detection** and branch management
+- **Platform API integration** for repository validation and information
+- **Conditional UI elements** - Git buttons only appear when Git is properly configured
 
 ### 🔒 **Security Features**
 - **Automatic idle locking** - Lock application after configurable inactivity period
@@ -54,6 +66,8 @@ Secrets is a modern desktop application that provides a clean and user-friendly 
 - `Ctrl+G` - Generate password
 - `Ctrl+Shift+P` - Git pull
 - `Ctrl+Shift+U` - Git push
+- `Ctrl+Shift+S` - Git status dialog
+- `Ctrl+Shift+G` - Git setup dialog
 - `Ctrl+,` - Preferences
 - `F5` - Refresh
 
@@ -90,6 +104,60 @@ All security features are configurable through **Preferences → Security**:
 - **User Control**: Balance security vs convenience with configurable settings
 - **Automatic Protection**: Passive security that doesn't require user intervention
 - **Visual Feedback**: Clear indication of security status and remaining time
+
+## 🌐 Git Integration
+
+Secrets provides comprehensive Git integration for synchronizing your password store across devices and platforms.
+
+### Supported Platforms
+- **GitHub** - Full API integration with repository validation
+- **GitLab** - Complete GitLab.com and self-hosted support
+- **Codeberg** - Gitea-based platform integration
+- **Custom Git Servers** - Support for any Git repository
+
+### Git Features
+- **Repository Setup Wizard** - Guided setup for new or existing repositories
+- **Real-time Status Monitoring** - Live Git status in the header bar
+- **Automatic Operations** - Auto-pull on startup, auto-push on changes, auto-commit
+- **Visual Indicators** - Git status with ahead/behind commit counts
+- **Repository Management** - Complete repository configuration through preferences
+- **History Viewer** - Browse commit history with author and date information
+- **Conflict Detection** - Visual indication of repository conflicts
+- **Platform Integration** - Repository validation using platform APIs
+
+### Git Configuration Options
+Available in **Preferences → Git**:
+
+#### Basic Settings
+- **Auto-pull on startup** - Automatically pull changes when application starts
+- **Auto-push on changes** - Automatically push changes after modifications
+- **Show Git status** - Display Git status information in the UI
+- **Git timeout** - Timeout for Git operations (5-120 seconds)
+
+#### Advanced Settings
+- **Auto-commit on changes** - Automatically commit changes before push/pull
+- **Show Git notifications** - Display toast notifications for Git operations
+- **Check remote on startup** - Verify remote repository status on application start
+- **Custom commit messages** - Configure default commit message template
+
+#### Repository Management
+- **Repository Setup** - Configure Git repository and remote connections
+- **Repository Status** - View detailed Git status and commit history
+- **Platform Integration** - Connect to GitHub, GitLab, or custom Git servers
+- **Remote Configuration** - Manage remote URLs and authentication
+
+### Git Workflow
+1. **Setup**: Use the Git setup wizard to initialize or connect to a repository
+2. **Monitor**: Git status indicator shows current repository state
+3. **Sync**: Manual or automatic push/pull operations keep data synchronized
+4. **History**: View commit history and repository information
+5. **Manage**: Configure Git settings through comprehensive preferences
+
+### Security Considerations
+- **GPG Integration** - All Git operations respect GPG configuration
+- **Secure Authentication** - Support for SSH keys and HTTPS authentication
+- **Token Management** - Secure storage of platform access tokens
+- **Conflict Resolution** - Safe handling of merge conflicts and repository issues
 
 ## 🌍 Internationalization
 
@@ -149,7 +217,7 @@ po/
 - **Language**: Python 3.8+
 - **UI Framework**: GTK4 & Libadwaita
 - **Build System**: Meson & Ninja
-- **Dependencies**: PyGObject, pyotp
+- **Dependencies**: PyGObject, pyotp, requests
 - **Backend**: `pass`, GnuPG, Git
 - **Packaging**: Flatpak with enhanced GPG environment support
 
@@ -235,9 +303,21 @@ io.github.tobagin.secrets
 Secrets/
 ├── secrets/                    # Main Python package
 │   ├── controllers/           # UI controllers (MVC pattern)
+│   ├── managers/              # Specialized managers package
+│   │   ├── git_manager.py     # Git operations and platform integration
+│   │   ├── toast_manager.py   # Toast notifications
+│   │   ├── clipboard_manager.py # Clipboard operations with auto-clear
+│   │   ├── password_display_manager.py # Password visibility management
+│   │   └── search_manager.py  # Search functionality
 │   ├── ui/                    # UI components and dialogs
+│   │   ├── components/        # Reusable UI components
+│   │   │   └── git_status_component.py # Git status indicators
+│   │   └── dialogs/           # Application dialogs
+│   │       ├── git_setup_dialog.py # Git repository setup
+│   │       └── git_status_dialog.py # Git status and history
 │   ├── setup_wizard/          # GPG/pass setup wizard
 │   ├── services/              # Business logic services
+│   │   └── git_service.py     # Core Git operations
 │   ├── utils/                 # Utility modules
 │   └── *.py                   # Core application files
 ├── data/                      # Application data
@@ -282,6 +362,7 @@ The test suite includes:
 - **Service tests** (18 tests) - Business logic and password operations
 - **Command tests** (24 tests) - User actions and clipboard operations
 - **Security tests** (4 tests) - Idle detection, session locking, and security configuration
+- **Git tests** (4 tests) - Git service, platform integration, and repository management
 - **Performance tests** - Memory usage and response times
 - **GPG environment tests** - Flatpak compatibility and GPG setup verification
 

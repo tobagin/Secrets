@@ -37,6 +37,14 @@
         <attribute name="label" translatable="yes">Git _Push</attribute>
         <attribute name="action">app.git-push</attribute>
       </item>
+      <item>
+        <attribute name="label" translatable="yes">Git _Status</attribute>
+        <attribute name="action">app.git-status</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Git _Setup</attribute>
+        <attribute name="action">app.git-setup</attribute>
+      </item>
     </section>
      <section>
       <item>

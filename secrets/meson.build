@@ -30,12 +30,15 @@ ui_sources = [
   'ui/components/password_list.py',
   'ui/components/password_details.py',
   'ui/components/password_generator_popover.py',
+  'ui/components/git_status_component.py',
   'ui/dialogs/__init__.py',
   'ui/dialogs/add_password_dialog.py',
   'ui/dialogs/edit_password_dialog.py',
   'ui/dialogs/preferences_dialog.py',
   'ui/dialogs/password_generator_dialog.py',
   'ui/dialogs/import_export_dialog.py',
+  'ui/dialogs/git_setup_dialog.py',
+  'ui/dialogs/git_status_dialog.py',
   'ui/widgets/__init__.py'
 ]
 
@@ -71,7 +74,18 @@ utils_sources = [
 # Services files
 services_sources = [
   'services/__init__.py',
-  'services/password_service.py'
+  'services/password_service.py',
+  'services/git_service.py'
+]
+
+# Managers files
+managers_sources = [
+  'managers/__init__.py',
+  'managers/toast_manager.py',
+  'managers/clipboard_manager.py',
+  'managers/password_display_manager.py',
+  'managers/search_manager.py',
+  'managers/git_manager.py'
 ]
 
 # Install all Python files
@@ -81,6 +95,7 @@ install_data(controller_sources, install_dir : py_install_dir / 'secrets', prese
 install_data(setup_wizard_sources, install_dir : py_install_dir / 'secrets', preserve_path: true)
 install_data(utils_sources, install_dir : py_install_dir / 'secrets', preserve_path: true)
 install_data(services_sources, install_dir : py_install_dir / 'secrets', preserve_path: true)
+install_data(managers_sources, install_dir : py_install_dir / 'secrets', preserve_path: true)
 
 # Compile GResources for Python: generate .gresource file, not C code
 gresource = custom_target('secrets.gresource',

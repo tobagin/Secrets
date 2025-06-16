@@ -139,9 +139,28 @@
                           </object>
                         </child>
                         <child type="end">
-                          <object class="GtkMenuButton" id="main_menu_button">
-                            <property name="icon-name">open-menu-symbolic</property>
-                            <property name="menu-model">main_menu</property>
+                          <object class="GtkBox">
+                            <property name="orientation">horizontal</property>
+                            <property name="spacing">6</property>
+                            <child>
+                              <object class="GtkButton" id="git_status_button">
+                                <property name="visible">false</property>
+                                <property name="tooltip-text" translatable="yes">Git Repository Status</property>
+                                <style><class name="flat"/></style>
+                                <child>
+                                  <object class="GtkBox" id="git_status_indicator">
+                                    <property name="orientation">horizontal</property>
+                                    <property name="spacing">6</property>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkMenuButton" id="main_menu_button">
+                                <property name="icon-name">open-menu-symbolic</property>
+                                <property name="menu-model">main_menu</property>
+                              </object>
+                            </child>
                           </object>
                         </child>
                       </object>
@@ -488,6 +507,14 @@
       <item>
         <attribute name="label" translatable="yes">Git _Push</attribute>
         <attribute name="action">app.git-push</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Git _Status</attribute>
+        <attribute name="action">app.git-status</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Git _Setup</attribute>
+        <attribute name="action">app.git-setup</attribute>
       </item>
     </section>
      <section>

@@ -92,6 +92,8 @@ class ShortcutsWindow(Adw.Window):
 
         self._add_shortcut_row(git_group, "Git Pull", "Ctrl+Shift+P")
         self._add_shortcut_row(git_group, "Git Push", "Ctrl+Shift+U")
+        self._add_shortcut_row(git_group, "Git Status", "Ctrl+Shift+S")
+        self._add_shortcut_row(git_group, "Git Setup", "Ctrl+Shift+G")
 
         # View group
         view_group = Adw.PreferencesGroup()

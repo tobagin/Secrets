@@ -265,6 +265,54 @@ class PreferencesDialog(Adw.PreferencesWindow):
         git_timeout_adjustment = Gtk.Adjustment(value=30, lower=5, upper=120, step_increment=5)
         self.git_timeout_row.set_adjustment(git_timeout_adjustment)
         git_status_group.add(self.git_timeout_row)
+
+        # Repository management group
+        git_repo_group = Adw.PreferencesGroup()
+        git_repo_group.set_title("Repository Management")
+        git_page.add(git_repo_group)
+
+        # Repository setup button
+        self.repo_setup_row = Adw.ActionRow()
+        self.repo_setup_row.set_title("Repository Setup")
+        self.repo_setup_row.set_subtitle("Configure Git repository and remote connections")
+        setup_button = Gtk.Button(label="Setup")
+        setup_button.set_valign(Gtk.Align.CENTER)
+        setup_button.connect("clicked", self._on_git_setup_clicked)
+        self.repo_setup_row.add_suffix(setup_button)
+        git_repo_group.add(self.repo_setup_row)
+
+        # Repository status button
+        self.repo_status_row = Adw.ActionRow()
+        self.repo_status_row.set_title("Repository Status")
+        self.repo_status_row.set_subtitle("View Git repository status and history")
+        status_button = Gtk.Button(label="View Status")
+        status_button.set_valign(Gtk.Align.CENTER)
+        status_button.connect("clicked", self._on_git_status_clicked)
+        self.repo_status_row.add_suffix(status_button)
+        git_repo_group.add(self.repo_status_row)
+
+        # Advanced Git settings group
+        git_advanced_group = Adw.PreferencesGroup()
+        git_advanced_group.set_title("Advanced Settings")
+        git_page.add(git_advanced_group)
+
+        # Auto-commit on changes
+        self.auto_commit_row = Adw.SwitchRow()
+        self.auto_commit_row.set_title("Auto-commit Changes")
+        self.auto_commit_row.set_subtitle("Automatically commit changes before push/pull operations")
+        git_advanced_group.add(self.auto_commit_row)
+
+        # Show Git notifications
+        self.git_notifications_row = Adw.SwitchRow()
+        self.git_notifications_row.set_title("Show Git Notifications")
+        self.git_notifications_row.set_subtitle("Display notifications for Git operations")
+        git_advanced_group.add(self.git_notifications_row)
+
+        # Check remote on startup
+        self.check_remote_row = Adw.SwitchRow()
+        self.check_remote_row.set_title("Check Remote on Startup")
+        self.check_remote_row.set_subtitle("Check for remote changes when the application starts")
+        git_advanced_group.add(self.check_remote_row)
         
         # Connect signals
         self._connect_signals()
@@ -285,6 +333,9 @@ class PreferencesDialog(Adw.PreferencesWindow):
         self.auto_push_row.connect("notify::active", self._on_setting_changed)
         self.show_git_status_row.connect("notify::active", self._on_setting_changed)
         self.git_timeout_row.connect("notify::value", self._on_setting_changed)
+        self.auto_commit_row.connect("notify::active", self._on_setting_changed)
+        self.git_notifications_row.connect("notify::active", self._on_setting_changed)
+        self.check_remote_row.connect("notify::active", self._on_setting_changed)
 
         # Security signal connections
         self.lock_on_idle_row.connect("notify::active", self._on_setting_changed)
@@ -330,6 +381,9 @@ class PreferencesDialog(Adw.PreferencesWindow):
         self.auto_push_row.set_active(self.config.git.auto_push_on_changes)
         self.show_git_status_row.set_active(self.config.git.show_git_status)
         self.git_timeout_row.set_value(self.config.git.git_timeout_seconds)
+        self.auto_commit_row.set_active(self.config.git.auto_commit_on_changes)
+        self.git_notifications_row.set_active(self.config.git.show_git_notifications)
+        self.check_remote_row.set_active(self.config.git.check_remote_on_startup)
     
     def _on_theme_changed(self, combo_row, param):
         """Handle theme change."""
@@ -376,6 +430,9 @@ class PreferencesDialog(Adw.PreferencesWindow):
         self.config.git.auto_push_on_changes = self.auto_push_row.get_active()
         self.config.git.show_git_status = self.show_git_status_row.get_active()
         self.config.git.git_timeout_seconds = int(self.git_timeout_row.get_value())
+        self.config.git.auto_commit_on_changes = self.auto_commit_row.get_active()
+        self.config.git.show_git_notifications = self.git_notifications_row.get_active()
+        self.config.git.check_remote_on_startup = self.check_remote_row.get_active()
     
     def _save_settings(self):
         """Save settings to file."""
@@ -388,3 +445,37 @@ class PreferencesDialog(Adw.PreferencesWindow):
 
         # Center dialog on parent
         DialogManager.center_dialog_on_parent(self)
+
+    def _on_git_setup_clicked(self, button):
+        """Handle Git setup button click."""
+        from ..dialogs.git_setup_dialog import GitSetupDialog
+
+        # Get the main window from the parent chain
+        parent = self.get_transient_for()
+        if parent and hasattr(parent, 'password_store'):
+            dialog = GitSetupDialog(
+                store_dir=parent.password_store.store_dir,
+                config_manager=parent.config_manager,
+                toast_manager=parent.toast_manager,
+                transient_for=parent
+            )
+            dialog.connect("setup-completed", self._on_git_setup_completed)
+            dialog.present()
+
+    def _on_git_status_clicked(self, button):
+        """Handle Git status button click."""
+        from ..dialogs.git_status_dialog import GitStatusDialog
+
+        # Get the main window from the parent chain
+        parent = self.get_transient_for()
+        if parent and hasattr(parent, 'git_manager'):
+            dialog = GitStatusDialog(
+                git_manager=parent.git_manager,
+                transient_for=parent
+            )
+            dialog.present()
+
+    def _on_git_setup_completed(self, dialog):
+        """Handle Git setup completion."""
+        # Refresh the current settings to reflect any changes
+        self._load_current_settings()

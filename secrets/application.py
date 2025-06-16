@@ -24,6 +24,8 @@ class SecretsApplication(Adw.Application):
         self.set_accels_for_action("app.preferences", ["<Primary>comma"])
         self.set_accels_for_action("app.git-pull", ["<Primary><Shift>p"])
         self.set_accels_for_action("app.git-push", ["<Primary><Shift>u"])
+        self.set_accels_for_action("app.git-status", ["<Primary><Shift>s"])
+        self.set_accels_for_action("app.git-setup", ["<Primary><Shift>g"])
 
         # Window-specific shortcuts
         self.set_accels_for_action("win.add-password", ["<Primary>n"])
@@ -42,6 +44,8 @@ class SecretsApplication(Adw.Application):
         self._make_action("preferences", self.on_preferences_action)
         self._make_action("git-pull", self.on_git_pull_action)
         self._make_action("git-push", self.on_git_push_action)
+        self._make_action("git-status", self.on_git_status_action)
+        self._make_action("git-setup", self.on_git_setup_action)
 
     def _load_css(self):
         """Load CSS styles for the application."""
@@ -201,6 +205,12 @@ class SecretsApplication(Adw.Application):
 
     def on_git_push_action(self, action, param):
         self._call_window_method('on_git_push_clicked')
+
+    def on_git_status_action(self, action, param):
+        self._call_window_method('show_git_status_dialog')
+
+    def on_git_setup_action(self, action, param):
+        self._call_window_method('_show_git_setup_dialog')
 
     def do_command_line(self, command_line):
         self.activate()

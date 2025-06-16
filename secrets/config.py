@@ -63,6 +63,22 @@ class GitConfig:
     show_git_status: bool = True
     git_timeout_seconds: int = 30
 
+    # Repository configuration
+    remote_url: str = ""
+    remote_name: str = "origin"
+    default_branch: str = "main"
+
+    # Platform integration
+    platform_type: str = ""  # "github", "gitlab", "gitea", "custom"
+    platform_username: str = ""
+    platform_token: str = ""  # For API access (stored securely)
+
+    # Advanced settings
+    auto_commit_on_changes: bool = False
+    commit_message_template: str = "Update passwords from Secrets app"
+    show_git_notifications: bool = True
+    check_remote_on_startup: bool = True
+
 
 @dataclass
 class AppConfig:
