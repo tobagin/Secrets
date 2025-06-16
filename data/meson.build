@@ -93,12 +93,12 @@ endforeach
 
 # Symbolic icons
 install_data(
-  'icons/symbolic/cloud-download-symbolic.svg',
+  'icons/symbolic/io.github.tobagin.secrets-cloud-download-symbolic.svg',
   install_dir: get_option('datadir') / 'icons' / 'hicolor' / 'symbolic' / 'apps'
 )
 
 install_data(
-  'icons/symbolic/cloud-upload-symbolic.svg',
+  'icons/symbolic/io.github.tobagin.secrets-cloud-upload-symbolic.svg',
   install_dir: get_option('datadir') / 'icons' / 'hicolor' / 'symbolic' / 'apps'
 )
 
