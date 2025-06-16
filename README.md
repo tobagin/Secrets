@@ -1,84 +1,59 @@
 # Secrets - A GTK4/Libadwaita GUI for pass
 
-Secrets is a desktop application that provides a clean and user-friendly graphical interface for managing your passwords with `pass`, the standard unix password manager. It leverages the power and security of `pass`, GPG, and Git, wrapped in a modern GTK4/Libadwaita UI.
+Secrets is a modern desktop application that provides a clean and user-friendly graphical interface for managing your passwords with `pass`, the standard unix password manager. It leverages the power and security of `pass`, GPG, and Git, wrapped in a beautiful GTK4/Libadwaita UI.
 
-## Key Features
+## ✨ Features
 
-Currently implemented features include:
+### 🔐 **Password Management**
+- **Hierarchical folder organization** with expandable tree view
+- **Add, edit, delete, and move** password entries
+- **Structured password fields**: username, password, URL, notes, TOTP
+- **TOTP support** with live 6-digit codes and countdown timers
+- **Recovery codes management** for 2FA backup
+- **Password generator** with customizable options and strength indicator
+- **Copy to clipboard** with automatic clearing for security
 
-*   **Password Store Management:**
-    *   Hierarchical tree view of your password store.
-    *   Add new password entries with multiline content.
-    *   Edit the full content of existing password entries.
-    *   Delete password entries (with confirmation).
-    *   Move or rename password entries within the store.
-*   **Core Interactions:**
-    *   Copy password contents to the clipboard.
-    *   Full-text search of password contents (via `pass grep`).
-*   **Version Control:**
-    *   Basic Git integration:
-        *   Pull changes from a remote repository.
-        *   Push local changes to a remote repository.
-*   **User Interface:**
-    *   Modern interface built with GTK4 and Libadwaita.
-    *   Toast notifications for feedback on actions.
+### 🔍 **Search & Navigation**
+- **Full-text search** across all password content
+- **Real-time filtering** as you type
+- **Keyboard shortcuts** for efficient navigation
+- **Quick access** to frequently used passwords
 
-## Technology Stack
+### 🎨 **Modern Interface**
+- **GTK4/Libadwaita design** following GNOME HIG
+- **Adaptive layout** with split-view navigation
+- **Dark/light theme support** with system integration
+- **Toast notifications** for user feedback
+- **Responsive design** that works on different screen sizes
 
-*   **Programming Language:** Python
-*   **UI Toolkit:** GTK4 & Libadwaita
-*   **Build System:** Meson
-*   **Underlying Tools:** `pass` (the standard unix password manager), GnuPG, Git
+### 🔧 **Advanced Features**
+- **Git synchronization** (push/pull) for backup and sync
+- **GPG integration** with automatic setup wizard
+- **Import/export** functionality (JSON, CSV formats)
+- **Comprehensive preferences** with security settings
+- **Automatic clipboard clearing** for enhanced security
 
-## Getting Started (Development)
+### ⌨️ **Keyboard Shortcuts**
+- `Ctrl+N` - Add new password
+- `Ctrl+E` - Edit password
+- `Ctrl+C` - Copy password
+- `Ctrl+Shift+C` - Copy username
+- `Ctrl+F` - Focus search
+- `Ctrl+G` - Generate password
+- `Ctrl+Shift+P` - Git pull
+- `Ctrl+Shift+U` - Git push
+- `Ctrl+,` - Preferences
+- `F5` - Refresh
 
-1.  **Prerequisites:**
-    *   Ensure `pass`, `git`, and `gpg` are installed and configured.
-    *   Python >= 3.8 (or as per GTK4 requirements)
-    *   Meson and Ninja build tools.
-    *   GTK4 and Libadwaita development libraries.
+## 🛠️ Technology Stack
 
-2.  **Build:**
-    ```bash
-    meson setup builddir
-    meson compile -C builddir
-    ```
+- **Language**: Python 3.8+
+- **UI Framework**: GTK4 & Libadwaita
+- **Build System**: Meson & Ninja
+- **Dependencies**: PyGObject, pyotp
+- **Backend**: `pass`, GnuPG, Git
 
-3.  **Run:**
-    The easiest way to run the application for development:
-    ```bash
-    ./run-dev.sh
-    ```
-
-    Or use the simple launcher:
-    ```bash
-    ./secrets-dev
-    ```
-
-    **Development Script Options:**
-    ```bash
-    ./run-dev.sh --help          # Show all options
-    ./run-dev.sh                 # Run with meson devenv (default, recommended)
-    ./run-dev.sh --meson         # Run with meson devenv (explicit)
-    ./run-dev.sh --direct        # Run directly without meson
-    ```
-
-    **Alternative Methods:**
-    ```bash
-    # Run with meson run target
-    meson compile -C builddir secrets-dev
-
-    # Run the generated entry point script
-    ./builddir/secrets-dev
-
-    # Run with meson devenv directly
-    meson devenv -C builddir python3 -m secrets.main
-
-    # Run the module directly (fallback)
-    python3 -m secrets.main
-    ```
-
-## Installation
+## 📦 Installation
 
 ### From Flathub (Recommended)
 
@@ -89,6 +64,36 @@ flatpak install flathub io.github.tobagin.secrets
 flatpak run io.github.tobagin.secrets
 ```
 
+### Building from Source
+
+#### Prerequisites
+- Python 3.8+
+- GTK4 and Libadwaita development libraries
+- Meson (>= 0.64.0) and Ninja
+- `pass`, `git`, and `gpg` installed and configured
+
+#### Build Steps
+```bash
+# Clone the repository
+git clone https://github.com/tobagin/Secrets.git
+cd Secrets
+
+# Build with meson
+meson setup builddir
+meson compile -C builddir
+
+# Run for development
+./run-dev.sh
+```
+
+#### Development Options
+```bash
+./run-dev.sh                 # Recommended: run with meson devenv
+./run-dev.sh --direct        # Run directly without meson
+./builddir/secrets-dev       # Run generated script
+python3 -m secrets.main      # Run module directly
+```
+
 ### Building Flatpak Locally
 
 ```bash
@@ -96,13 +101,10 @@ flatpak run io.github.tobagin.secrets
 sudo dnf install flatpak-builder  # Fedora
 sudo apt install flatpak-builder  # Ubuntu/Debian
 
-# Build the Flatpak
-flatpak-builder build-dir io.github.tobagin.secrets.yml --force-clean --install-deps-from=flathub
-
-# Install locally
+# Build and install
 flatpak-builder --user --install --force-clean build-dir io.github.tobagin.secrets.yml
 
-# Run the installed Flatpak
+# Run the Flatpak
 flatpak run io.github.tobagin.secrets
 ```
 
@@ -118,9 +120,78 @@ sudo meson install -C builddir
 io.github.tobagin.secrets
 ```
 
-## Future Enhancements
+## 🏗️ Project Structure
 
-This project aims to incorporate many more features from the `pass` ecosystem and enhance user experience. See the project's issue tracker or future roadmap discussions for details.
+```
+Secrets/
+├── secrets/                    # Main Python package
+│   ├── controllers/           # UI controllers (MVC pattern)
+│   ├── ui/                    # UI components and dialogs
+│   ├── setup_wizard/          # GPG/pass setup wizard
+│   ├── services/              # Business logic services
+│   ├── utils/                 # Utility modules
+│   └── *.py                   # Core application files
+├── data/                      # Application data
+│   ├── ui/                    # GTK UI definition files
+│   ├── icons/                 # Application icons
+│   └── *.xml.in              # Desktop/AppData metadata
+├── tests/                     # Comprehensive test suite
+├── po/                        # Internationalization
+└── *.yml                     # Flatpak manifest
+```
+
+### Architecture Patterns
+- **MVC Pattern**: Controllers manage UI logic
+- **Command Pattern**: Actions encapsulated as commands
+- **Service Pattern**: Business logic in service classes
+- **Manager Pattern**: Specialized managers for different concerns
+
+## 🧪 Testing
+
+Run the comprehensive test suite:
+
+```bash
+# Run all tests
+python3 run_tests.py
+
+# Or run specific test categories
+python3 -m unittest tests.test_models
+python3 -m unittest tests.test_services
+python3 -m unittest tests.test_commands
+```
+
+The test suite includes:
+- **Model tests** (12 tests) - Data structures and validation
+- **Service tests** (18 tests) - Business logic and password operations
+- **Command tests** (24 tests) - User actions and clipboard operations
+- **Performance tests** - Memory usage and response times
+
+## 🤝 Contributing
+
+1. **Fork the repository** on GitHub
+2. **Create a feature branch**: `git checkout -b feature-name`
+3. **Make your changes** and add tests
+4. **Run the test suite**: `python3 run_tests.py`
+5. **Submit a pull request** with a clear description
+
+### Development Guidelines
+- Follow existing code patterns and architecture
+- Add tests for new functionality
+- Update documentation as needed
+- Use GTK4/Libadwaita best practices
+- Ensure accessibility compliance
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **pass** - The standard unix password manager
+- **GNOME** - For GTK4 and Libadwaita
+- **Flatpak** - For modern Linux app distribution
+- **Contributors** - Everyone who helps improve this project
 
 ---
-*This README is actively being updated as the project evolves.*
+
+**Secrets** - Secure, modern password management for the Linux desktop.
