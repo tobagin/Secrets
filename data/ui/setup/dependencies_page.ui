@@ -28,29 +28,7 @@
             <property name="margin-bottom">18</property>
             <property name="margin-start">18</property>
             <property name="margin-end">18</property>
-            <child>
-              <object class="AdwActionRow" id="gpg_status_row">
-                <property name="icon-name">checkmark-symbolic</property>
-                <property name="title">GnuPG (gpg)</property>
-                <property name="subtitle">GNU Privacy Guard for encryption</property>
-                <style><class name="success"/></style>
-              </object>
-            </child>
-            <child>
-              <object class="AdwActionRow" id="pass_status_row">
-                <property name="icon-name">dialog-warning-symbolic</property>
-                <property name="title">pass (password-store)</property>
-                <property name="subtitle">The standard Unix password manager</property>
-                <style><class name="warning"/></style>
-                <child type="suffix">
-                  <object class="GtkButton" id="pass_install_button">
-                    <property name="icon-name">folder-download-symbolic</property>
-                    <property name="visible">true</property>
-                    <property name="valign">center</property>
-                  </object>
-                </child>
-              </object>
-            </child>
+
             <child>
               <object class="AdwActionRow" id="gpg_key_status_row">
                 <property name="icon-name">dialog-warning-symbolic</property>

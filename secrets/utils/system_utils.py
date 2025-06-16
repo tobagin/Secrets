@@ -200,11 +200,22 @@ class SystemSetupHelper:
     
     @staticmethod
     def check_command_available(command: str) -> bool:
-        """Check if a command is available in PATH."""
+        """Check if a command is available and working."""
         try:
-            result = subprocess.run(['which', command], 
-                                  capture_output=True, text=True)
-            return result.returncode == 0
+            # Test the actual command instead of just checking PATH
+            if command == 'pass':
+                result = subprocess.run(['pass', 'help'],
+                                      capture_output=True, text=True, timeout=5)
+                return result.returncode == 0
+            elif command == 'gpg':
+                result = subprocess.run(['gpg', '--version'],
+                                      capture_output=True, text=True, timeout=5)
+                return result.returncode == 0
+            else:
+                # For other commands, use which
+                result = subprocess.run(['which', command],
+                                      capture_output=True, text=True)
+                return result.returncode == 0
         except:
             return False
     
@@ -275,6 +286,11 @@ class SystemSetupHelper:
             status['pass_installed'] = SystemSetupHelper.check_command_available('pass')
         if not status['gpg_installed']:
             status['gpg_installed'] = SystemSetupHelper.check_command_available('gpg')
+
+        # Special handling for Flatpak environment - disable installation if in Flatpak
+        is_flatpak = os.path.exists('/.flatpak-info') or 'FLATPAK_ID' in os.environ
+        if is_flatpak:
+            status['can_install'] = False  # No need to install in Flatpak
         
         # Generate manual instructions for unsupported systems
         if not status['distro_supported']:

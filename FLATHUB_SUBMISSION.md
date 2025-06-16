@@ -5,9 +5,33 @@ This document outlines the steps to submit Secrets to Flathub.
 ## Prerequisites
 
 1. **Complete the application**: Ensure all features are working and tested
-2. **Create screenshots**: Take high-quality screenshots and add them to `data/screenshots/`
+2. **Create screenshots**: ✅ **COMPLETED** - 12 high-quality screenshots added to `data/screenshots/`
 3. **Test the Flatpak build**: Verify the Flatpak builds and runs correctly
 4. **Create a release**: Tag a stable release on GitHub
+
+## Available Screenshots
+
+The following 12 screenshots are now available in `data/screenshots/`:
+
+### Core Interface (6 screenshots)
+- `main-window.png` - Main application window with password organization
+- `password-page-view.png` - Password details with TOTP and structured fields
+- `add-new-password.png` - Add password dialog with comprehensive options
+- `edit-password.png` - Edit password dialog with comprehensive options
+- `about-dialog.png` - Application information dialog
+- `keyboard-shortcuts.png` - Keyboard shortcuts help
+
+### Settings and Configuration (4 screenshots)
+- `general-settings.png` - General application preferences
+- `security-settings.png` - Advanced security and session management
+- `search-settings.png` - Search and filtering preferences
+- `git-settings.png` - Git integration configuration
+
+### Git Features (2 screenshots)
+- `git-status-dialog.png` - Git status and repository information
+- `git-repo-history.png` - Git commit history viewer
+
+All screenshots are referenced in the AppData file and README.md for Flathub submission.
 
 ## Pre-submission Checklist
 
@@ -32,10 +56,12 @@ This document outlines the steps to submit Secrets to Flathub.
 - [ ] Sources use stable releases or tagged commits
 
 ### Screenshots and Media
-- [ ] At least one screenshot is provided
-- [ ] Screenshots show the app in realistic use
-- [ ] No sensitive data visible in screenshots
-- [ ] Screenshots are high quality (1280x800 or similar)
+- [x] At least one screenshot is provided (12 screenshots available)
+- [x] Screenshots show the app in realistic use
+- [x] No sensitive data visible in screenshots
+- [x] Screenshots are high quality (1280x800 or similar)
+- [x] Screenshots cover main interface, dialogs, settings, and key features
+- [x] Screenshots include Git integration, security features, and TOTP support
 
 ## Submission Steps
 

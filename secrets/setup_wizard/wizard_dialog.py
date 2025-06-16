@@ -9,7 +9,6 @@ gi.require_version("Adw", "1")
 from gi.repository import Gtk, Adw, GLib, GObject
 from ..app_info import APP_ID
 from .dependencies_page import DependenciesPage
-from .install_pass_page import InstallPassPage
 from .create_gpg_page import CreateGpgPage
 from .setup_complete_page import SetupCompletePage
 
@@ -56,7 +55,6 @@ class SetupWizard(Adw.Dialog):
     def _connect_dependencies_signals(self):
         """Connect signals from the dependencies page."""
         self.dependencies_page.connect("continue-requested", self._on_dependencies_continue)
-        self.dependencies_page.connect("install-pass-requested", self._on_install_pass_requested)
         self.dependencies_page.connect("create-directory-requested", self._on_create_directory_requested)
         self.dependencies_page.connect("create-gpg-key-requested", self._on_create_gpg_key_requested)
 
@@ -92,9 +90,7 @@ class SetupWizard(Adw.Dialog):
         # In a full implementation, this might go to store initialization
         self._navigate_to_complete_page()
 
-    def _on_install_pass_requested(self, _page):
-        """Handle install pass request from dependencies page."""
-        self._navigate_to_pass_install_page()
+
 
     def _on_create_directory_requested(self, _page):
         """Handle create directory request from dependencies page."""
@@ -106,13 +102,7 @@ class SetupWizard(Adw.Dialog):
         """Handle create GPG key request from dependencies page."""
         self._navigate_to_gpg_create_page()
 
-    # Navigation methods
-    def _navigate_to_pass_install_page(self):
-        """Navigate to the pass installation page."""
-        install_page = InstallPassPage()
-        install_page.connect('installation-complete', self._on_installation_complete)
-        install_page.connect('installation-cancelled', self._on_installation_cancelled)
-        self.navigation_view.push(install_page)
+
 
     def _navigate_to_gpg_create_page(self):
         """Navigate to the GPG key creation page."""

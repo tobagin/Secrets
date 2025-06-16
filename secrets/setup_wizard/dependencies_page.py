@@ -30,21 +30,17 @@ class DependenciesPage(Adw.NavigationPage):
 
     __gsignals__ = {
         'continue-requested': (GObject.SignalFlags.RUN_FIRST, None, ()),
-        'install-pass-requested': (GObject.SignalFlags.RUN_FIRST, None, ()),
         'create-directory-requested': (GObject.SignalFlags.RUN_FIRST, None, ()),
         'create-gpg-key-requested': (GObject.SignalFlags.RUN_FIRST, None, ()),
     }
 
-    # Template widgets
+    # Template widgets (only the ones we need)
     dependencies_listbox = Gtk.Template.Child()
-    pass_status_row = Gtk.Template.Child()
-    gpg_status_row = Gtk.Template.Child()
     store_dir_status_row = Gtk.Template.Child()
     gpg_key_status_row = Gtk.Template.Child()
     continue_button = Gtk.Template.Child()
 
-    # Template buttons
-    pass_install_button = Gtk.Template.Child()
+    # Template buttons (only the ones we need)
     dir_create_button = Gtk.Template.Child()
     gpg_key_create_button = Gtk.Template.Child()
 
@@ -68,8 +64,6 @@ class DependenciesPage(Adw.NavigationPage):
         # Connect signals only after ensuring widgets are properly loaded
         if self.continue_button:
             self.continue_button.connect("clicked", self._on_continue_clicked)
-        if self.pass_install_button:
-            self.pass_install_button.connect("clicked", self._on_install_pass_clicked)
         if self.dir_create_button:
             self.dir_create_button.connect("clicked", self._on_create_directory_clicked)
         if self.gpg_key_create_button:
@@ -77,10 +71,9 @@ class DependenciesPage(Adw.NavigationPage):
 
     def _check_dependencies(self):
         """Check dependencies and update UI with proper dependency ordering."""
-        # Use simple checks to avoid hanging
-        pass_installed = shutil.which('pass') is not None
-        gpg_installed = shutil.which('gpg') is not None
-        store_dir_exists = os.path.exists(os.path.expanduser("~/.password-store"))
+        # Since we're running in Flatpak with bundled pass/gpg, we only need to check:
+        # 1. GPG keys exist
+        # 2. Password store is initialized
 
         # Check for GPG keys
         try:
@@ -91,28 +84,29 @@ class DependenciesPage(Adw.NavigationPage):
             has_gpg_keys = False
 
         # Check if password store is initialized (has .gpg-id file)
+        store_dir_exists = os.path.exists(os.path.expanduser("~/.password-store"))
         store_initialized = False
         if store_dir_exists:
             gpg_id_file = os.path.join(os.path.expanduser("~/.password-store"), ".gpg-id")
             store_initialized = os.path.exists(gpg_id_file)
 
-        # Update status rows
-        self._update_status_row(self.gpg_status_row, gpg_installed)
-        self._update_status_row(self.pass_status_row, pass_installed)
+        # Update status rows (only the ones we have)
         self._update_status_row(self.gpg_key_status_row, has_gpg_keys)
         self._update_status_row(self.store_dir_status_row, store_initialized)
 
-        # Implement dependency logic for buttons
-        self._update_button_states(pass_installed, gpg_installed, has_gpg_keys, store_initialized)
+        # Update button states
+        self._update_button_states(has_gpg_keys, store_initialized)
 
         # Enable continue button only when everything is ready
-        all_ready = pass_installed and gpg_installed and has_gpg_keys and store_initialized
+        all_ready = has_gpg_keys and store_initialized
         if self.continue_button:
             self.continue_button.set_sensitive(all_ready)
             if all_ready:
                 self.continue_button.set_label("Finish Setup")
             else:
                 self.continue_button.set_label("Continue")
+
+
 
     def _update_status_row(self, row, is_installed):
         """Update a status row with installation status."""
@@ -136,19 +130,13 @@ class DependenciesPage(Adw.NavigationPage):
             except:
                 pass  # Fallback if icon setting fails
 
-    def _update_button_states(self, pass_installed, gpg_installed, has_gpg_keys, store_initialized):
+    def _update_button_states(self, has_gpg_keys, store_initialized):
         """Update button states based on dependency requirements."""
 
-        # Pass Install Button: Show only if pass is not installed
-        if self.pass_install_button:
-            self.pass_install_button.set_visible(not pass_installed)
-            self.pass_install_button.set_sensitive(not pass_installed)
-
-        # GPG Key Create Button: Enable only if pass is installed (or already has GPG keys)
+        # GPG Key Create Button: Show only if no GPG keys exist, always enabled since pass/gpg are bundled
         if self.gpg_key_create_button:
             self.gpg_key_create_button.set_visible(not has_gpg_keys)
-            # Enable only if pass is installed and GPG is installed
-            self.gpg_key_create_button.set_sensitive(pass_installed and gpg_installed and not has_gpg_keys)
+            self.gpg_key_create_button.set_sensitive(not has_gpg_keys)
 
         # Directory Create Button: Enable only if GPG key exists
         if self.dir_create_button:
@@ -171,9 +159,7 @@ class DependenciesPage(Adw.NavigationPage):
         """Handle continue button click."""
         self.emit("continue-requested")
 
-    def _on_install_pass_clicked(self, _button):
-        """Handle install pass button click."""
-        self.emit("install-pass-requested")
+
 
     def _on_create_directory_clicked(self, button):
         """Handle create directory button click and initialize password store."""

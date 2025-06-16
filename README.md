@@ -71,6 +71,42 @@ Secrets is a modern desktop application that provides a clean and user-friendly 
 - `Ctrl+,` - Preferences
 - `F5` - Refresh
 
+## 📸 Screenshots
+
+### Main Interface
+![Main Window](data/screenshots/main-window.png)
+*Main application window with hierarchical password organization*
+
+![Password Details](data/screenshots/password-page-view.png)
+*Password details view with TOTP support and structured fields*
+
+### Dialogs and Features
+![Add Password](data/screenshots/add-new-password.png)
+*Add new password dialog with comprehensive field options*
+
+![Edit Password](data/screenshots/edit-password.png)
+*Edit password dialog with comprehensive field options*
+
+### Settings and Configuration
+![Git Settings](data/screenshots/git-settings.png)
+*Git integration settings with multi-platform support*
+
+![Security Settings](data/screenshots/security-settings.png)
+*Advanced security settings with session management*
+
+![General Settings](data/screenshots/general-settings.png)
+*General application preferences*
+
+### Additional Features
+![Git Status](data/screenshots/git-status-dialog.png)
+*Git status and repository information*
+
+![Keyboard Shortcuts](data/screenshots/keyboard-shortcuts.png)
+*Keyboard shortcuts help dialog*
+
+![About Dialog](data/screenshots/about-dialog.png)
+*About dialog with application information*
+
 ## 🔒 Security
 
 Secrets provides comprehensive security features to protect your sensitive data:

@@ -2,12 +2,27 @@
 
 This directory contains screenshots for the Secrets application.
 
-## Required Screenshots for Flathub
+## Available Screenshots
 
+### Main Interface
 1. **main-window.png** - Main application window showing the password list and details
-2. **setup-wizard.png** - Setup wizard for first-time users
-3. **add-password.png** - Add password dialog
-4. **password-generator.png** - Password generator dialog
+2. **password-page-view.png** - Detailed password view with TOTP and structured fields
+
+### Dialogs and Features
+3. **add-new-password.png** - Add password dialog with structured fields
+4. **about-dialog.png** - About dialog showing application information
+5. **edit-password.png** - Edit password dialog with comprehensive options
+6. **keyboard-shortcuts.png** - Keyboard shortcuts help dialog
+
+### Settings and Preferences
+7. **general-settings.png** - General application preferences
+8. **security-settings.png** - Security settings and session management
+9. **search-settings.png** - Search and filtering preferences
+10. **git-settings.png** - Git integration configuration
+
+### Git Integration
+11. **git-status-dialog.png** - Git status and repository information
+12. **git-repo-history.png** - Git commit history viewer
 
 ## Screenshot Guidelines
 

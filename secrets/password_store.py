@@ -210,6 +210,13 @@ class PasswordStore:
     def _is_pass_installed(self):
         """Checks if the 'pass' command-line tool is installed and executable."""
         try:
+            # Check if we're running in Flatpak
+            is_flatpak = os.path.exists('/.flatpak-info') or 'FLATPAK_ID' in os.environ
+
+            if is_flatpak:
+                # In Flatpak, pass is bundled and always available
+                return True
+
             # Try running a simple, non-modifying pass command like 'pass version' or 'pass help'
             # 'pass help' is generally safe and available.
             process = subprocess.run(["pass", "help"], capture_output=True, text=True, check=False, timeout=5)

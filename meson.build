@@ -4,7 +4,7 @@ project('secrets', version : '0.8.0',
 
 python = import('python')
 
-project_id = 'io.github.tobagin.secrets' # Placeholder App ID
+project_id = 'io.github.tobagin.secrets'
 
 subdir('secrets')
 subdir('data')
@@ -24,11 +24,12 @@ configure_file(
 )
 
 # Create the main executable script for installation
-executable_script = configure_file(
+configure_file(
   input: 'secrets.in',
-  output: project_id,
+  output: 'secrets-app',
   configuration: {
     'PYTHON': py_mod.full_path(),
+    'APP_ID': meson.project_name(),
     'INSTALLED_PYTHONPATH': py_mod.get_install_dir(),
     'PROJECT_ID': project_id,
   },
