@@ -1,4 +1,4 @@
-project('secrets', version : '0.1.0',
+project('secrets', version : '0.5.0',
   meson_version : '>= 0.64.0', # bump to match your usage of 'pure'
   default_options : ['warning_level=2', 'werror=false'])
 

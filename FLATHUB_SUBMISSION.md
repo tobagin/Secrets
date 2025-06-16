@@ -43,8 +43,8 @@ This document outlines the steps to submit Secrets to Flathub.
 
 ```bash
 # Create a release tag
-git tag -a v0.1.0 -m "Initial release"
-git push origin v0.1.0
+git tag -a v0.5.0 -m "Major update with enhanced UI and new features"
+git push origin v0.5.0
 
 # Update the Flatpak manifest with the correct commit hash
 # Edit io.github.tobagin.secrets.yml and update the commit field
