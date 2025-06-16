@@ -23,9 +23,13 @@ echo
 echo -e "${YELLOW}📋 Running pre-flight checks...${NC}"
 
 # Check if git is clean
+echo "Checking git status..."
+git status --porcelain
 if ! git diff-index --quiet HEAD --; then
     echo -e "${RED}❌ Git working directory is not clean. Please commit or stash changes.${NC}"
     exit 1
+else
+    echo "✅ Git working directory is clean"
 fi
 
 # Check if on main branch
