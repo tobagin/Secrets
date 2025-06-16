@@ -29,6 +29,7 @@ ui_sources = [
   'ui/components/header_bar.py',
   'ui/components/password_list.py',
   'ui/components/password_details.py',
+  'ui/components/password_generator_popover.py',
   'ui/dialogs/__init__.py',
   'ui/dialogs/add_password_dialog.py',
   'ui/dialogs/edit_password_dialog.py',
