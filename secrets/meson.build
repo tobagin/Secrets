@@ -18,7 +18,8 @@ python_sources = [
   'performance.py',
   'main.py',
   'shortcuts_window.py',
-  'i18n.py'
+  'i18n.py',
+  'security_manager.py'
 ]
 
 # UI module files
