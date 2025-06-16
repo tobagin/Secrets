@@ -92,8 +92,8 @@ fi
 # Update version in files
 echo -e "${YELLOW}📝 Updating version to ${VERSION}...${NC}"
 
-# Update meson.build
-sed -i "s/version : '[^']*'/version : '${VERSION}'/" meson.build
+# Update meson.build (be more specific to avoid changing meson_version)
+sed -i "s/project('secrets', version : '[^']*'/project('secrets', version : '${VERSION}'/" meson.build
 
 # Update app_info.py
 sed -i "s/VERSION = \"[^\"]*\"/VERSION = \"${VERSION}\"/" secrets/app_info.py
