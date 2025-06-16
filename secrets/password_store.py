@@ -2,6 +2,7 @@ import os
 import subprocess
 import glob # For listing files
 import re # Added
+from .utils.gpg_utils import GPGSetupHelper
 
 # GTK imports are conditional to avoid hanging in headless environments
 _gtk_available = False
@@ -80,7 +81,9 @@ class PasswordStore:
 
         # Check if GPG is installed
         try:
-            result = subprocess.run(["gpg", "--version"], capture_output=True, text=True, timeout=5)
+            # Set up GPG environment for Flatpak compatibility
+            env = GPGSetupHelper.setup_gpg_environment()
+            result = subprocess.run(["gpg", "--version"], capture_output=True, text=True, timeout=5, env=env)
             if result.returncode == 0:
                 status['gpg_installed'] = True
             else:
@@ -105,8 +108,10 @@ class PasswordStore:
         # Check if any GPG keys exist
         try:
             # Use a shorter timeout and add --batch flag to prevent hanging
+            # Set up GPG environment for Flatpak compatibility
+            env = GPGSetupHelper.setup_gpg_environment()
             result = subprocess.run(["gpg", "--batch", "--list-secret-keys", "--with-colons"],
-                                  capture_output=True, text=True, timeout=5)
+                                  capture_output=True, text=True, timeout=5, env=env)
             if result.returncode == 0 and result.stdout.strip():
                 status['gpg_keys_exist'] = True
             else:
@@ -135,8 +140,10 @@ class PasswordStore:
                         status['store_gpg_id'] = store_gpg_id
 
                         # Check if this GPG ID exists in the keyring
+                        # Set up GPG environment for Flatpak compatibility
+                        env = GPGSetupHelper.setup_gpg_environment()
                         result = subprocess.run(["gpg", "--batch", "--list-keys", store_gpg_id],
-                                              capture_output=True, text=True, timeout=5)
+                                              capture_output=True, text=True, timeout=5, env=env)
                         if result.returncode == 0:
                             status['store_gpg_id_exists'] = True
                             self.gpg_health_status = status
@@ -436,8 +443,8 @@ class PasswordStore:
             # `pass show <path>` would print to stdout.
             command = ["pass", "show", "-c", path_to_password]
 
-            # Set environment variable if PASSWORD_STORE_DIR was different from default
-            env = os.environ.copy()
+            # Set up GPG environment for Flatpak compatibility
+            env = GPGSetupHelper.setup_gpg_environment()
             if self.store_dir != os.path.expanduser("~/.password-store"):
                  env["PASSWORD_STORE_DIR"] = self.store_dir
 
@@ -473,7 +480,8 @@ class PasswordStore:
         """Helper to run `pass git <args>`."""
         try:
             command = ["pass", "git"] + git_args
-            env = os.environ.copy()
+            # Set up GPG environment for Flatpak compatibility
+            env = GPGSetupHelper.setup_gpg_environment()
             if self.store_dir != os.path.expanduser("~/.password-store"):
                  env["PASSWORD_STORE_DIR"] = self.store_dir
 
@@ -498,7 +506,8 @@ class PasswordStore:
             return False, "GPG ID cannot be empty."
         try:
             command = ["pass", "init", gpg_id]
-            env = os.environ.copy()
+            # Set up GPG environment for Flatpak compatibility
+            env = GPGSetupHelper.setup_gpg_environment()
             if self.store_dir != os.path.expanduser("~/.password-store"):
                  env["PASSWORD_STORE_DIR"] = self.store_dir
 
@@ -537,7 +546,8 @@ class PasswordStore:
             # as we'll handle confirmation in the GUI.
             command = ["pass", "rm", "--force", path_to_password]
 
-            env = os.environ.copy()
+            # Set up GPG environment for Flatpak compatibility
+            env = GPGSetupHelper.setup_gpg_environment()
             if self.store_dir != os.path.expanduser("~/.password-store"):
                  env["PASSWORD_STORE_DIR"] = self.store_dir
 
@@ -569,7 +579,8 @@ class PasswordStore:
             # Use `pass show <path>` (without -c, so it prints to stdout)
             command = ["pass", "show", path_to_password]
 
-            env = os.environ.copy()
+            # Set up GPG environment for Flatpak compatibility
+            env = GPGSetupHelper.setup_gpg_environment()
             if self.store_dir != os.path.expanduser("~/.password-store"):
                  env["PASSWORD_STORE_DIR"] = self.store_dir
 
@@ -625,11 +636,10 @@ class PasswordStore:
                 command.append("-f") # or --force
             command.append(path_to_password)
 
-            env = os.environ.copy()
+            # Set up GPG environment for Flatpak compatibility
+            env = GPGSetupHelper.setup_gpg_environment()
             if self.store_dir != os.path.expanduser("~/.password-store"):
                  env["PASSWORD_STORE_DIR"] = self.store_dir
-
-
 
             # The content needs to be passed via stdin to the `pass insert` command
             # Add timeout to prevent hanging
@@ -663,7 +673,8 @@ class PasswordStore:
             # It searches the content of encrypted files.
             command = ["pass", "grep", query] # Add any other flags if needed, e.g. -i for case-insensitive
 
-            env = os.environ.copy()
+            # Set up GPG environment for Flatpak compatibility
+            env = GPGSetupHelper.setup_gpg_environment()
             if self.store_dir != os.path.expanduser("~/.password-store"):
                  env["PASSWORD_STORE_DIR"] = self.store_dir
 
@@ -713,7 +724,8 @@ class PasswordStore:
         try:
             command = ["pass", "mv", old_path, new_path]
 
-            env = os.environ.copy()
+            # Set up GPG environment for Flatpak compatibility
+            env = GPGSetupHelper.setup_gpg_environment()
             if self.store_dir != os.path.expanduser("~/.password-store"):
                  env["PASSWORD_STORE_DIR"] = self.store_dir
 

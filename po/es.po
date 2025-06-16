@@ -1,0 +1,637 @@
+# Spanish translations for Secrets package.
+# Copyright (C) 2025 THE Secrets'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the Secrets package.
+# Automatically generated, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Secrets 0.5.0\n"
+"Report-Msgid-Bugs-To: 140509353+tobagin@users.noreply.github.com\n"
+"POT-Creation-Date: 2025-06-16 11:04+0100\n"
+"PO-Revision-Date: 2025-06-16 11:04+0100\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: data/io.github.tobagin.secrets.desktop.in:2 data/ui/main_window.ui:9
+#: data/ui/main_window.ui:137 data/io.github.tobagin.secrets.appdata.xml.in:6
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:6
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.desktop.in:2
+msgid "Secrets"
+msgstr "Secretos"
+
+#: data/io.github.tobagin.secrets.desktop.in:3
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.desktop.in:3
+msgid "Password Manager"
+msgstr "Gestor de Contraseñas"
+
+#: data/io.github.tobagin.secrets.desktop.in:4
+#: data/io.github.tobagin.secrets.appdata.xml.in:7
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:7
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.desktop.in:4
+msgid "A clean interface for managing a pass repository"
+msgstr "Una interfaz limpia para gestionar un repositorio pass"
+
+#: data/io.github.tobagin.secrets.desktop.in:10
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.desktop.in:10
+msgid "Password;Manager;Security;GPG;Pass;"
+msgstr "Contraseña;Gestor;Seguridad;GPG;Pass;"
+
+#: data/ui/components/header_bar.ui:20 data/ui/dialogs/add_password_dialog.ui:8
+#: data/ui/dialogs/add_password_dialog.ui:25
+#: .flatpak-builder/build/secrets-1/data/ui/components/header_bar.ui:20
+msgid "Add New Password"
+msgstr "Añadir Nueva Contraseña"
+
+#: data/ui/components/header_bar.ui:34
+#: .flatpak-builder/build/secrets-1/data/ui/components/header_bar.ui:34
+msgid "Pull changes"
+msgstr "Obtener cambios"
+
+#: data/ui/components/header_bar.ui:41
+#: .flatpak-builder/build/secrets-1/data/ui/components/header_bar.ui:41
+msgid "Push changes"
+msgstr "Enviar cambios"
+
+#: data/ui/components/password_list.ui:11 data/ui/main_window.ui:95
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_list.ui:11
+msgid "Search passwords..."
+msgstr "Buscar contraseñas..."
+
+#: data/ui/components/password_details.ui:15 data/ui/setup/main.ui:276
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:15
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:276
+msgid "Select an Item"
+msgstr "Seleccionar un Elemento"
+
+#: data/ui/components/password_details.ui:16
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:16
+msgid "Select an item to view details."
+msgstr "Seleccione un elemento para ver los detalles."
+
+#: data/ui/components/password_details.ui:43
+#: data/ui/dialogs/add_password_dialog.ui:36 data/ui/main_window.ui:187
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:43
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:187
+msgid "Password Location"
+msgstr "Ubicación de la Contraseña"
+
+#: data/ui/components/password_details.ui:44 data/ui/main_window.ui:188
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:44
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:188
+msgid "File path and location"
+msgstr "Ruta y ubicación del archivo"
+
+#: data/ui/components/password_details.ui:48 data/ui/setup/main.ui:299
+#: data/ui/main_window.ui:192
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:48
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:192
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:299
+msgid "Path"
+msgstr "Ruta"
+
+#: data/ui/components/password_details.ui:57
+#: data/ui/dialogs/add_password_dialog.ui:57 data/ui/main_window.ui:129
+#: data/ui/main_window.ui:201
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:57
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:201
+msgid "Password Details"
+msgstr "Detalles de la Contraseña"
+
+#: data/ui/components/password_details.ui:61
+#: data/ui/dialogs/add_password_dialog.ui:61 data/ui/setup/main.ui:305
+#: data/ui/main_window.ui:205
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:61
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:205
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:305
+msgid "Password"
+msgstr "Contraseña"
+
+#: data/ui/components/password_details.ui:93 data/ui/setup/main.ui:331
+#: data/ui/main_window.ui:237
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:93
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:237
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:331
+msgid "Show/Hide Password"
+msgstr "Mostrar/Ocultar Contraseña"
+
+#: data/ui/components/password_details.ui:102 data/ui/setup/main.ui:340
+#: data/ui/main_window.ui:246
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:102
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:246
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:340
+msgid "Copy Password"
+msgstr "Copiar Contraseña"
+
+#: data/ui/components/password_details.ui:112
+#: data/ui/dialogs/add_password_dialog.ui:77 data/ui/setup/main.ui:350
+#: data/ui/main_window.ui:256
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:112
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:256
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:350
+msgid "Username"
+msgstr "Nombre de usuario"
+
+#: data/ui/components/password_details.ui:116 data/ui/setup/main.ui:356
+#: data/ui/main_window.ui:260
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:116
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:260
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:356
+msgid "Copy Username"
+msgstr "Copiar Nombre de Usuario"
+
+#: data/ui/components/password_details.ui:126
+#: data/ui/dialogs/add_password_dialog.ui:83 data/ui/setup/main.ui:366
+#: data/ui/main_window.ui:270
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:126
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:270
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:366
+msgid "URL"
+msgstr "URL"
+
+#: data/ui/components/password_details.ui:130 data/ui/setup/main.ui:372
+#: data/ui/main_window.ui:274
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:130
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:274
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:372
+msgid "Open URL"
+msgstr "Abrir URL"
+
+#: data/ui/components/password_details.ui:140 data/ui/main_window.ui:284
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:140
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:284
+msgid "TOTP"
+msgstr "TOTP"
+
+#: data/ui/components/password_details.ui:145 data/ui/main_window.ui:333
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:145
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:333
+msgid "Copy TOTP Code"
+msgstr "Copiar Código TOTP"
+
+#: data/ui/components/password_details.ui:158
+#: data/ui/dialogs/add_password_dialog.ui:98
+#: data/ui/dialogs/add_password_dialog.ui:103 data/ui/main_window.ui:348
+#: data/ui/main_window.ui:354
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:158
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:348
+msgid "Recovery Codes"
+msgstr "Códigos de Recuperación"
+
+#: data/ui/components/password_details.ui:159
+#: data/ui/dialogs/add_password_dialog.ui:99 data/ui/main_window.ui:349
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:159
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:349
+msgid "Backup codes for account recovery"
+msgstr "Códigos de respaldo para la recuperación de la cuenta"
+
+#: data/ui/components/password_details.ui:181
+#: data/ui/dialogs/add_password_dialog.ui:130 data/ui/setup/main.ui:381
+#: data/ui/main_window.ui:371
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:181
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:371
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:381
+msgid "Notes"
+msgstr "Notas"
+
+#: data/ui/components/password_details.ui:182 data/ui/main_window.ui:372
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:182
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:372
+msgid "Additional information"
+msgstr "Información adicional"
+
+#: data/ui/components/password_details.ui:217 data/ui/main_window.ui:407
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:217
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:407
+msgid "Actions"
+msgstr "Acciones"
+
+#: data/ui/components/password_details.ui:218 data/ui/main_window.ui:408
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:218
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:408
+msgid "Manage this password entry"
+msgstr "Gestionar esta entrada de contraseña"
+
+#: data/ui/components/password_details.ui:230 data/ui/setup/main.ui:413
+#: data/ui/main_window.ui:420
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:230
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:420
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:413
+msgid "_Edit"
+msgstr "_Editar"
+
+#: data/ui/components/password_details.ui:239 data/ui/setup/main.ui:423
+#: data/ui/main_window.ui:429
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:239
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:429
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:423
+msgid "_Remove"
+msgstr "_Eliminar"
+
+#: data/ui/components/main_menu.ui:9 data/ui/setup/main.ui:453
+#: data/ui/main_window.ui:461
+#: .flatpak-builder/build/secrets-1/data/ui/components/main_menu.ui:9
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:461
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:453
+msgid "_Preferences"
+msgstr "_Preferencias"
+
+#: data/ui/components/main_menu.ui:13 data/ui/setup/main.ui:457
+#: data/ui/main_window.ui:465
+#: .flatpak-builder/build/secrets-1/data/ui/components/main_menu.ui:13
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:465
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:457
+msgid "_Keyboard Shortcuts"
+msgstr "_Atajos de Teclado"
+
+#: data/ui/components/main_menu.ui:17 data/ui/setup/main.ui:461
+#: data/ui/main_window.ui:469
+#: .flatpak-builder/build/secrets-1/data/ui/components/main_menu.ui:17
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:469
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:461
+msgid "_About Secrets"
+msgstr "_Acerca de Secretos"
+
+#: data/ui/components/main_menu.ui:23 data/ui/setup/main.ui:467
+#: data/ui/main_window.ui:475
+#: .flatpak-builder/build/secrets-1/data/ui/components/main_menu.ui:23
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:475
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:467
+msgid "_Import/Export"
+msgstr "_Importar/Exportar"
+
+#: data/ui/components/main_menu.ui:27 data/ui/setup/main.ui:471
+#: data/ui/main_window.ui:479
+#: .flatpak-builder/build/secrets-1/data/ui/components/main_menu.ui:27
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:479
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:471
+msgid "_Generate Password"
+msgstr "_Generar Contraseña"
+
+#: data/ui/components/main_menu.ui:33 data/ui/setup/main.ui:477
+#: data/ui/main_window.ui:485
+#: .flatpak-builder/build/secrets-1/data/ui/components/main_menu.ui:33
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:485
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:477
+msgid "Git _Pull"
+msgstr "Git _Pull"
+
+#: data/ui/components/main_menu.ui:37 data/ui/setup/main.ui:481
+#: data/ui/main_window.ui:489
+#: .flatpak-builder/build/secrets-1/data/ui/components/main_menu.ui:37
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:489
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:481
+msgid "Git _Push"
+msgstr "Git _Push"
+
+#: data/ui/components/main_menu.ui:43 data/ui/setup/main.ui:487
+#: data/ui/main_window.ui:495
+#: .flatpak-builder/build/secrets-1/data/ui/components/main_menu.ui:43
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:495
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:487
+msgid "_Quit"
+msgstr "_Salir"
+
+#: data/ui/dialogs/add_password_dialog.ui:37
+msgid "Choose folder and enter password name"
+msgstr "Elija la carpeta e ingrese el nombre de la contraseña"
+
+#: data/ui/dialogs/add_password_dialog.ui:41
+msgid "Folder"
+msgstr "Carpeta"
+
+#: data/ui/dialogs/add_password_dialog.ui:42
+msgid "Select or type folder name"
+msgstr "Seleccione o escriba el nombre de la carpeta"
+
+#: data/ui/dialogs/add_password_dialog.ui:48
+msgid "Password Name"
+msgstr "Nombre de la Contraseña"
+
+#: data/ui/dialogs/add_password_dialog.ui:65
+msgid "Generate Password"
+msgstr "Generar Contraseña"
+
+#: data/ui/dialogs/add_password_dialog.ui:89
+msgid "TOTP Secret (Base32)"
+msgstr "Secreto TOTP (Base32)"
+
+#: data/ui/dialogs/add_password_dialog.ui:104
+msgid "Add backup recovery codes"
+msgstr "Añadir códigos de recuperación de respaldo"
+
+#: data/ui/dialogs/add_password_dialog.ui:109
+msgid "Add Recovery Code"
+msgstr "Añadir Código de Recuperación"
+
+#: data/ui/dialogs/add_password_dialog.ui:131
+msgid "Additional information (optional)"
+msgstr "Información adicional (opcional)"
+
+#: data/ui/dialogs/add_password_dialog.ui:166
+#: data/ui/dialogs/edit_password_dialog.ui:166
+#: .flatpak-builder/build/secrets-1/data/ui/dialogs/add_password_dialog.ui:166
+#: .flatpak-builder/build/secrets-1/data/ui/dialogs/edit_password_dialog.ui:166
+msgid "_Save"
+msgstr "_Guardar"
+
+#: data/ui/dialogs/add_password_dialog.ui:169
+msgid "Save new password entry"
+msgstr "Guardar nueva entrada de contraseña"
+
+#: data/ui/setup/main.ui:277
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:277
+msgid "Choose a password or folder from the sidebar to view its details"
+msgstr "Elija una contraseña o carpeta de la barra lateral para ver sus detalles"
+
+#: data/ui/setup/main.ui:300
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:300
+msgid "/folder/item"
+msgstr "/carpeta/elemento"
+
+#: data/ui/setup/main.ui:351
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:351
+msgid "user@example.com"
+msgstr "usuario@ejemplo.com"
+
+#: data/ui/setup/main.ui:367
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:367
+msgid "https://example.com"
+msgstr "https://ejemplo.com"
+
+#: data/ui/main_window.ui:20
+msgid "Folders"
+msgstr "Carpetas"
+
+#: data/ui/main_window.ui:48
+msgid "Add Password"
+msgstr "Añadir Contraseña"
+
+#: data/ui/main_window.ui:56
+msgid "Add Folder"
+msgstr "Añadir Carpeta"
+
+#: data/ui/main_window.ui:64
+msgid "Git Push"
+msgstr "Git Push"
+
+#: data/ui/main_window.ui:72
+msgid "Git Pull"
+msgstr "Git Pull"
+
+#: data/ui/main_window.ui:80
+msgid "Toggle Search"
+msgstr "Alternar Búsqueda"
+
+#: data/ui/main_window.ui:138
+msgid "GUI for pass password manager"
+msgstr "GUI para el gestor de contraseñas pass"
+
+#: data/ui/main_window.ui:159
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:159
+msgid "Select a Password"
+msgstr "Seleccionar una Contraseña"
+
+#: data/ui/main_window.ui:160
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:160
+msgid "Select a password to view details."
+msgstr "Seleccione una contraseña para ver los detalles."
+
+#: data/ui/main_window.ui:206
+msgid "Hidden"
+msgstr "Oculto"
+
+#: data/ui/main_window.ui:285
+msgid "Two-Factor Authentication"
+msgstr "Autenticación de Dos Factores"
+
+#: data/ui/main_window.ui:355
+msgid "Backup recovery codes"
+msgstr "Códigos de recuperación de respaldo"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:13
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:13
+msgid ""
+"Secrets provides a user-friendly graphical interface for managing passwords "
+"stored with 'pass', the standard unix password manager."
+msgstr ""
+"Secretos proporciona una interfaz gráfica fácil de usar para gestionar contraseñas "
+"almacenadas con 'pass', el gestor de contraseñas estándar de Unix."
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:17
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:17
+msgid "Key Features:"
+msgstr "Características Principales:"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:19
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:19
+msgid "Browse your password store in a tree view."
+msgstr "Navegue por su almacén de contraseñas en una vista de árbol."
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:20
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:20
+msgid ""
+"Copy passwords to the clipboard (cleared automatically after a timeout)."
+msgstr ""
+"Copie las contraseñas al portapapeles (se borra automáticamente después de un tiempo de espera)."
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:21
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:21
+msgid "Add new passwords and edit existing ones through a dialog."
+msgstr "Añada nuevas contraseñas y edite las existentes a través de un diálogo."
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:22
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:22
+msgid "Generate strong, random passwords."
+msgstr "Genere contraseñas fuertes y aleatorias."
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:23
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:23
+msgid "Synchronize changes with a remote git repository (git pull/push)."
+msgstr "Sincronice los cambios con un repositorio git remoto (git pull/push)."
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:32
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:32
+msgid "Main window showing password store"
+msgstr "Ventana principal que muestra el almacén de contraseñas"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:39
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:39
+msgid "Major update with enhanced UI and new features."
+msgstr "Actualización importante con interfaz de usuario mejorada y nuevas características."
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:41
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:41
+msgid "Complete UI redesign with Adw.NavigationSplitView"
+msgstr "Rediseño completo de la interfaz de usuario con Adw.NavigationSplitView"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:42
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:42
+msgid "Enhanced password management with structured fields"
+msgstr "Gestión de contraseñas mejorada con campos estructurados"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:43
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:43
+msgid "TOTP (Time-based One-Time Password) support"
+msgstr "Soporte para TOTP (Contraseña de un solo uso basada en tiempo)"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:44
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:44
+msgid "Recovery codes management"
+msgstr "Gestión de códigos de recuperación"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:45
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:45
+msgid "Improved password generator with popover interface"
+msgstr "Generador de contraseñas mejorado con interfaz emergente"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:46
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:46
+msgid "Better folder management and organization"
+msgstr "Mejor gestión y organización de carpetas"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:47
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:47
+msgid "Enhanced setup wizard with automatic dependency handling"
+msgstr "Asistente de configuración mejorado con manejo automático de dependencias"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:48
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:48
+msgid "Improved error handling and user feedback"
+msgstr "Manejo de errores y retroalimentación del usuario mejorados"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:54
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:54
+msgid "Initial release of Secrets Password Manager."
+msgstr "Lanzamiento inicial del Gestor de Contraseñas Secretos."
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:56
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:56
+msgid "Clean GTK4/Libadwaita interface"
+msgstr "Interfaz limpia con GTK4/Libadwaita"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:57
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:57
+msgid "Full pass compatibility"
+msgstr "Compatibilidad total con pass"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:58
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:58
+msgid "Password generation and management"
+msgstr "Generación y gestión de contraseñas"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:59
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:59
+msgid "Git synchronization support"
+msgstr "Soporte para sincronización con Git"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:60
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:60
+msgid "Automatic GPG setup wizard"
+msgstr "Asistente de configuración automático de GPG"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:70
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:70
+msgid "Thiago Fernandes"
+msgstr "Thiago Fernandes"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:82
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:82
+msgid "password"
+msgstr "contraseña"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:83
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:83
+msgid "manager"
+msgstr "gestor"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:84
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:84
+msgid "security"
+msgstr "seguridad"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:85
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:85
+msgid "gpg"
+msgstr "gpg"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:86
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:86
+msgid "pass"
+msgstr "pass"
+
+#: secrets/config.py:215
+msgid "The 'pass' command was not found. Is it installed and in your PATH?"
+msgstr "No se encontró el comando 'pass'. ¿Está instalado y en su PATH?"
+
+#: secrets/config.py:216
+msgid "Password store is not initialized"
+msgstr "El almacén de contraseñas no está inicializado"
+
+#: secrets/config.py:217
+msgid "Invalid password path"
+msgstr "Ruta de contraseña no válida"
+
+#: secrets/config.py:218
+msgid "Password path cannot be empty"
+msgstr "La ruta de la contraseña no puede estar vacía"
+
+#: secrets/config.py:219
+msgid "Password content cannot be empty"
+msgstr "El contenido de la contraseña no puede estar vacío"
+
+#: secrets/config.py:222
+msgid "Password copied to clipboard"
+msgstr "Contraseña copiada al portapapeles"
+
+#: secrets/config.py:223
+msgid "Username copied to clipboard"
+msgstr "Nombre de usuario copiado al portapapeles"
+
+#: secrets/config.py:224
+msgid "Password entry deleted successfully"
+msgstr "Entrada de contraseña eliminada con éxito"
+
+#: secrets/config.py:225
+msgid "Password entry saved successfully"
+msgstr "Entrada de contraseña guardada con éxito"
+
+#: secrets/config.py:226
+msgid "Password entry moved successfully"
+msgstr "Entrada de contraseña movida con éxito"
+
+#: secrets/error_handling.py:232
+msgid "Password store operation failed"
+msgstr "Falló la operación del almacén de contraseñas"
+
+#: secrets/error_handling.py:233
+msgid "Interface error occurred"
+msgstr "Ocurrió un error en la interfaz"
+
+#: secrets/error_handling.py:234
+msgid "Network operation failed"
+msgstr "Falló la operación de red"
+
+#: secrets/error_handling.py:235
+msgid "File operation failed"
+msgstr "Falló la operación de archivo"
+
+#: secrets/error_handling.py:236
+msgid "Invalid input provided"
+msgstr "Entrada proporcionada no válida"
+
+#: secrets/error_handling.py:237
+msgid "Configuration error"
+msgstr "Error de configuración"
+
+#: secrets/error_handling.py:238
+msgid "An unexpected error occurred"
+msgstr "Ocurrió un error inesperado"
+
+#: secrets/error_handling.py:241
+msgid "An error occurred"
+msgstr "Ocurrió un error"

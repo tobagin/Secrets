@@ -18,7 +18,8 @@ python_sources = [
   'error_handling.py',
   'performance.py',
   'main.py',
-  'shortcuts_window.py'
+  'shortcuts_window.py',
+  'i18n.py'
 ]
 
 # UI module files

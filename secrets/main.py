@@ -12,6 +12,8 @@ gi.require_version("Adw", "1")
 from gi.repository import Gtk, Adw, Gio # Added Gio
 from .application import SecretsApplication
 from .app_info import APP_ID, GETTEXT_DOMAIN
+from .i18n import setup_i18n
+from .utils.gpg_utils import GPGSetupHelper
 
 import gettext
 
@@ -20,18 +22,23 @@ def main(argv=None):
         argv = sys.argv
 
     # Initialize localization
-    # Adjust the localedir if your .mo files are in a different location
-    # For a Flatpak, this might be /app/share/locale
-    # For local development, it might be different.
-    # Meson typically handles installation to the correct system paths.
+    # For development, try to use local po directory
+    # For installed version, let gettext find system directories
     try:
-        localedir = None # Let gettext find it, or specify if needed
-        # Example for development: os.path.join(os.path.dirname(__file__), '..', 'po')
-        # However, during installation, meson places it in standard system dirs.
-        gettext.bindtextdomain(GETTEXT_DOMAIN, localedir)
-        gettext.textdomain(GETTEXT_DOMAIN)
+        # Check if we're running from source directory
+        source_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        po_dir = os.path.join(source_dir, 'po')
+
+        if os.path.exists(po_dir) and os.path.exists(os.path.join(po_dir, 'LINGUAS')):
+            # Running from source, use local po directory
+            setup_i18n(po_dir)
+        else:
+            # Running from installation, use system directories
+            setup_i18n()
     except Exception as e:
         print(f"Could not set up localization: {e}")
+        # Fallback setup
+        setup_i18n()
 
     # Load GResources
     # Construct the path to the .gresource file.
@@ -69,6 +76,12 @@ def main(argv=None):
     if not loaded_successfully:
         print(f"GResource file (secrets.gresource) not found in checked paths: {resource_paths_to_try}. UI templates may fail.", file=sys.stderr)
         # Depending on strictness, you might want to sys.exit(1) here if GResource is critical
+
+    # Configure GPG environment for Flatpak compatibility
+    try:
+        GPGSetupHelper.configure_gpg_agent()
+    except Exception as e:
+        print(f"Warning: Could not configure GPG agent: {e}")
 
     app = SecretsApplication(application_id=APP_ID)
     return app.run(argv)

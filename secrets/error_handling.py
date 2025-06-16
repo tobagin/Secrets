@@ -8,6 +8,10 @@ from enum import Enum
 from pathlib import Path
 from gi.repository import GLib
 from .config import ConfigManager
+from .i18n import get_translation_function
+
+# Get translation function
+_ = get_translation_function()
 
 
 class ErrorSeverity(Enum):
@@ -225,16 +229,16 @@ class ErrorReporter:
     def _get_user_friendly_message(self, error: SecretsError) -> str:
         """Convert technical error to user-friendly message."""
         category_messages = {
-            ErrorCategory.PASSWORD_STORE: "Password store operation failed",
-            ErrorCategory.UI: "Interface error occurred",
-            ErrorCategory.NETWORK: "Network operation failed",
-            ErrorCategory.FILE_SYSTEM: "File operation failed",
-            ErrorCategory.VALIDATION: "Invalid input provided",
-            ErrorCategory.CONFIGURATION: "Configuration error",
-            ErrorCategory.UNKNOWN: "An unexpected error occurred"
+            ErrorCategory.PASSWORD_STORE: _("Password store operation failed"),
+            ErrorCategory.UI: _("Interface error occurred"),
+            ErrorCategory.NETWORK: _("Network operation failed"),
+            ErrorCategory.FILE_SYSTEM: _("File operation failed"),
+            ErrorCategory.VALIDATION: _("Invalid input provided"),
+            ErrorCategory.CONFIGURATION: _("Configuration error"),
+            ErrorCategory.UNKNOWN: _("An unexpected error occurred")
         }
         
-        base_message = category_messages.get(error.category, "An error occurred")
+        base_message = category_messages.get(error.category, _("An error occurred"))
         
         # For validation errors, be more specific
         if error.category == ErrorCategory.VALIDATION:

@@ -29,9 +29,11 @@ Secrets is a modern desktop application that provides a clean and user-friendly 
 ### 🔧 **Advanced Features**
 - **Git synchronization** (push/pull) for backup and sync
 - **GPG integration** with automatic setup wizard
+- **Flatpak compatibility** with enhanced GPG environment setup
 - **Import/export** functionality (JSON, CSV formats)
 - **Comprehensive preferences** with security settings
 - **Automatic clipboard clearing** for enhanced security
+- **Internationalization** support for multiple languages
 
 ### ⌨️ **Keyboard Shortcuts**
 - `Ctrl+N` - Add new password
@@ -45,6 +47,59 @@ Secrets is a modern desktop application that provides a clean and user-friendly 
 - `Ctrl+,` - Preferences
 - `F5` - Refresh
 
+## 🌍 Internationalization
+
+Secrets has full internationalization support with automatic locale detection and fallback to English when translations are unavailable.
+
+### Supported Languages
+
+- **🇧🇷 Portuguese (Brazil)** - pt_BR ⚠️ Partial (42% coverage)
+- **🇵🇹 Portuguese (Portugal)** - pt_PT ⚠️ Partial (37% coverage)
+- **🇺🇸 English (United States)** - en_US ✅ Complete (source)
+- **🇬🇧 English (United Kingdom)** - en_GB ✅ Complete (source)
+- **🇪🇸 Spanish** - es 👍 Good (79% coverage)
+- **🇮🇪 Irish (Gaeilge)** - ga 👍 Good (79% coverage)
+
+### Translation Features
+
+- **Automatic locale detection** - Detects system locale and loads appropriate translations
+- **Fallback support** - Falls back to English if translation not available
+- **Development support** - Works in both development and installed environments
+- **UI integration** - All user-facing strings in dialogs, menus, and interface are translatable
+- **UTF-8 encoding** - Proper Unicode support for all languages
+
+### Testing Translations
+
+```bash
+# Test specific locale
+LANGUAGE=pt_BR python3 -m secrets.main
+
+# Test Spanish interface
+LANGUAGE=es ./run-dev.sh
+```
+
+### Adding New Translations
+
+1. Add language code to `po/LINGUAS`
+2. Create new .po file: `msginit --input=po/secrets.pot --locale=LANG --output=po/LANG.po`
+3. Translate strings in the .po file
+4. Rebuild: `meson compile -C builddir`
+
+### Translation File Structure
+
+```
+po/
+├── LINGUAS              # List of supported languages
+├── secrets.pot          # Translation template
+├── pt_BR.po            # Portuguese (Brazil) translations
+├── pt_PT.po            # Portuguese (Portugal) translations
+├── en_GB.po            # English (UK) translations
+├── en_US.po            # English (US) translations
+├── es.po               # Spanish translations
+├── ga.po               # Irish translations
+└── meson.build         # Build configuration
+```
+
 ## 🛠️ Technology Stack
 
 - **Language**: Python 3.8+
@@ -52,6 +107,7 @@ Secrets is a modern desktop application that provides a clean and user-friendly 
 - **Build System**: Meson & Ninja
 - **Dependencies**: PyGObject, pyotp
 - **Backend**: `pass`, GnuPG, Git
+- **Packaging**: Flatpak with enhanced GPG environment support
 
 ## 📦 Installation
 
@@ -108,6 +164,15 @@ flatpak-builder --user --install --force-clean build-dir io.github.tobagin.secre
 flatpak run io.github.tobagin.secrets
 ```
 
+#### Flatpak GPG Compatibility
+
+The Flatpak version includes enhanced GPG environment setup for proper password decryption in sandboxed environments:
+
+- **Automatic GPG environment configuration** - Sets up proper `GPG_TTY`, `GNUPGHOME`, and agent settings
+- **GUI pinentry integration** - Includes pinentry-gtk2 for password prompts in the GUI
+- **Robust error handling** - Graceful fallbacks when GPG components are missing
+- **Seamless operation** - No manual configuration required for GPG operations
+
 ### System Installation
 
 ```bash
@@ -136,7 +201,9 @@ Secrets/
 │   ├── icons/                 # Application icons
 │   └── *.xml.in              # Desktop/AppData metadata
 ├── tests/                     # Comprehensive test suite
-├── po/                        # Internationalization
+├── po/                        # Internationalization (i18n)
+│   ├── *.po                   # Translation files
+│   └── LINGUAS               # Supported languages
 └── *.yml                     # Flatpak manifest
 ```
 
@@ -158,6 +225,9 @@ python3 run_tests.py
 python3 -m unittest tests.test_models
 python3 -m unittest tests.test_services
 python3 -m unittest tests.test_commands
+
+# Test GPG environment setup (for development)
+python3 test_gpg_env.py
 ```
 
 The test suite includes:
@@ -165,6 +235,7 @@ The test suite includes:
 - **Service tests** (18 tests) - Business logic and password operations
 - **Command tests** (24 tests) - User actions and clipboard operations
 - **Performance tests** - Memory usage and response times
+- **GPG environment tests** - Flatpak compatibility and GPG setup verification
 
 ## 🤝 Contributing
 

@@ -6,7 +6,7 @@
   <template class="SecretsWindow" parent="AdwApplicationWindow">
     <property name="default-width">1200</property>
     <property name="default-height">700</property>
-    <property name="title">Secrets</property>
+    <property name="title" translatable="yes">Secrets</property>
     <property name="content">
       <object class="AdwToastOverlay" id="toast_overlay">
         <child>
@@ -17,7 +17,7 @@
             <property name="show-content">True</property>
             <property name="sidebar">
               <object class="AdwNavigationPage" id="sidebar_page">
-                <property name="title">Folders</property>
+                <property name="title" translatable="yes">Folders</property>
                 <property name="child">
                   <object class="AdwToolbarView" id="sidebar_toolbar">
                     <child type="top">
@@ -45,7 +45,7 @@
                             <child>
                               <object class="GtkButton" id="add_password_button">
                                 <property name="icon-name">list-add-symbolic</property>
-                                <property name="tooltip-text">Add Password</property>
+                                <property name="tooltip-text" translatable="yes">Add Password</property>
                                 <property name="halign">center</property>
                                 <style><class name="flat"/></style>
                               </object>
@@ -53,7 +53,7 @@
                             <child>
                               <object class="GtkButton" id="add_folder_button">
                                 <property name="icon-name">folder-new-symbolic</property>
-                                <property name="tooltip-text">Add Folder</property>
+                                <property name="tooltip-text" translatable="yes">Add Folder</property>
                                 <property name="halign">center</property>
                                 <style><class name="flat"/></style>
                               </object>
@@ -61,7 +61,7 @@
                             <child>
                               <object class="GtkButton" id="git_push_button">
                                 <property name="icon-name">cloud-upload-symbolic</property>
-                                <property name="tooltip-text">Git Push</property>
+                                <property name="tooltip-text" translatable="yes">Git Push</property>
                                 <property name="halign">center</property>
                                 <style><class name="flat"/></style>
                               </object>
@@ -69,7 +69,7 @@
                             <child>
                               <object class="GtkButton" id="git_pull_button">
                                 <property name="icon-name">cloud-download-symbolic</property>
-                                <property name="tooltip-text">Git Pull</property>
+                                <property name="tooltip-text" translatable="yes">Git Pull</property>
                                 <property name="halign">center</property>
                                 <style><class name="flat"/></style>
                               </object>
@@ -77,7 +77,7 @@
                             <child>
                               <object class="GtkToggleButton" id="search_toggle_button">
                                 <property name="icon-name">system-search-symbolic</property>
-                                <property name="tooltip-text">Toggle Search</property>
+                                <property name="tooltip-text" translatable="yes">Toggle Search</property>
                                 <property name="halign">center</property>
                                 <style><class name="flat"/></style>
                               </object>
@@ -92,7 +92,7 @@
                             <property name="margin-bottom">6</property>
                             <child>
                               <object class="GtkSearchEntry" id="search_entry">
-                                <property name="placeholder-text">Search passwords...</property>
+                                <property name="placeholder-text" translatable="yes">Search passwords...</property>
                               </object>
                             </child>
                           </object>
@@ -126,7 +126,7 @@
             <property name="content">
               <!-- IMPROVEMENT: The title of this page can be set programmatically to show the current item -->
               <object class="AdwNavigationPage" id="content_page">
-                <property name="title">Password Details</property>
+                <property name="title" translatable="yes">Password Details</property>
                 <property name="child">
                   <object class="AdwToolbarView" id="content_toolbar">
                     <child type="top">
@@ -134,8 +134,8 @@
                       <object class="AdwHeaderBar" id="content_header">
                         <child type="title">
                           <object class="AdwWindowTitle">
-                            <property name="title">Secrets</property>
-                            <property name="subtitle">GUI for pass password manager</property>
+                            <property name="title" translatable="yes">Secrets</property>
+                            <property name="subtitle" translatable="yes">GUI for pass password manager</property>
                           </object>
                         </child>
                         <child type="end">
@@ -203,7 +203,7 @@
                                         <child>
                                           <object class="AdwExpanderRow" id="password_expander_row">
                                             <property name="title" translatable="yes">Password</property>
-                                            <property name="subtitle">Hidden</property>
+                                            <property name="subtitle" translatable="yes">Hidden</property>
                                             <property name="enable-expansion">false</property>
                                             <property name="show-enable-switch">false</property>
                                             <child>
@@ -282,7 +282,7 @@
                                         <child>
                                           <object class="AdwExpanderRow" id="totp_row">
                                             <property name="title" translatable="yes">TOTP</property>
-                                            <property name="subtitle">Two-Factor Authentication</property>
+                                            <property name="subtitle" translatable="yes">Two-Factor Authentication</property>
                                             <property name="visible">false</property>
                                             <property name="enable-expansion">false</property>
                                             <property name="show-enable-switch">false</property>
@@ -351,8 +351,8 @@
 
                                         <child>
                                           <object class="AdwExpanderRow" id="recovery_expander">
-                                            <property name="title">Recovery Codes</property>
-                                            <property name="subtitle">Backup recovery codes</property>
+                                            <property name="title" translatable="yes">Recovery Codes</property>
+                                            <property name="subtitle" translatable="yes">Backup recovery codes</property>
                                             <property name="enable-expansion">false</property>
                                             <child>
                                               <object class="GtkBox" id="recovery_codes_box">

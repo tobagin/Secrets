@@ -1,0 +1,637 @@
+# Irish translations for Secrets package.
+# Copyright (C) 2025 THE Secrets'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the Secrets package.
+# Automatically generated, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Secrets 0.5.0\n"
+"Report-Msgid-Bugs-To: 140509353+tobagin@users.noreply.github.com\n"
+"POT-Creation-Date: 2025-06-16 11:04+0100\n"
+"PO-Revision-Date: 2025-06-16 11:04+0100\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: ga\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n==1 ? 0 : n==2 ? 1 : 2;\n"
+
+#: data/io.github.tobagin.secrets.desktop.in:2 data/ui/main_window.ui:9
+#: data/ui/main_window.ui:137 data/io.github.tobagin.secrets.appdata.xml.in:6
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:6
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.desktop.in:2
+msgid "Secrets"
+msgstr "Rúin"
+
+#: data/io.github.tobagin.secrets.desktop.in:3
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.desktop.in:3
+msgid "Password Manager"
+msgstr "Bainisteoir Pasfhocal"
+
+#: data/io.github.tobagin.secrets.desktop.in:4
+#: data/io.github.tobagin.secrets.appdata.xml.in:7
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:7
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.desktop.in:4
+msgid "A clean interface for managing a pass repository"
+msgstr "Comhéadan glan chun stór pass a bhainistiú"
+
+#: data/io.github.tobagin.secrets.desktop.in:10
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.desktop.in:10
+msgid "Password;Manager;Security;GPG;Pass;"
+msgstr "Pasfhocal;Bainisteoir;Slándáil;GPG;Pass;"
+
+#: data/ui/components/header_bar.ui:20 data/ui/dialogs/add_password_dialog.ui:8
+#: data/ui/dialogs/add_password_dialog.ui:25
+#: .flatpak-builder/build/secrets-1/data/ui/components/header_bar.ui:20
+msgid "Add New Password"
+msgstr "Cuir Pasfhocal Nua Leis"
+
+#: data/ui/components/header_bar.ui:34
+#: .flatpak-builder/build/secrets-1/data/ui/components/header_bar.ui:34
+msgid "Pull changes"
+msgstr "Tarraing athruithe"
+
+#: data/ui/components/header_bar.ui:41
+#: .flatpak-builder/build/secrets-1/data/ui/components/header_bar.ui:41
+msgid "Push changes"
+msgstr "Brúigh athruithe"
+
+#: data/ui/components/password_list.ui:11 data/ui/main_window.ui:95
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_list.ui:11
+msgid "Search passwords..."
+msgstr "Cuardaigh pasfhocail..."
+
+#: data/ui/components/password_details.ui:15 data/ui/setup/main.ui:276
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:15
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:276
+msgid "Select an Item"
+msgstr "Roghnaigh Mír"
+
+#: data/ui/components/password_details.ui:16
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:16
+msgid "Select an item to view details."
+msgstr "Roghnaigh mír chun sonraí a fheiceáil."
+
+#: data/ui/components/password_details.ui:43
+#: data/ui/dialogs/add_password_dialog.ui:36 data/ui/main_window.ui:187
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:43
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:187
+msgid "Password Location"
+msgstr "Suíomh an Phasfhocail"
+
+#: data/ui/components/password_details.ui:44 data/ui/main_window.ui:188
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:44
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:188
+msgid "File path and location"
+msgstr "Conair agus suíomh an chomhaid"
+
+#: data/ui/components/password_details.ui:48 data/ui/setup/main.ui:299
+#: data/ui/main_window.ui:192
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:48
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:192
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:299
+msgid "Path"
+msgstr "Conair"
+
+#: data/ui/components/password_details.ui:57
+#: data/ui/dialogs/add_password_dialog.ui:57 data/ui/main_window.ui:129
+#: data/ui/main_window.ui:201
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:57
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:201
+msgid "Password Details"
+msgstr "Sonraí an Phasfhocail"
+
+#: data/ui/components/password_details.ui:61
+#: data/ui/dialogs/add_password_dialog.ui:61 data/ui/setup/main.ui:305
+#: data/ui/main_window.ui:205
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:61
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:205
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:305
+msgid "Password"
+msgstr "Pasfhocal"
+
+#: data/ui/components/password_details.ui:93 data/ui/setup/main.ui:331
+#: data/ui/main_window.ui:237
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:93
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:237
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:331
+msgid "Show/Hide Password"
+msgstr "Taispeáin/Folaigh Pasfhocal"
+
+#: data/ui/components/password_details.ui:102 data/ui/setup/main.ui:340
+#: data/ui/main_window.ui:246
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:102
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:246
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:340
+msgid "Copy Password"
+msgstr "Cóipeáil Pasfhocal"
+
+#: data/ui/components/password_details.ui:112
+#: data/ui/dialogs/add_password_dialog.ui:77 data/ui/setup/main.ui:350
+#: data/ui/main_window.ui:256
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:112
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:256
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:350
+msgid "Username"
+msgstr "Ainm úsáideora"
+
+#: data/ui/components/password_details.ui:116 data/ui/setup/main.ui:356
+#: data/ui/main_window.ui:260
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:116
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:260
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:356
+msgid "Copy Username"
+msgstr "Cóipeáil Ainm Úsáideora"
+
+#: data/ui/components/password_details.ui:126
+#: data/ui/dialogs/add_password_dialog.ui:83 data/ui/setup/main.ui:366
+#: data/ui/main_window.ui:270
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:126
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:270
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:366
+msgid "URL"
+msgstr "URL"
+
+#: data/ui/components/password_details.ui:130 data/ui/setup/main.ui:372
+#: data/ui/main_window.ui:274
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:130
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:274
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:372
+msgid "Open URL"
+msgstr "Oscail URL"
+
+#: data/ui/components/password_details.ui:140 data/ui/main_window.ui:284
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:140
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:284
+msgid "TOTP"
+msgstr "TOTP"
+
+#: data/ui/components/password_details.ui:145 data/ui/main_window.ui:333
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:145
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:333
+msgid "Copy TOTP Code"
+msgstr "Cóipeáil Cód TOTP"
+
+#: data/ui/components/password_details.ui:158
+#: data/ui/dialogs/add_password_dialog.ui:98
+#: data/ui/dialogs/add_password_dialog.ui:103 data/ui/main_window.ui:348
+#: data/ui/main_window.ui:354
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:158
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:348
+msgid "Recovery Codes"
+msgstr "Cóid Aisghabhála"
+
+#: data/ui/components/password_details.ui:159
+#: data/ui/dialogs/add_password_dialog.ui:99 data/ui/main_window.ui:349
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:159
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:349
+msgid "Backup codes for account recovery"
+msgstr "Cóid chúltaca le haghaidh aisghabháil cuntais"
+
+#: data/ui/components/password_details.ui:181
+#: data/ui/dialogs/add_password_dialog.ui:130 data/ui/setup/main.ui:381
+#: data/ui/main_window.ui:371
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:181
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:371
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:381
+msgid "Notes"
+msgstr "Nótaí"
+
+#: data/ui/components/password_details.ui:182 data/ui/main_window.ui:372
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:182
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:372
+msgid "Additional information"
+msgstr "Faisnéis bhreise"
+
+#: data/ui/components/password_details.ui:217 data/ui/main_window.ui:407
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:217
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:407
+msgid "Actions"
+msgstr "Gníomhartha"
+
+#: data/ui/components/password_details.ui:218 data/ui/main_window.ui:408
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:218
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:408
+msgid "Manage this password entry"
+msgstr "Bainistigh an iontráil phasfhocail seo"
+
+#: data/ui/components/password_details.ui:230 data/ui/setup/main.ui:413
+#: data/ui/main_window.ui:420
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:230
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:420
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:413
+msgid "_Edit"
+msgstr "_Cuir in Eagar"
+
+#: data/ui/components/password_details.ui:239 data/ui/setup/main.ui:423
+#: data/ui/main_window.ui:429
+#: .flatpak-builder/build/secrets-1/data/ui/components/password_details.ui:239
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:429
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:423
+msgid "_Remove"
+msgstr "_Bain"
+
+#: data/ui/components/main_menu.ui:9 data/ui/setup/main.ui:453
+#: data/ui/main_window.ui:461
+#: .flatpak-builder/build/secrets-1/data/ui/components/main_menu.ui:9
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:461
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:453
+msgid "_Preferences"
+msgstr "_Sainroghanna"
+
+#: data/ui/components/main_menu.ui:13 data/ui/setup/main.ui:457
+#: data/ui/main_window.ui:465
+#: .flatpak-builder/build/secrets-1/data/ui/components/main_menu.ui:13
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:465
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:457
+msgid "_Keyboard Shortcuts"
+msgstr "_Aicearraí Méarchláir"
+
+#: data/ui/components/main_menu.ui:17 data/ui/setup/main.ui:461
+#: data/ui/main_window.ui:469
+#: .flatpak-builder/build/secrets-1/data/ui/components/main_menu.ui:17
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:469
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:461
+msgid "_About Secrets"
+msgstr "_Faoi Rúin"
+
+#: data/ui/components/main_menu.ui:23 data/ui/setup/main.ui:467
+#: data/ui/main_window.ui:475
+#: .flatpak-builder/build/secrets-1/data/ui/components/main_menu.ui:23
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:475
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:467
+msgid "_Import/Export"
+msgstr "_Iompórtáil/Easpórtáil"
+
+#: data/ui/components/main_menu.ui:27 data/ui/setup/main.ui:471
+#: data/ui/main_window.ui:479
+#: .flatpak-builder/build/secrets-1/data/ui/components/main_menu.ui:27
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:479
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:471
+msgid "_Generate Password"
+msgstr "_Gin Pasfhocal"
+
+#: data/ui/components/main_menu.ui:33 data/ui/setup/main.ui:477
+#: data/ui/main_window.ui:485
+#: .flatpak-builder/build/secrets-1/data/ui/components/main_menu.ui:33
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:485
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:477
+msgid "Git _Pull"
+msgstr "Git _Pull"
+
+#: data/ui/components/main_menu.ui:37 data/ui/setup/main.ui:481
+#: data/ui/main_window.ui:489
+#: .flatpak-builder/build/secrets-1/data/ui/components/main_menu.ui:37
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:489
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:481
+msgid "Git _Push"
+msgstr "Git _Push"
+
+#: data/ui/components/main_menu.ui:43 data/ui/setup/main.ui:487
+#: data/ui/main_window.ui:495
+#: .flatpak-builder/build/secrets-1/data/ui/components/main_menu.ui:43
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:495
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:487
+msgid "_Quit"
+msgstr "_Scoir"
+
+#: data/ui/dialogs/add_password_dialog.ui:37
+msgid "Choose folder and enter password name"
+msgstr "Roghnaigh fillteán agus cuir isteach ainm an phasfhocail"
+
+#: data/ui/dialogs/add_password_dialog.ui:41
+msgid "Folder"
+msgstr "Fillteán"
+
+#: data/ui/dialogs/add_password_dialog.ui:42
+msgid "Select or type folder name"
+msgstr "Roghnaigh nó clóscríobh ainm an fhillteáin"
+
+#: data/ui/dialogs/add_password_dialog.ui:48
+msgid "Password Name"
+msgstr "Ainm an Phasfhocail"
+
+#: data/ui/dialogs/add_password_dialog.ui:65
+msgid "Generate Password"
+msgstr "Gin Pasfhocal"
+
+#: data/ui/dialogs/add_password_dialog.ui:89
+msgid "TOTP Secret (Base32)"
+msgstr "Rún TOTP (Base32)"
+
+#: data/ui/dialogs/add_password_dialog.ui:104
+msgid "Add backup recovery codes"
+msgstr "Cuir cóid aisghabhála cúltaca leis"
+
+#: data/ui/dialogs/add_password_dialog.ui:109
+msgid "Add Recovery Code"
+msgstr "Cuir Cód Aisghabhála Leis"
+
+#: data/ui/dialogs/add_password_dialog.ui:131
+msgid "Additional information (optional)"
+msgstr "Faisnéis bhreise (roghnach)"
+
+#: data/ui/dialogs/add_password_dialog.ui:166
+#: data/ui/dialogs/edit_password_dialog.ui:166
+#: .flatpak-builder/build/secrets-1/data/ui/dialogs/add_password_dialog.ui:166
+#: .flatpak-builder/build/secrets-1/data/ui/dialogs/edit_password_dialog.ui:166
+msgid "_Save"
+msgstr "_Sábháil"
+
+#: data/ui/dialogs/add_password_dialog.ui:169
+msgid "Save new password entry"
+msgstr "Sábháil iontráil phasfhocail nua"
+
+#: data/ui/setup/main.ui:277
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:277
+msgid "Choose a password or folder from the sidebar to view its details"
+msgstr "Roghnaigh pasfhocal nó fillteán ón mbarra taoibh chun a shonraí a fheiceáil"
+
+#: data/ui/setup/main.ui:300
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:300
+msgid "/folder/item"
+msgstr "/filltean/mir"
+
+#: data/ui/setup/main.ui:351
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:351
+msgid "user@example.com"
+msgstr "usáideoir@sampla.com"
+
+#: data/ui/setup/main.ui:367
+#: .flatpak-builder/build/secrets-1/data/ui/setup/main.ui:367
+msgid "https://example.com"
+msgstr "https://sampla.com"
+
+#: data/ui/main_window.ui:20
+msgid "Folders"
+msgstr "Fillteáin"
+
+#: data/ui/main_window.ui:48
+msgid "Add Password"
+msgstr "Cuir Pasfhocal Leis"
+
+#: data/ui/main_window.ui:56
+msgid "Add Folder"
+msgstr "Cuir Fillteán Leis"
+
+#: data/ui/main_window.ui:64
+msgid "Git Push"
+msgstr "Git Push"
+
+#: data/ui/main_window.ui:72
+msgid "Git Pull"
+msgstr "Git Pull"
+
+#: data/ui/main_window.ui:80
+msgid "Toggle Search"
+msgstr "Scoránaigh Cuardach"
+
+#: data/ui/main_window.ui:138
+msgid "GUI for pass password manager"
+msgstr "GUI do bhainisteoir pasfhocal pass"
+
+#: data/ui/main_window.ui:159
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:159
+msgid "Select a Password"
+msgstr "Roghnaigh Pasfhocal"
+
+#: data/ui/main_window.ui:160
+#: .flatpak-builder/build/secrets-1/data/ui/main_window.ui:160
+msgid "Select a password to view details."
+msgstr "Roghnaigh pasfhocal chun sonraí a fheiceáil."
+
+#: data/ui/main_window.ui:206
+msgid "Hidden"
+msgstr "Folaithe"
+
+#: data/ui/main_window.ui:285
+msgid "Two-Factor Authentication"
+msgstr "Fíordheimhniú Dhá Fhachtóir"
+
+#: data/ui/main_window.ui:355
+msgid "Backup recovery codes"
+msgstr "Cóid aisghabhála cúltaca"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:13
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:13
+msgid ""
+"Secrets provides a user-friendly graphical interface for managing passwords "
+"stored with 'pass', the standard unix password manager."
+msgstr ""
+"Soláthraíonn Rúin comhéadan grafach atá éasca le húsáid chun pasfhocail a bhainistiú "
+"a stóráiltear le 'pass', an bainisteoir pasfhocal caighdeánach unix."
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:17
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:17
+msgid "Key Features:"
+msgstr "Príomhghnéithe:"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:19
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:19
+msgid "Browse your password store in a tree view."
+msgstr "Brabhsáil do stór pasfhocal i radharc crainn."
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:20
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:20
+msgid ""
+"Copy passwords to the clipboard (cleared automatically after a timeout)."
+msgstr ""
+"Cóipeáil pasfhocail chuig an gearrthaisce (glantar go huathoibríoch tar éis am istigh)."
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:21
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:21
+msgid "Add new passwords and edit existing ones through a dialog."
+msgstr "Cuir pasfhocail nua leis agus cuir na cinn atá ann in eagar trí dialóg."
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:22
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:22
+msgid "Generate strong, random passwords."
+msgstr "Gin pasfhocail láidre, randamacha."
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:23
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:23
+msgid "Synchronize changes with a remote git repository (git pull/push)."
+msgstr "Sioncronaigh athruithe le stór git iargúlta (git pull/push)."
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:32
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:32
+msgid "Main window showing password store"
+msgstr "Príomhfhuinneog a thaispeánann stór pasfhocal"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:39
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:39
+msgid "Major update with enhanced UI and new features."
+msgstr "Nuashonrú mór le Chomhéadain feabhsaithe agus gnéithe nua."
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:41
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:41
+msgid "Complete UI redesign with Adw.NavigationSplitView"
+msgstr "Athdhearadh iomlán ar an gComhéadain le Adw.NavigationSplitView"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:42
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:42
+msgid "Enhanced password management with structured fields"
+msgstr "Bainistíocht phasfhocal feabhsaithe le réimsí struchtúrtha"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:43
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:43
+msgid "TOTP (Time-based One-Time Password) support"
+msgstr "Tacaíocht do TOTP (Pasfhocal Aonuaire Bunaithe ar Am)"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:44
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:44
+msgid "Recovery codes management"
+msgstr "Bainistíocht cóid aisghabhála"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:45
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:45
+msgid "Improved password generator with popover interface"
+msgstr "Gineadóir pasfhocal feabhsaithe le comhéadan aníos"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:46
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:46
+msgid "Better folder management and organization"
+msgstr "Bainistíocht agus eagrú fillteán níos fearr"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:47
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:47
+msgid "Enhanced setup wizard with automatic dependency handling"
+msgstr "Treoraí cumraíochta feabhsaithe le láimhseáil spleáchais uathoibríoch"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:48
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:48
+msgid "Improved error handling and user feedback"
+msgstr "Láimhseáil earráidí agus aiseolas úsáideora feabhsaithe"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:54
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:54
+msgid "Initial release of Secrets Password Manager."
+msgstr "Eisiúint tosaigh de Bhainisteoir Pasfhocal Rúin."
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:56
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:56
+msgid "Clean GTK4/Libadwaita interface"
+msgstr "Comhéadan glan GTK4/Libadwaita"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:57
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:57
+msgid "Full pass compatibility"
+msgstr "Comhoiriúnacht iomlán le pass"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:58
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:58
+msgid "Password generation and management"
+msgstr "Giniúint agus bainistíocht pasfhocal"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:59
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:59
+msgid "Git synchronization support"
+msgstr "Tacaíocht do shioncrónú Git"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:60
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:60
+msgid "Automatic GPG setup wizard"
+msgstr "Treoraí cumraíochta uathoibríoch GPG"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:70
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:70
+msgid "Thiago Fernandes"
+msgstr "Thiago Fernandes"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:82
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:82
+msgid "password"
+msgstr "pasfhocal"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:83
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:83
+msgid "manager"
+msgstr "bainisteoir"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:84
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:84
+msgid "security"
+msgstr "slándáil"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:85
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:85
+msgid "gpg"
+msgstr "gpg"
+
+#: data/io.github.tobagin.secrets.appdata.xml.in:86
+#: .flatpak-builder/build/secrets-1/data/io.github.tobagin.secrets.appdata.xml.in:86
+msgid "pass"
+msgstr "pass"
+
+#: secrets/config.py:215
+msgid "The 'pass' command was not found. Is it installed and in your PATH?"
+msgstr "Níor aimsíodh an t-ordú 'pass'. An bhfuil sé suiteáilte agus i do PATH?"
+
+#: secrets/config.py:216
+msgid "Password store is not initialized"
+msgstr "Níl an stór pasfhocal tionscnaithe"
+
+#: secrets/config.py:217
+msgid "Invalid password path"
+msgstr "Conair phasfhocail neamhbhailí"
+
+#: secrets/config.py:218
+msgid "Password path cannot be empty"
+msgstr "Ní féidir le conair an phasfhocail a bheith folamh"
+
+#: secrets/config.py:219
+msgid "Password content cannot be empty"
+msgstr "Ní féidir le hábhar an phasfhocail a bheith folamh"
+
+#: secrets/config.py:222
+msgid "Password copied to clipboard"
+msgstr "Cóipeáladh an pasfhocal chuig an gearrthaisce"
+
+#: secrets/config.py:223
+msgid "Username copied to clipboard"
+msgstr "Cóipeáladh an t-ainm úsáideora chuig an gearrthaisce"
+
+#: secrets/config.py:224
+msgid "Password entry deleted successfully"
+msgstr "Scriosadh an iontráil phasfhocail go rathúil"
+
+#: secrets/config.py:225
+msgid "Password entry saved successfully"
+msgstr "Sábháladh an iontráil phasfhocail go rathúil"
+
+#: secrets/config.py:226
+msgid "Password entry moved successfully"
+msgstr "Bogadh an iontráil phasfhocail go rathúil"
+
+#: secrets/error_handling.py:232
+msgid "Password store operation failed"
+msgstr "Theip ar oibríocht an stóir phasfhocal"
+
+#: secrets/error_handling.py:233
+msgid "Interface error occurred"
+msgstr "Tharla earráid comhéadain"
+
+#: secrets/error_handling.py:234
+msgid "Network operation failed"
+msgstr "Theip ar oibríocht líonra"
+
+#: secrets/error_handling.py:235
+msgid "File operation failed"
+msgstr "Theip ar oibríocht comhaid"
+
+#: secrets/error_handling.py:236
+msgid "Invalid input provided"
+msgstr "Ionchur neamhbhailí curtha ar fáil"
+
+#: secrets/error_handling.py:237
+msgid "Configuration error"
+msgstr "Earráid chumraíochta"
+
+#: secrets/error_handling.py:238
+msgid "An unexpected error occurred"
+msgstr "Tharla earráid gan choinne"
+
+#: secrets/error_handling.py:241
+msgid "An error occurred"
+msgstr "Tharla earráid"

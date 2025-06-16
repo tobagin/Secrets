@@ -10,6 +10,11 @@ from pathlib import Path
 from dataclasses import dataclass, asdict
 from gi.repository import GLib, Adw
 
+from .i18n import get_translation_function
+
+# Get translation function
+_ = get_translation_function()
+
 
 @dataclass
 class UIConfig:
@@ -207,18 +212,18 @@ class Constants:
     CSS_PASSWORD_VISIBLE = "password-visible"
     
     # Error Messages
-    ERROR_PASS_NOT_FOUND = "The 'pass' command was not found. Is it installed and in your PATH?"
-    ERROR_STORE_NOT_INITIALIZED = "Password store is not initialized"
-    ERROR_INVALID_PATH = "Invalid password path"
-    ERROR_EMPTY_PATH = "Password path cannot be empty"
-    ERROR_EMPTY_CONTENT = "Password content cannot be empty"
-    
+    ERROR_PASS_NOT_FOUND = _("The 'pass' command was not found. Is it installed and in your PATH?")
+    ERROR_STORE_NOT_INITIALIZED = _("Password store is not initialized")
+    ERROR_INVALID_PATH = _("Invalid password path")
+    ERROR_EMPTY_PATH = _("Password path cannot be empty")
+    ERROR_EMPTY_CONTENT = _("Password content cannot be empty")
+
     # Success Messages
-    SUCCESS_PASSWORD_COPIED = "Password copied to clipboard"
-    SUCCESS_USERNAME_COPIED = "Username copied to clipboard"
-    SUCCESS_ENTRY_DELETED = "Password entry deleted successfully"
-    SUCCESS_ENTRY_SAVED = "Password entry saved successfully"
-    SUCCESS_ENTRY_MOVED = "Password entry moved successfully"
+    SUCCESS_PASSWORD_COPIED = _("Password copied to clipboard")
+    SUCCESS_USERNAME_COPIED = _("Username copied to clipboard")
+    SUCCESS_ENTRY_DELETED = _("Password entry deleted successfully")
+    SUCCESS_ENTRY_SAVED = _("Password entry saved successfully")
+    SUCCESS_ENTRY_MOVED = _("Password entry moved successfully")
     
     # Validation Patterns
     VALID_PATH_PATTERN = r"^[^/].*[^/]$"  # No leading/trailing slashes
