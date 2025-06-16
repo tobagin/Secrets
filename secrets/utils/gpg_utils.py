@@ -193,14 +193,14 @@ Expire-Date: 0
         # This helps ensure password prompts work in Flatpak
         pinentry_programs = [
             '/usr/bin/pinentry-gnome3',
-            '/app/bin/pinentry-gnome3',
             '/usr/bin/pinentry-gtk2',
-            '/app/bin/pinentry-gtk2',
             '/usr/bin/pinentry-qt5',
-            '/app/bin/pinentry-qt5',
             '/usr/bin/pinentry-qt',
-            '/app/bin/pinentry-qt',
             '/usr/bin/pinentry',
+            '/app/bin/pinentry-gnome3',
+            '/app/bin/pinentry-gtk2',
+            '/app/bin/pinentry-qt5',
+            '/app/bin/pinentry-qt',
             '/app/bin/pinentry'
         ]
 
@@ -208,6 +208,11 @@ Expire-Date: 0
             if os.path.exists(pinentry):
                 env['PINENTRY_USER_DATA'] = pinentry
                 break
+
+        # Additional environment variables for Flatpak
+        env['DISPLAY'] = os.environ.get('DISPLAY', ':0')
+        env['WAYLAND_DISPLAY'] = os.environ.get('WAYLAND_DISPLAY', '')
+        env['XDG_SESSION_TYPE'] = os.environ.get('XDG_SESSION_TYPE', '')
 
         # Set GPG home directory if not set
         if 'GNUPGHOME' not in env:
@@ -238,14 +243,14 @@ Expire-Date: 0
         # Find available pinentry program
         pinentry_programs = [
             ('/usr/bin/pinentry-gnome3', 'pinentry-gnome3'),
-            ('/app/bin/pinentry-gnome3', 'pinentry-gnome3'),
             ('/usr/bin/pinentry-gtk2', 'pinentry-gtk2'),
-            ('/app/bin/pinentry-gtk2', 'pinentry-gtk2'),
             ('/usr/bin/pinentry-qt5', 'pinentry-qt5'),
-            ('/app/bin/pinentry-qt5', 'pinentry-qt5'),
             ('/usr/bin/pinentry-qt', 'pinentry-qt'),
-            ('/app/bin/pinentry-qt', 'pinentry-qt'),
             ('/usr/bin/pinentry', 'pinentry'),
+            ('/app/bin/pinentry-gnome3', 'pinentry-gnome3'),
+            ('/app/bin/pinentry-gtk2', 'pinentry-gtk2'),
+            ('/app/bin/pinentry-qt5', 'pinentry-qt5'),
+            ('/app/bin/pinentry-qt', 'pinentry-qt'),
             ('/app/bin/pinentry', 'pinentry')
         ]
 
