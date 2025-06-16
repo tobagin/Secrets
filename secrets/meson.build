@@ -11,7 +11,6 @@ python_sources = [
   'app_info.py',
   'password_store.py',
   'models.py',
-  'managers.py',
   'commands.py',
   'config.py',
   'async_operations.py',
