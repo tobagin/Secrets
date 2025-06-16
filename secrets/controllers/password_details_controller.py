@@ -398,6 +398,23 @@ class PasswordDetailsController:
         """Get the currently displayed item."""
         return self._current_item
 
+    def clear_sensitive_data(self):
+        """Clear sensitive data from the UI (called when application is locked)."""
+        # Hide password if visible
+        if self._password_visible:
+            self.show_hide_password_button.set_active(False)
+            self._update_password_display(False)
+
+        # Clear current password from memory
+        self._current_password = None
+
+        # Stop TOTP timer
+        self._stop_totp_timer()
+        self._current_totp_secret = None
+
+        # Clear details display
+        self._clear_details()
+
     def _parse_password_content(self, content):
         """Parse password content into structured fields."""
         lines = content.splitlines()

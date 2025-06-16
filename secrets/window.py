@@ -32,6 +32,7 @@ from .controllers import (
     ActionController
 )
 from .controllers.dynamic_folder_controller import DynamicFolderController
+from .security_manager import SecurityManager
 
 # Define a GObject for items in our ListView
 class PasswordListItem(GObject.Object):
@@ -139,6 +140,11 @@ class SecretsWindow(Adw.ApplicationWindow):
         self.async_ops = AsyncPasswordOperations(self.password_service, self.toast_manager)
         self.task_manager = TaskManager(self.toast_manager)
 
+        # Initialize security manager
+        self.security_manager = SecurityManager(self.config_manager, self)
+        self.security_manager.register_lock_callback(self._on_application_locked)
+        self.security_manager.register_unlock_callback(self._on_application_unlocked)
+
         # Initialize controllers
         self._initialize_controllers()
 
@@ -234,6 +240,9 @@ class SecretsWindow(Adw.ApplicationWindow):
         # Just verify that setup is complete and load passwords
         # Use GLib.idle_add to ensure this happens after the window is fully initialized
         GLib.idle_add(self._verify_setup_and_load)
+
+        # Start security monitoring after initialization
+        GLib.idle_add(self.security_manager.start_security_monitoring)
 
     def _verify_setup_and_load(self):
         """Verify that setup is complete and load passwords."""
@@ -553,3 +562,29 @@ class SecretsWindow(Adw.ApplicationWindow):
             toast_manager=self.toast_manager
         )
         import_export_dialog.present()
+
+    def _on_application_locked(self):
+        """Called when the application is locked."""
+        # Disable UI interactions
+        self.set_sensitive(False)
+
+        # Clear sensitive data from UI
+        self.details_controller.clear_sensitive_data()
+
+        # Clear search
+        self.search_entry.set_text("")
+
+    def _on_application_unlocked(self):
+        """Called when the application is unlocked."""
+        # Re-enable UI interactions
+        self.set_sensitive(True)
+
+        # Reload passwords
+        self.folder_controller.load_passwords()
+
+    def close_request(self):
+        """Handle window close request."""
+        # Stop security monitoring
+        if hasattr(self, 'security_manager'):
+            self.security_manager.stop_security_monitoring()
+        return super().close_request()

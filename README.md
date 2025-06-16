@@ -35,6 +35,16 @@ Secrets is a modern desktop application that provides a clean and user-friendly 
 - **Automatic clipboard clearing** for enhanced security
 - **Internationalization** support for multiple languages
 
+### 🔒 **Security Features**
+- **Automatic idle locking** - Lock application after configurable inactivity period
+- **Master password timeout** - Require re-entering GPG passphrase periodically
+- **Failed attempt protection** - Lockout after too many failed unlock attempts
+- **Memory clearing** - Clear sensitive data from memory when locked
+- **Screen lock integration** - Lock application when system screen locks
+- **Configurable timeouts** - Auto-hide passwords and clear clipboard
+- **Export security** - Require master password for data export operations
+- **Session management** - Comprehensive security controls in preferences
+
 ### ⌨️ **Keyboard Shortcuts**
 - `Ctrl+N` - Add new password
 - `Ctrl+E` - Edit password
@@ -46,6 +56,40 @@ Secrets is a modern desktop application that provides a clean and user-friendly 
 - `Ctrl+Shift+U` - Git push
 - `Ctrl+,` - Preferences
 - `F5` - Refresh
+
+## 🔒 Security
+
+Secrets provides comprehensive security features to protect your sensitive data:
+
+### Session Security
+- **Idle Lock**: Automatically lock the application after a configurable period of inactivity (1-120 minutes)
+- **Screen Lock Integration**: Lock application when the system screen locks
+- **Master Password Timeout**: Require re-entering GPG passphrase after a configurable period (15-480 minutes, or never)
+- **Memory Clearing**: Clear sensitive data from memory when the application is locked
+
+### Access Protection
+- **Failed Attempt Lockout**: Lock out users after too many failed unlock attempts (1-10 attempts)
+- **Lockout Duration**: Configurable lockout period after failed attempts (1-60 minutes)
+- **Secure Unlock Dialog**: Password entry with attempt tracking and countdown display
+
+### Data Protection
+- **Auto-hide Passwords**: Automatically hide visible passwords after timeout (5-300 seconds)
+- **Clipboard Security**: Automatically clear clipboard after copying sensitive data (10-300 seconds)
+- **Export Security**: Require master password confirmation for data export operations
+- **Delete Confirmation**: Require confirmation before deleting password entries
+
+### Configuration
+All security features are configurable through **Preferences → Security**:
+- **Password Display**: Auto-hide settings and timeouts
+- **Clipboard**: Auto-clear timeout configuration
+- **Session Security**: Idle lock, screen lock, and master password timeouts
+- **Advanced Security**: Memory clearing, export protection, and failed attempt settings
+
+### Security Benefits
+- **Defense in Depth**: Multiple layers of protection (UI lock + memory clearing + timeouts)
+- **User Control**: Balance security vs convenience with configurable settings
+- **Automatic Protection**: Passive security that doesn't require user intervention
+- **Visual Feedback**: Clear indication of security status and remaining time
 
 ## 🌍 Internationalization
 
@@ -228,12 +272,16 @@ python3 -m unittest tests.test_commands
 
 # Test GPG environment setup (for development)
 python3 test_gpg_env.py
+
+# Test security features
+python3 test_security_features.py
 ```
 
 The test suite includes:
 - **Model tests** (12 tests) - Data structures and validation
 - **Service tests** (18 tests) - Business logic and password operations
 - **Command tests** (24 tests) - User actions and clipboard operations
+- **Security tests** (4 tests) - Idle detection, session locking, and security configuration
 - **Performance tests** - Memory usage and response times
 - **GPG environment tests** - Flatpak compatibility and GPG setup verification
 

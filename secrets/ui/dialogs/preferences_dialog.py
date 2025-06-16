@@ -120,6 +120,72 @@ class PreferencesDialog(Adw.PreferencesWindow):
         self.confirm_delete_row.set_title("Confirm Deletions")
         self.confirm_delete_row.set_subtitle("Show confirmation dialog before deleting passwords")
         confirmation_group.add(self.confirm_delete_row)
+
+        # Session security group
+        session_group = Adw.PreferencesGroup()
+        session_group.set_title("Session Security")
+        security_page.add(session_group)
+
+        # Lock on idle
+        self.lock_on_idle_row = Adw.SwitchRow()
+        self.lock_on_idle_row.set_title("Lock on Idle")
+        self.lock_on_idle_row.set_subtitle("Automatically lock the application when idle")
+        session_group.add(self.lock_on_idle_row)
+
+        # Idle timeout
+        self.idle_timeout_row = Adw.SpinRow()
+        self.idle_timeout_row.set_title("Idle Timeout")
+        self.idle_timeout_row.set_subtitle("Minutes of inactivity before locking")
+        idle_adjustment = Gtk.Adjustment(value=15, lower=1, upper=120, step_increment=1)
+        self.idle_timeout_row.set_adjustment(idle_adjustment)
+        session_group.add(self.idle_timeout_row)
+
+        # Lock on screen lock
+        self.lock_on_screen_lock_row = Adw.SwitchRow()
+        self.lock_on_screen_lock_row.set_title("Lock on Screen Lock")
+        self.lock_on_screen_lock_row.set_subtitle("Lock application when system screen locks")
+        session_group.add(self.lock_on_screen_lock_row)
+
+        # Master password timeout
+        self.master_password_timeout_row = Adw.SpinRow()
+        self.master_password_timeout_row.set_title("Master Password Timeout")
+        self.master_password_timeout_row.set_subtitle("Minutes before requiring master password re-entry (0 = never)")
+        master_pw_adjustment = Gtk.Adjustment(value=60, lower=0, upper=480, step_increment=15)
+        self.master_password_timeout_row.set_adjustment(master_pw_adjustment)
+        session_group.add(self.master_password_timeout_row)
+
+        # Advanced security group
+        advanced_group = Adw.PreferencesGroup()
+        advanced_group.set_title("Advanced Security")
+        security_page.add(advanced_group)
+
+        # Clear memory on lock
+        self.clear_memory_row = Adw.SwitchRow()
+        self.clear_memory_row.set_title("Clear Memory on Lock")
+        self.clear_memory_row.set_subtitle("Clear sensitive data from memory when locked")
+        advanced_group.add(self.clear_memory_row)
+
+        # Require master password for export
+        self.require_master_for_export_row = Adw.SwitchRow()
+        self.require_master_for_export_row.set_title("Require Master Password for Export")
+        self.require_master_for_export_row.set_subtitle("Require master password when exporting data")
+        advanced_group.add(self.require_master_for_export_row)
+
+        # Failed unlock attempts
+        self.max_failed_attempts_row = Adw.SpinRow()
+        self.max_failed_attempts_row.set_title("Max Failed Unlock Attempts")
+        self.max_failed_attempts_row.set_subtitle("Maximum failed unlock attempts before lockout")
+        failed_attempts_adjustment = Gtk.Adjustment(value=3, lower=1, upper=10, step_increment=1)
+        self.max_failed_attempts_row.set_adjustment(failed_attempts_adjustment)
+        advanced_group.add(self.max_failed_attempts_row)
+
+        # Lockout duration
+        self.lockout_duration_row = Adw.SpinRow()
+        self.lockout_duration_row.set_title("Lockout Duration")
+        self.lockout_duration_row.set_subtitle("Minutes to lock out after too many failed attempts")
+        lockout_adjustment = Gtk.Adjustment(value=5, lower=1, upper=60, step_increment=1)
+        self.lockout_duration_row.set_adjustment(lockout_adjustment)
+        advanced_group.add(self.lockout_duration_row)
         
         # Search preferences page
         search_page = Adw.PreferencesPage()
@@ -219,6 +285,16 @@ class PreferencesDialog(Adw.PreferencesWindow):
         self.auto_push_row.connect("notify::active", self._on_setting_changed)
         self.show_git_status_row.connect("notify::active", self._on_setting_changed)
         self.git_timeout_row.connect("notify::value", self._on_setting_changed)
+
+        # Security signal connections
+        self.lock_on_idle_row.connect("notify::active", self._on_setting_changed)
+        self.idle_timeout_row.connect("notify::value", self._on_setting_changed)
+        self.lock_on_screen_lock_row.connect("notify::active", self._on_setting_changed)
+        self.master_password_timeout_row.connect("notify::value", self._on_setting_changed)
+        self.clear_memory_row.connect("notify::active", self._on_setting_changed)
+        self.require_master_for_export_row.connect("notify::active", self._on_setting_changed)
+        self.max_failed_attempts_row.connect("notify::value", self._on_setting_changed)
+        self.lockout_duration_row.connect("notify::value", self._on_setting_changed)
     
     def _load_current_settings(self):
         """Load current settings into the UI."""
@@ -234,6 +310,14 @@ class PreferencesDialog(Adw.PreferencesWindow):
         self.auto_hide_timeout_row.set_value(self.config.security.auto_hide_timeout_seconds)
         self.clipboard_timeout_row.set_value(self.config.security.clear_clipboard_timeout)
         self.confirm_delete_row.set_active(self.config.security.require_confirmation_for_delete)
+        self.lock_on_idle_row.set_active(self.config.security.lock_on_idle)
+        self.idle_timeout_row.set_value(self.config.security.idle_timeout_minutes)
+        self.lock_on_screen_lock_row.set_active(self.config.security.lock_on_screen_lock)
+        self.master_password_timeout_row.set_value(self.config.security.master_password_timeout_minutes)
+        self.clear_memory_row.set_active(self.config.security.clear_memory_on_lock)
+        self.require_master_for_export_row.set_active(self.config.security.require_master_password_for_export)
+        self.max_failed_attempts_row.set_value(self.config.security.max_failed_unlock_attempts)
+        self.lockout_duration_row.set_value(self.config.security.lockout_duration_minutes)
         
         # Search settings
         self.case_sensitive_row.set_active(self.config.search.case_sensitive)
@@ -272,6 +356,14 @@ class PreferencesDialog(Adw.PreferencesWindow):
         self.config.security.auto_hide_timeout_seconds = int(self.auto_hide_timeout_row.get_value())
         self.config.security.clear_clipboard_timeout = int(self.clipboard_timeout_row.get_value())
         self.config.security.require_confirmation_for_delete = self.confirm_delete_row.get_active()
+        self.config.security.lock_on_idle = self.lock_on_idle_row.get_active()
+        self.config.security.idle_timeout_minutes = int(self.idle_timeout_row.get_value())
+        self.config.security.lock_on_screen_lock = self.lock_on_screen_lock_row.get_active()
+        self.config.security.master_password_timeout_minutes = int(self.master_password_timeout_row.get_value())
+        self.config.security.clear_memory_on_lock = self.clear_memory_row.get_active()
+        self.config.security.require_master_password_for_export = self.require_master_for_export_row.get_active()
+        self.config.security.max_failed_unlock_attempts = int(self.max_failed_attempts_row.get_value())
+        self.config.security.lockout_duration_minutes = int(self.lockout_duration_row.get_value())
 
         # Search settings
         self.config.search.case_sensitive = self.case_sensitive_row.get_active()

@@ -38,6 +38,12 @@ class SecurityConfig:
     require_confirmation_for_delete: bool = True
     lock_on_idle: bool = False
     idle_timeout_minutes: int = 15
+    lock_on_screen_lock: bool = True
+    master_password_timeout_minutes: int = 60
+    require_master_password_for_export: bool = True
+    clear_memory_on_lock: bool = True
+    max_failed_unlock_attempts: int = 3
+    lockout_duration_minutes: int = 5
 
 
 @dataclass
@@ -196,6 +202,10 @@ class Constants:
     DEFAULT_AUTO_HIDE_TIMEOUT = 30
     DEFAULT_CLIPBOARD_TIMEOUT = 45
     DEFAULT_GIT_TIMEOUT = 30
+    DEFAULT_IDLE_TIMEOUT_MINUTES = 15
+    DEFAULT_MASTER_PASSWORD_TIMEOUT_MINUTES = 60
+    DEFAULT_LOCKOUT_DURATION_MINUTES = 5
+    MAX_FAILED_UNLOCK_ATTEMPTS = 3
     
     # Search limits
     MAX_SEARCH_RESULTS = 1000
