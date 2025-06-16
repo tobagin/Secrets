@@ -1,4 +1,4 @@
-project('secrets', version : '0.6.1',
+project('secrets', version : '0.6.2',
   meson_version : '>= 0.64.0', # Required for preserve_path and pure args
   default_options : ['warning_level=2', 'werror=false'])
 
