@@ -41,12 +41,6 @@ class ImportExportDialog(Adw.Window):
         # Header bar
         header_bar = Adw.HeaderBar()
         header_bar.set_title_widget(Adw.WindowTitle(title="Import/Export"))
-        
-        # Close button
-        close_button = Gtk.Button(label="Close")
-        close_button.connect("clicked", lambda x: self.close())
-        header_bar.pack_end(close_button)
-        
         content_box.append(header_bar)
         
         # Export section

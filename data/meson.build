@@ -18,14 +18,15 @@ install_data(
 # Component UI files
 install_data(
   ['ui/components/header_bar.ui', 'ui/components/password_list.ui',
-   'ui/components/password_details.ui', 'ui/components/main_menu.ui'],
+   'ui/components/password_details.ui', 'ui/components/main_menu.ui',
+   'ui/components/password_generator_popover.ui'],
   install_dir: get_option('datadir') / app_id / 'ui' / 'components'
 )
 
 # Dialog UI files
 install_data(
   ['ui/dialogs/add_password_dialog.ui', 'ui/dialogs/edit_password_dialog.ui',
-   'ui/dialogs/move_rename_dialog.ui', 'ui/dialogs/add_folder_dialog.ui'],
+   'ui/dialogs/add_folder_dialog.ui'],
   install_dir: get_option('datadir') / app_id / 'ui' / 'dialogs'
 )
 
@@ -71,12 +72,24 @@ if appstream_util.found()
   test('Validate appstream file', appstream_util, args : ['validate', '--nonet', appstream_file_name])
 endif
 
-# Scalable icon
+# Icons
+# Scalable SVG icon (fallback)
 install_data(
   'icons/io.github.tobagin.secrets.svg',
   install_dir: get_option('datadir') / 'icons' / 'hicolor' / 'scalable' / 'apps',
   rename: app_id + '.svg'
 )
+
+# PNG icons in multiple sizes
+icon_sizes = ['16x16', '22x22', '24x24', '32x32', '48x48', '64x64', '96x96', '128x128', '256x256', '512x512']
+
+foreach size : icon_sizes
+  install_data(
+    'icons' / size / (app_id + '.png'),
+    install_dir: get_option('datadir') / 'icons' / 'hicolor' / size / 'apps',
+    rename: app_id + '.png'
+  )
+endforeach
 
 # GSettings (if you add them later)
 # gsettings_schemas = files('com.example.secrets.gschema.xml') # Placeholder

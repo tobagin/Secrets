@@ -1,12 +1,14 @@
 import gi
 import random
 import string
-import secrets
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 
 from gi.repository import Gtk, Adw, GObject
+
+# Use SystemRandom for cryptographically secure random generation
+_secure_random = random.SystemRandom()
 
 
 class PasswordGeneratorDialog(Adw.Window):
@@ -43,17 +45,6 @@ class PasswordGeneratorDialog(Adw.Window):
         # Header bar
         header_bar = Adw.HeaderBar()
         header_bar.set_title_widget(Adw.WindowTitle(title="Generate Password"))
-        
-        # Cancel button
-        cancel_button = Gtk.Button(label="Cancel")
-        cancel_button.connect("clicked", lambda x: self.close())
-        header_bar.pack_start(cancel_button)
-        
-        # Use button
-        self.use_button = Gtk.Button(label="Use Password")
-        self.use_button.connect("clicked", self._on_use_password)
-        header_bar.pack_end(self.use_button)
-        
         content_box.append(header_bar)
         
         # Generated password display
@@ -160,8 +151,19 @@ class PasswordGeneratorDialog(Adw.Window):
         
         self.strength_label = Gtk.Label()
         self.strength_row.add_suffix(self.strength_label)
-        
+
         strength_group.add(self.strength_row)
+
+        # Bottom HeaderBar with action button
+        bottom_header_bar = Adw.HeaderBar()
+        bottom_header_bar.set_show_end_title_buttons(False)
+
+        self.use_button = Gtk.Button(label="Use Password")
+        self.use_button.add_css_class("suggested-action")
+        self.use_button.connect("clicked", self._on_use_password)
+        bottom_header_bar.set_title_widget(self.use_button)
+
+        content_box.append(bottom_header_bar)
     
     def _generate_password(self):
         """Generate a new password based on current settings."""
@@ -192,7 +194,7 @@ class PasswordGeneratorDialog(Adw.Window):
             charset = string.ascii_letters + string.digits
         
         # Generate password using cryptographically secure random
-        password = "".join(secrets.choice(charset) for _ in range(length))
+        password = "".join(_secure_random.choice(charset) for _ in range(length))
         
         self.password_entry.set_text(password)
         self._update_strength_indicator(password)

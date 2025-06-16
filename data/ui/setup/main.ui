@@ -417,15 +417,7 @@
                                             <style><class name="pill"/></style>
                                           </object>
                                         </child>
-                                        <child>
-                                          <object class="GtkButton" id="move_rename_button">
-                                            <property name="label" translatable="yes">Mo_ve/Rename</property>
-                                            <property name="use-underline">true</property>
-                                            <property name="icon-name">document-properties-symbolic</property>
-                                            <property name="sensitive">false</property>
-                                            <style><class name="pill"/></style>
-                                          </object>
-                                        </child>
+
                                         <child>
                                           <object class="GtkButton" id="remove_button">
                                             <property name="label" translatable="yes">_Remove</property>

@@ -29,8 +29,7 @@ data/
 │   │   └── main_menu.ui
 │   ├── dialogs/
 │   │   ├── add_password_dialog.ui
-│   │   ├── edit_password_dialog.ui
-│   │   └── move_rename_dialog.ui
+│   │   └── edit_password_dialog.ui
 │   └── setup/
 │       ├── setup_wizard.ui
 │       ├── wizard_dialog.ui
@@ -60,7 +59,6 @@ secrets/
 │   ├── dialogs/
 │   │   ├── add_password_dialog.py
 │   │   ├── edit_password_dialog.py
-│   │   ├── move_rename_dialog.py
 │   │   ├── preferences_dialog.py
 │   │   ├── password_generator_dialog.py
 │   │   └── import_export_dialog.py
@@ -128,7 +126,6 @@ All import statements have been updated to reflect the new structure:
 ### Moved to `secrets/ui/dialogs/`:
 - `add_password_dialog.py`
 - `edit_password_dialog.py` (from `edit_dialog.py`)
-- `move_rename_dialog.py`
 - `preferences_dialog.py`
 - `password_generator_dialog.py` (from `password_generator.py`)
 - `import_export_dialog.py` (from `import_export.py`)

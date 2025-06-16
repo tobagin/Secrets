@@ -59,10 +59,7 @@ The improvements focus on three main areas:
 - Improved accessibility
 - Better keyboard navigation
 
-#### Move/Rename Dialog (`secrets/move_rename_dialog.py`)
-- Enhanced visual appearance
-- Proper dialog sizing
-- Improved user feedback
+
 
 #### GPG Setup Dialog (`secrets/gpg_setup_dialog.py`)
 - Better positioning and centering

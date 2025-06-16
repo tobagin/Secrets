@@ -122,9 +122,9 @@ class PasswordService:
             password_cache.invalidate(path)
         return result
 
-    def move_entry(self, old_path: str, new_path: str) -> Tuple[bool, str]:
+    def move_entry(self, old_path: str, new_path: str, preserve_empty_folders: bool = True) -> Tuple[bool, str]:
         """Move/rename a password entry."""
-        result = self.password_store.move_password(old_path, new_path)
+        result = self.password_store.move_password(old_path, new_path, preserve_empty_folders)
         if result[0]:  # Success
             password_cache.invalidate(old_path)
             password_cache.invalidate(new_path)

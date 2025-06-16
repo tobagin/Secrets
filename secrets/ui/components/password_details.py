@@ -81,7 +81,6 @@ class PasswordDetailsComponent(GObject.Object):
         # Connect action button signals
         for button_name, handler_name in [
             ('edit_button', 'edit_password'),
-            ('move_rename_button', 'move_rename_password'),
             ('remove_button', 'remove_password')
         ]:
             button = self.action_buttons.get(button_name)

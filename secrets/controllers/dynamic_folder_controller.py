@@ -72,13 +72,13 @@ class DynamicFolderController:
             self.toast_manager.show_info("No passwords found. Click '+' to add your first password.")
     
     def _build_dynamic_folder_structure(self, raw_password_list):
-        """Build dynamic folder structure from password list."""
+        """Build dynamic folder structure from password list and include empty folders."""
         # Group passwords by folder
         folder_structure = {}
-        
+
         for password_path in sorted(raw_password_list):
             parts = password_path.split(os.sep)
-            
+
             if len(parts) == 1:
                 # Root level password
                 folder_name = "Root"
@@ -87,15 +87,23 @@ class DynamicFolderController:
                 # Password in folder
                 folder_name = parts[0]
                 password_name = parts[-1]
-            
+
             if folder_name not in folder_structure:
                 folder_structure[folder_name] = []
-            
+
             folder_structure[folder_name].append({
                 'name': password_name,
                 'path': password_path
             })
-        
+
+        # Add empty folders that don't contain passwords
+        all_folders = self.password_store.list_folders()
+        for folder_path in all_folders:
+            # Only show top-level folders for now (can be enhanced later for nested folders)
+            if os.sep not in folder_path:  # Top-level folder
+                if folder_path not in folder_structure:
+                    folder_structure[folder_path] = []  # Empty folder
+
         # Create folder widgets
         for folder_name, passwords in folder_structure.items():
             self._create_folder_widget(folder_name, passwords)
@@ -107,18 +115,33 @@ class DynamicFolderController:
         folder_row.set_title(folder_name)
         folder_row.set_subtitle(f"{len(passwords)} password{'s' if len(passwords) != 1 else ''}")
         folder_row.set_icon_name("folder-symbolic")
-        
+
         # Store reference
         folder_path = folder_name if folder_name != "Root" else ""
         self.folder_rows[folder_path] = folder_row
-        
+
+        # Add delete button for non-root folders
+        if folder_name != "Root":
+            delete_button = Gtk.Button()
+            delete_button.set_icon_name("edit-delete-symbolic")
+            delete_button.set_tooltip_text("Delete Folder")
+            delete_button.set_valign(Gtk.Align.CENTER)
+            delete_button.add_css_class("flat")
+            delete_button.add_css_class("destructive-action")
+
+            # Connect delete button signal
+            delete_button.connect("clicked", self._on_folder_delete_clicked, folder_path, folder_name)
+
+            # Add button as suffix to folder row
+            folder_row.add_suffix(delete_button)
+
         # Connect folder activation signal
         folder_row.connect("activate", self._on_folder_activated, folder_path)
-        
+
         # Create password rows within the folder
         for password_data in passwords:
             password_row = self._create_password_widget(password_data, folder_row)
-        
+
         # Add folder to listbox
         self.folders_listbox.append(folder_row)
     
@@ -159,11 +182,87 @@ class DynamicFolderController:
             'path': folder_path,
             'name': folder_row.get_title()
         }
-        
+
         if self.on_selection_changed:
             # Create a PasswordEntry for the folder
             folder_entry = PasswordEntry(path=folder_path, is_folder=True)
             self.on_selection_changed(None)
+
+    def _on_folder_delete_clicked(self, button, folder_path, folder_name):
+        """Handle folder delete button click."""
+        # Import here to avoid circular imports
+        from gi.repository import GLib
+
+        # Emit a custom signal or call a callback to handle folder deletion
+        # We'll use GLib.idle_add to defer the call to avoid potential issues
+        GLib.idle_add(self._handle_folder_delete_request, folder_path, folder_name)
+
+    def _handle_folder_delete_request(self, folder_path, folder_name):
+        """Handle the actual folder deletion request."""
+        # Check if folder is empty
+        success, is_empty, message = self.password_store.is_folder_empty(folder_path)
+
+        if not success:
+            self.toast_manager.show_error(f"Error checking folder: {message}")
+            return False
+
+        if not is_empty:
+            self.toast_manager.show_warning(f"Cannot delete folder '{folder_name}': folder contains passwords. Remove all passwords first.")
+            return False
+
+        # Show confirmation dialog for empty folder
+        self._show_delete_folder_confirmation(folder_path, folder_name)
+        return False  # Don't repeat the idle call
+
+    def _show_delete_folder_confirmation(self, folder_path, folder_name):
+        """Show confirmation dialog for folder deletion."""
+        # Import dialog utilities
+        try:
+            from ..utils.ui_utils import DialogManager, UIConstants
+        except ImportError:
+            # Fallback if utils not available
+            self.toast_manager.show_error("Cannot show confirmation dialog")
+            return
+
+        # Create confirmation dialog (parent will be set when presenting)
+        dialog = DialogManager.create_message_dialog(
+            parent=None,  # Parent will be set when presenting
+            heading=f"Delete folder '{folder_name}'?",
+            body=f"Are you sure you want to permanently delete the empty folder '{folder_name}'?",
+            dialog_type="question",
+            default_size=UIConstants.SMALL_DIALOG
+        )
+
+        # Add response buttons
+        DialogManager.add_dialog_response(dialog, "cancel", "_Cancel", "default")
+        DialogManager.add_dialog_response(dialog, "delete", "_Delete", "destructive")
+        dialog.set_default_response("cancel")
+
+        # Connect response handler
+        dialog.connect("response", self._on_delete_folder_response, folder_path, folder_name)
+
+        # Present dialog (parent window will be set by main window)
+        # For now, we'll emit a signal that the main window can catch
+        if hasattr(self, 'delete_folder_requested'):
+            self.delete_folder_requested(dialog, folder_path, folder_name)
+        else:
+            # Fallback: show dialog without parent
+            dialog.present()
+
+    def _on_delete_folder_response(self, dialog, response_id, folder_path, folder_name):
+        """Handle folder deletion confirmation response."""
+        if response_id == "delete":
+            # Perform the actual deletion
+            success, message = self.password_store.delete_folder(folder_path)
+
+            if success:
+                self.toast_manager.show_success(message)
+                # Refresh the folder list
+                self.load_passwords()
+            else:
+                self.toast_manager.show_error(f"Error deleting folder: {message}")
+
+        dialog.close()
     
     def _on_password_activated(self, password_row, password_path):
         """Handle password row activation."""

@@ -7,7 +7,7 @@ from gi.repository import Gtk, Adw, Gio, GObject, Gdk, GLib # Added GLib
 import os
 
 from .password_store import PasswordStore
-from .ui.dialogs import EditPasswordDialog, MoveRenameDialog, AddPasswordDialog
+from .ui.dialogs import EditPasswordDialog, AddPasswordDialog
 from .app_info import APP_ID # Added to construct resource path programmatically
 from .utils import DialogManager, UIConstants, AccessibilityHelper
 
@@ -95,9 +95,15 @@ class SecretsWindow(Adw.ApplicationWindow):
     copy_username_button = Gtk.Template.Child()
     url_row = Gtk.Template.Child()
     open_url_button = Gtk.Template.Child()
+    totp_row = Gtk.Template.Child()
+    totp_code_label = Gtk.Template.Child()
+    totp_timer_bar = Gtk.Template.Child()
+    copy_totp_button = Gtk.Template.Child()
+    recovery_codes_group = Gtk.Template.Child()
+    recovery_expander = Gtk.Template.Child()
+    recovery_codes_box = Gtk.Template.Child()
     notes_display_label = Gtk.Template.Child()
     edit_button = Gtk.Template.Child()
-    move_rename_button = Gtk.Template.Child()
     remove_button = Gtk.Template.Child()
 
     # Additional widgets that might be missing
@@ -139,7 +145,6 @@ class SecretsWindow(Adw.ApplicationWindow):
         # Connect remaining signals for buttons that aren't handled by controllers
         self.edit_button.connect("clicked", self.on_edit_button_clicked)
         self.remove_button.connect("clicked", self.on_remove_button_clicked)
-        self.move_rename_button.connect("clicked", self.on_move_rename_button_clicked)
         self.add_password_button.connect("clicked", self.on_add_password_button_clicked)
         self.add_folder_button.connect("clicked", self.on_add_folder_button_clicked)
         self.git_pull_button.connect("clicked", self.on_git_pull_clicked)
@@ -171,6 +176,9 @@ class SecretsWindow(Adw.ApplicationWindow):
             on_selection_changed=self._on_selection_changed
         )
 
+        # Connect folder deletion dialog handling
+        self.folder_controller.delete_folder_requested = self._on_delete_folder_dialog_requested
+
         # Password details controller
         self.details_controller = PasswordDetailsController(
             self.password_store,
@@ -192,10 +200,16 @@ class SecretsWindow(Adw.ApplicationWindow):
             self.copy_username_button,
             self.url_row,
             self.open_url_button,
+            self.totp_row,
+            self.totp_code_label,
+            self.totp_timer_bar,
+            self.copy_totp_button,
+            self.recovery_codes_group,
+            self.recovery_expander,
+            self.recovery_codes_box,
             self.notes_display_label,
             self.edit_button,
-            self.remove_button,
-            self.move_rename_button
+            self.remove_button
         )
 
         # Action controller
@@ -338,7 +352,8 @@ class SecretsWindow(Adw.ApplicationWindow):
                 dialog = EditPasswordDialog(
                     password_path=password_path,
                     password_content=current_content,
-                    transient_for_window=self
+                    transient_for_window=self,
+                    password_store=self.password_store
                 )
                 dialog.connect("save-requested", self.on_edit_dialog_save_requested)
                 dialog.present()
@@ -348,25 +363,41 @@ class SecretsWindow(Adw.ApplicationWindow):
         else:
             self.toast_manager.show_warning("No item selected to edit.")
 
-    def on_edit_dialog_save_requested(self, dialog, path, new_content):
-        # This method will call self.password_store.insert_password()
-        success, message = self.password_store.insert_password(path, new_content, multiline=True, force=True)
-        # The 'force=True' is important for overwriting the existing password when editing.
-
-        if success:
-            self.toast_manager.show_success(message)
-            # Refresh the details view to show updated content
-            selected_item = self.folder_controller.get_selected_item()
-            if selected_item:
-                # Handle both PasswordEntry and PasswordListItem objects
-                if hasattr(selected_item, 'full_path'):
-                    item_path = selected_item.full_path
+    def on_edit_dialog_save_requested(self, dialog, old_path, new_path, new_content):
+        # Handle both content changes and path changes
+        if old_path != new_path:
+            # Path changed - need to move/rename and update content
+            # First, update the content at the old location
+            content_success, content_message = self.password_store.insert_password(old_path, new_content, multiline=True, force=True)
+            if content_success:
+                # Then move to the new location (this preserves folder structure)
+                move_success, move_message = self.password_store.move_password(old_path, new_path)
+                if move_success:
+                    self.toast_manager.show_success(f"Password moved from '{old_path}' to '{new_path}' and updated")
+                    self.folder_controller.load_passwords()  # Refresh the entire list
+                    self.details_controller.update_details(None)  # Clear details view
                 else:
-                    item_path = selected_item.path
-                if item_path == path:
-                    self.details_controller.update_details(selected_item)
+                    self.toast_manager.show_error(f"Content updated but move failed: {move_message}")
+                    self.folder_controller.load_passwords()
+            else:
+                self.toast_manager.show_error(f"Error updating content: {content_message}")
         else:
-            self.toast_manager.show_error(f"Error saving: {message}")
+            # Path unchanged - just update content
+            success, message = self.password_store.insert_password(new_path, new_content, multiline=True, force=True)
+            if success:
+                self.toast_manager.show_success(message)
+                # Refresh the details view to show updated content
+                selected_item = self.folder_controller.get_selected_item()
+                if selected_item:
+                    # Handle both PasswordEntry and PasswordListItem objects
+                    if hasattr(selected_item, 'full_path'):
+                        item_path = selected_item.full_path
+                    else:
+                        item_path = selected_item.path
+                    if item_path == new_path:
+                        self.details_controller.update_details(selected_item)
+            else:
+                self.toast_manager.show_error(f"Error saving: {message}")
 
         dialog.close() # Close the dialog after handling
 
@@ -419,36 +450,12 @@ class SecretsWindow(Adw.ApplicationWindow):
 
 
 
-    def on_move_rename_button_clicked(self, widget):
-        selected_item_obj = self.folder_controller.get_selected_item()
-        if selected_item_obj:
-            # Handle both PasswordEntry and PasswordListItem objects
-            if hasattr(selected_item_obj, 'full_path'):
-                current_path = selected_item_obj.full_path
-            else:
-                current_path = selected_item_obj.path
 
-            dialog = MoveRenameDialog(
-                current_path=current_path,
-                transient_for_window=self
-            )
-            dialog.connect("save-requested", self.on_move_rename_dialog_save_requested)
-            dialog.present()
-        else:
-            self.toast_manager.show_warning("No item selected to move/rename.")
 
-    def on_move_rename_dialog_save_requested(self, dialog, old_path, new_path):
-        success, message = self.password_store.move_password(old_path, new_path)
-
-        if success:
-            self.toast_manager.show_success(message)
-            self.folder_controller.load_passwords() # Refresh the entire list as paths have changed
-            # Clear details view after move/rename
-            self.details_controller.update_details(None)
-        else:
-            self.toast_manager.show_error(f"Error: {message}")
-
-        dialog.close()
+    def _on_delete_folder_dialog_requested(self, dialog, folder_path, folder_name):
+        """Handle folder deletion dialog request from folder controller."""
+        # Present the dialog with this window as parent (for Adw.AlertDialog)
+        dialog.present(self)
 
     def on_add_password_button_clicked(self, widget):
         suggested_path = ""
@@ -468,7 +475,8 @@ class SecretsWindow(Adw.ApplicationWindow):
 
         dialog = AddPasswordDialog(
             transient_for_window=self,
-            suggested_folder_path=suggested_path
+            suggested_folder_path=suggested_path,
+            password_store=self.password_store
         )
         dialog.connect("add-requested", self.on_add_dialog_add_requested)
         dialog.present()

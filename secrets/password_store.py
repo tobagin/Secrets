@@ -386,6 +386,34 @@ class PasswordStore:
         password_files.sort()
         return password_files
 
+    def list_folders(self):
+        """
+        Recursively scans the password store directory and returns a list of all folders.
+        Returns a flat list of folder paths relative to the store root.
+        Ignores the .git directory.
+        """
+        if not self.store_dir or not os.path.isdir(self.store_dir):
+            return []
+
+        folders = []
+        # +1 to include the trailing slash if store_dir doesn't have one, for correct slicing
+        root_len = len(os.path.join(self.store_dir, ''))
+
+        for root, dirs, files in os.walk(self.store_dir, topdown=True):
+            # Exclude .git directory
+            if '.git' in dirs:
+                dirs.remove('.git')
+
+            # Add all directories found
+            for dir_name in dirs:
+                full_path = os.path.join(root, dir_name)
+                # Get path relative to store_dir
+                relative_path = full_path[root_len:]
+                folders.append(relative_path)
+
+        folders.sort()
+        return folders
+
     def copy_password(self, path_to_password):
         """
         Copies the specified password to the clipboard using `pass show -c`.
@@ -657,10 +685,17 @@ class PasswordStore:
         except Exception as e:
             return False, f"An unexpected error occurred during search: {e}"
 
-    def move_password(self, old_path, new_path):
+    def move_password(self, old_path, new_path, preserve_empty_folders=True):
         """
         Moves/renames a password entry using `pass mv`.
-        Returns True on success, False otherwise, along with an output/error message.
+
+        Args:
+            old_path (str): Current path of the password
+            new_path (str): New path for the password
+            preserve_empty_folders (bool): If True, preserve empty folders after move
+
+        Returns:
+            tuple: (success: bool, message: str)
         """
         if not old_path or not new_path:
             return False, "Old and new paths cannot be empty."
@@ -672,6 +707,9 @@ class PasswordStore:
         if old_path == new_path:
             return False, "Old and new paths cannot be the same."
 
+        # Store the old folder path for preservation check
+        old_folder = os.path.dirname(old_path) if '/' in old_path else ""
+
         try:
             command = ["pass", "mv", old_path, new_path]
 
@@ -682,6 +720,11 @@ class PasswordStore:
             process = subprocess.run(command, capture_output=True, text=True, check=False, env=env)
 
             if process.returncode == 0:
+                # If preserve_empty_folders is True and we moved from a folder,
+                # check if the old folder is now empty and recreate it if needed
+                if preserve_empty_folders and old_folder:
+                    self._preserve_empty_folder_after_move(old_folder)
+
                 return True, f"Successfully moved '{old_path}' to '{new_path}'."
             else:
                 error_message = process.stderr.strip() if process.stderr.strip() else process.stdout.strip()
@@ -690,6 +733,29 @@ class PasswordStore:
             return False, "The 'pass' command was not found. Is it installed and in your PATH?"
         except Exception as e:
             return False, f"An unexpected error occurred while moving: {e}"
+
+    def _preserve_empty_folder_after_move(self, folder_path):
+        """
+        Preserve an empty folder after a move operation by recreating it if it was removed.
+
+        Args:
+            folder_path (str): The folder path to preserve
+        """
+        if not folder_path:
+            return
+
+        try:
+            full_folder_path = os.path.join(self.store_dir, folder_path)
+
+            # Check if the folder no longer exists
+            if not os.path.exists(full_folder_path):
+                # Recreate the empty folder
+                os.makedirs(full_folder_path, exist_ok=True)
+
+        except Exception:
+            # Silently ignore errors in folder preservation
+            # This is a best-effort operation
+            pass
 
     def create_folder(self, folder_path):
         """
@@ -734,6 +800,190 @@ class PasswordStore:
             return False, f"Error creating folder: {str(e)}"
         except Exception as e:
             return False, f"Unexpected error creating folder: {str(e)}"
+
+    def is_folder_empty(self, folder_path):
+        """
+        Check if a folder is empty (contains no .gpg files).
+
+        Args:
+            folder_path (str): The path of the folder to check
+
+        Returns:
+            tuple: (success: bool, is_empty: bool, message: str)
+        """
+        if not folder_path or not folder_path.strip():
+            return False, False, "Folder path cannot be empty"
+
+        # Clean the folder path
+        folder_path = folder_path.strip().strip('/')
+
+        try:
+            # Create the full path in the password store
+            full_folder_path = os.path.join(self.store_dir, folder_path)
+
+            # Check if folder exists
+            if not os.path.exists(full_folder_path):
+                return False, False, f"Folder '{folder_path}' does not exist"
+
+            if not os.path.isdir(full_folder_path):
+                return False, False, f"'{folder_path}' is not a folder"
+
+            # Check for .gpg files recursively
+            for root, dirs, files in os.walk(full_folder_path):
+                # Exclude .git directory
+                if '.git' in dirs:
+                    dirs.remove('.git')
+
+                # Check if any .gpg files exist
+                for file_name in files:
+                    if file_name.endswith('.gpg'):
+                        return True, False, f"Folder '{folder_path}' contains password files"
+
+            # No .gpg files found
+            return True, True, f"Folder '{folder_path}' is empty"
+
+        except OSError as e:
+            return False, False, f"Error checking folder: {str(e)}"
+        except Exception as e:
+            return False, False, f"Unexpected error checking folder: {str(e)}"
+
+    def delete_folder(self, folder_path):
+        """
+        Delete an empty folder from the password store.
+
+        Args:
+            folder_path (str): The path of the folder to delete
+
+        Returns:
+            tuple: (success: bool, message: str)
+        """
+        if not folder_path or not folder_path.strip():
+            return False, "Folder path cannot be empty"
+
+        # Clean the folder path
+        folder_path = folder_path.strip().strip('/')
+
+        # Validate folder path
+        if ".." in folder_path or folder_path.startswith("/"):
+            return False, "Invalid folder path"
+
+        try:
+            # First check if folder is empty
+            success, is_empty, message = self.is_folder_empty(folder_path)
+            if not success:
+                return False, message
+
+            if not is_empty:
+                return False, f"Cannot delete folder '{folder_path}': folder is not empty"
+
+            # Create the full path in the password store
+            full_folder_path = os.path.join(self.store_dir, folder_path)
+
+            # Delete the directory
+            os.rmdir(full_folder_path)
+
+            # Verify deletion
+            if not os.path.exists(full_folder_path):
+                return True, f"Folder '{folder_path}' deleted successfully"
+            else:
+                return False, f"Failed to delete folder '{folder_path}'"
+
+        except OSError as e:
+            return False, f"Error deleting folder: {str(e)}"
+        except Exception as e:
+            return False, f"Unexpected error deleting folder: {str(e)}"
+
+    def is_folder_empty(self, folder_path):
+        """
+        Check if a folder is empty (contains no .gpg files).
+
+        Args:
+            folder_path (str): The path of the folder to check
+
+        Returns:
+            tuple: (success: bool, is_empty: bool, message: str)
+        """
+        if not folder_path or not folder_path.strip():
+            return False, False, "Folder path cannot be empty"
+
+        # Clean the folder path
+        folder_path = folder_path.strip().strip('/')
+
+        try:
+            # Create the full path in the password store
+            full_folder_path = os.path.join(self.store_dir, folder_path)
+
+            # Check if folder exists
+            if not os.path.exists(full_folder_path):
+                return False, False, f"Folder '{folder_path}' does not exist"
+
+            if not os.path.isdir(full_folder_path):
+                return False, False, f"'{folder_path}' is not a folder"
+
+            # Check for .gpg files recursively
+            for root, dirs, files in os.walk(full_folder_path):
+                # Exclude .git directory
+                if '.git' in dirs:
+                    dirs.remove('.git')
+
+                # Check if any .gpg files exist
+                for file_name in files:
+                    if file_name.endswith('.gpg'):
+                        return True, False, f"Folder '{folder_path}' contains password files"
+
+            # No .gpg files found
+            return True, True, f"Folder '{folder_path}' is empty"
+
+        except OSError as e:
+            return False, False, f"Error checking folder: {str(e)}"
+        except Exception as e:
+            return False, False, f"Unexpected error checking folder: {str(e)}"
+
+    def delete_folder(self, folder_path):
+        """
+        Delete an empty folder from the password store.
+
+        Args:
+            folder_path (str): The path of the folder to delete
+
+        Returns:
+            tuple: (success: bool, message: str)
+        """
+        if not folder_path or not folder_path.strip():
+            return False, "Folder path cannot be empty"
+
+        # Clean the folder path
+        folder_path = folder_path.strip().strip('/')
+
+        # Validate folder path
+        if ".." in folder_path or folder_path.startswith("/"):
+            return False, "Invalid folder path"
+
+        try:
+            # First check if folder is empty
+            success, is_empty, message = self.is_folder_empty(folder_path)
+            if not success:
+                return False, message
+
+            if not is_empty:
+                return False, f"Cannot delete folder '{folder_path}': folder is not empty"
+
+            # Create the full path in the password store
+            full_folder_path = os.path.join(self.store_dir, folder_path)
+
+            # Delete the directory
+            os.rmdir(full_folder_path)
+
+            # Verify deletion
+            if not os.path.exists(full_folder_path):
+                return True, f"Folder '{folder_path}' deleted successfully"
+            else:
+                return False, f"Failed to delete folder '{folder_path}'"
+
+        except OSError as e:
+            return False, f"Error deleting folder: {str(e)}"
+        except Exception as e:
+            return False, f"Unexpected error deleting folder: {str(e)}"
 
     def get_parsed_password_details(self, path_to_password):
         """

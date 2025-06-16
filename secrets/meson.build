@@ -31,7 +31,6 @@ ui_sources = [
   'ui/dialogs/__init__.py',
   'ui/dialogs/add_password_dialog.py',
   'ui/dialogs/edit_password_dialog.py',
-  'ui/dialogs/move_rename_dialog.py',
   'ui/dialogs/preferences_dialog.py',
   'ui/dialogs/password_generator_dialog.py',
   'ui/dialogs/import_export_dialog.py',

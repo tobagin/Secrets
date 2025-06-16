@@ -3,8 +3,15 @@
   <requires lib="gtk" version="4.0"/>
   <requires lib="libadwaita" version="1.0"/>
   
-  <template class="AddFolderDialog" parent="AdwDialog">
+  <template class="AddFolderDialog" parent="AdwWindow">
+    <property name="modal">true</property>
     <property name="title">Create New Folder</property>
+    <property name="default-width">450</property>
+    <property name="default-height">400</property>
+    <property name="resizable">true</property>
+    <style>
+      <class name="dialog"/>
+    </style>
     
     <child>
       <object class="GtkBox">
@@ -18,24 +25,6 @@
                 <property name="title">Create New Folder</property>
               </object>
             </property>
-            
-            <child type="start">
-              <object class="GtkButton" id="cancel_button">
-                <property name="label">Cancel</property>
-                <signal name="clicked" handler="on_cancel_clicked"/>
-              </object>
-            </child>
-            
-            <child type="end">
-              <object class="GtkButton" id="create_button">
-                <property name="label">Create</property>
-                <property name="sensitive">False</property>
-                <style>
-                  <class name="suggested-action"/>
-                </style>
-                <signal name="clicked" handler="on_create_clicked"/>
-              </object>
-            </child>
           </object>
         </child>
         
@@ -46,22 +35,22 @@
             <property name="margin-bottom">24</property>
             <property name="margin-start">12</property>
             <property name="margin-end">12</property>
-            
+            <property name="vexpand">true</property>
+
             <child>
               <object class="AdwPreferencesPage">
                 <child>
                   <object class="AdwPreferencesGroup">
                     <property name="title">Folder Details</property>
                     <property name="description">Create a new folder to organize your passwords</property>
-                    
+
                     <child>
                       <object class="AdwEntryRow" id="path_entry">
                         <property name="title">Folder Path</property>
-                        <signal name="changed" handler="on_path_changed"/>
                         <signal name="activate" handler="on_path_activated"/>
                       </object>
                     </child>
-                    
+
                     <child>
                       <object class="AdwActionRow">
                         <property name="title">Examples: websites, email/work, social</property>
@@ -74,6 +63,22 @@
                 </child>
               </object>
             </child>
+          </object>
+        </child>
+
+        <!-- Bottom HeaderBar with action button -->
+        <child>
+          <object class="AdwHeaderBar">
+            <property name="show-end-title-buttons">false</property>
+            <property name="title-widget">
+              <object class="GtkButton" id="create_button">
+                <property name="label">Create</property>
+                <property name="sensitive">False</property>
+                <style>
+                  <class name="suggested-action"/>
+                </style>
+              </object>
+            </property>
           </object>
         </child>
       </object>
