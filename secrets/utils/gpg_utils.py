@@ -189,16 +189,16 @@ Expire-Date: 0
         # Set pinentry program for GUI
         # This helps ensure password prompts work in Flatpak
         pinentry_programs = [
-            '/app/bin/pinentry-gtk2',
-            '/usr/bin/pinentry-gtk2',
-            '/app/bin/pinentry-qt5',
-            '/usr/bin/pinentry-qt5',
-            '/app/bin/pinentry-qt',
-            '/usr/bin/pinentry-qt',
-            '/app/bin/pinentry-gnome3',
             '/usr/bin/pinentry-gnome3',
-            '/app/bin/pinentry',
-            '/usr/bin/pinentry'
+            '/app/bin/pinentry-gnome3',
+            '/usr/bin/pinentry-gtk2',
+            '/app/bin/pinentry-gtk2',
+            '/usr/bin/pinentry-qt5',
+            '/app/bin/pinentry-qt5',
+            '/usr/bin/pinentry-qt',
+            '/app/bin/pinentry-qt',
+            '/usr/bin/pinentry',
+            '/app/bin/pinentry'
         ]
 
         for pinentry in pinentry_programs:
@@ -234,16 +234,16 @@ Expire-Date: 0
 
         # Find available pinentry program
         pinentry_programs = [
-            ('/app/bin/pinentry-gtk2', 'pinentry-gtk2'),
-            ('/usr/bin/pinentry-gtk2', 'pinentry-gtk2'),
-            ('/app/bin/pinentry-qt5', 'pinentry-qt5'),
-            ('/usr/bin/pinentry-qt5', 'pinentry-qt5'),
-            ('/app/bin/pinentry-qt', 'pinentry-qt'),
-            ('/usr/bin/pinentry-qt', 'pinentry-qt'),
-            ('/app/bin/pinentry-gnome3', 'pinentry-gnome3'),
             ('/usr/bin/pinentry-gnome3', 'pinentry-gnome3'),
-            ('/app/bin/pinentry', 'pinentry'),
-            ('/usr/bin/pinentry', 'pinentry')
+            ('/app/bin/pinentry-gnome3', 'pinentry-gnome3'),
+            ('/usr/bin/pinentry-gtk2', 'pinentry-gtk2'),
+            ('/app/bin/pinentry-gtk2', 'pinentry-gtk2'),
+            ('/usr/bin/pinentry-qt5', 'pinentry-qt5'),
+            ('/app/bin/pinentry-qt5', 'pinentry-qt5'),
+            ('/usr/bin/pinentry-qt', 'pinentry-qt'),
+            ('/app/bin/pinentry-qt', 'pinentry-qt'),
+            ('/usr/bin/pinentry', 'pinentry'),
+            ('/app/bin/pinentry', 'pinentry')
         ]
 
         pinentry_program = None
