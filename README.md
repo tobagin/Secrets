@@ -2,6 +2,19 @@
 
 Secrets is a modern desktop application that provides a clean and user-friendly graphical interface for managing your passwords with `pass`, the standard unix password manager. It leverages the power and security of `pass`, GPG, and Git, wrapped in a beautiful GTK4/Libadwaita UI.
 
+## 🆕 What's New in v0.8.3
+
+### Enhanced Setup Experience
+- **Improved setup wizard flow** - Setup completion now properly keeps the application open instead of closing it
+- **New verified completion icon** - Custom verified symbol icon for a more polished setup completion experience
+- **Better GPG key handling** - Fixed issues with GPG key detection when reopening the application after initial setup
+- **Cross-session compatibility** - Password store initialization now works seamlessly even when GPG keys were created in previous sessions
+
+### User Experience Improvements
+- **Smarter dependency detection** - Enhanced logic for detecting and using available GPG keys automatically
+- **Refined setup completion** - Setup wizard now provides clear feedback and smooth transition to the main application
+- **Enhanced error handling** - Better error messages and recovery options during setup process
+
 ## ✨ Features
 
 ### 🔐 **Password Management**
@@ -28,7 +41,8 @@ Secrets is a modern desktop application that provides a clean and user-friendly 
 
 ### 🔧 **Advanced Features**
 - **Advanced Git integration** with platform support and repository management
-- **GPG integration** with automatic setup wizard
+- **Intelligent setup wizard** with automatic GPG/pass detection and guided configuration
+- **Enhanced setup experience** with improved completion flow and verified icon
 - **Flatpak compatibility** with enhanced GPG environment setup
 - **Import/export** functionality (JSON, CSV formats)
 - **Comprehensive preferences** with security settings
@@ -56,6 +70,14 @@ Secrets is a modern desktop application that provides a clean and user-friendly 
 - **Configurable timeouts** - Auto-hide passwords and clear clipboard
 - **Export security** - Require master password for data export operations
 - **Session management** - Comprehensive security controls in preferences
+
+### 🧙 **Setup Wizard**
+- **Intelligent dependency detection** - Automatically detects installed components (pass, GPG keys)
+- **Guided GPG key creation** - Step-by-step GPG key generation with form validation
+- **Password store initialization** - Automatic password store setup with proper GPG key association
+- **Cross-session compatibility** - Handles GPG key detection even when app is reopened
+- **Enhanced completion flow** - Improved setup completion with custom verified icon
+- **User-friendly experience** - Setup wizard stays open after completion, only closes on cancellation
 
 ### ⌨️ **Keyboard Shortcuts**
 - `Ctrl+N` - Add new password
@@ -251,11 +273,12 @@ po/
 ## 🛠️ Technology Stack
 
 - **Language**: Python 3.8+
-- **UI Framework**: GTK4 & Libadwaita
-- **Build System**: Meson & Ninja
+- **UI Framework**: GTK4 & Libadwaita with modern design patterns
+- **Build System**: Meson & Ninja with comprehensive build automation
 - **Dependencies**: PyGObject, pyotp, requests
-- **Backend**: `pass`, GnuPG, Git
-- **Packaging**: Flatpak with enhanced GPG environment support
+- **Backend**: `pass`, GnuPG, Git with intelligent integration
+- **Packaging**: Flatpak with enhanced GPG environment and setup wizard
+- **Architecture**: MVC pattern with specialized managers and service layers
 
 ## 📦 Installation
 
@@ -358,7 +381,12 @@ Secrets/
 │   └── *.py                   # Core application files
 ├── data/                      # Application data
 │   ├── ui/                    # GTK UI definition files
+│   │   ├── setup/             # Setup wizard UI templates
+│   │   ├── components/        # Reusable UI components
+│   │   └── dialogs/           # Dialog UI templates
 │   ├── icons/                 # Application icons
+│   │   ├── symbolic/          # Symbolic icons (including verified icon)
+│   │   └── *.png/svg         # Application icons in various sizes
 │   └── *.xml.in              # Desktop/AppData metadata
 ├── tests/                     # Comprehensive test suite
 ├── po/                        # Internationalization (i18n)
