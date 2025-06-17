@@ -128,6 +128,7 @@ class SecretsApplication(Adw.Application):
         # Create and show the setup wizard as a dialog over the main window
         setup_wizard = SetupWizard(parent_window=main_window)
         setup_wizard.connect("closed", self._on_wizard_closed)
+        setup_wizard.connect("setup-complete", self._on_setup_complete)
 
         # Present the main window first, then the setup wizard
         main_window.present()
@@ -140,12 +141,23 @@ class SecretsApplication(Adw.Application):
         win = SecretsWindow(application=self)
         win.present()
 
-    def _on_wizard_closed(self, setup_wizard):
-        """Called when setup wizard is closed."""
+    def _on_setup_complete(self, setup_wizard):
+        """Called when setup is successfully completed."""
+        print("DEBUG: _on_setup_complete called in application")
+
         # Main window is already shown, just trigger the setup completion
         main_window = setup_wizard.parent_window
         if hasattr(main_window, '_verify_setup_and_load'):
+            print("DEBUG: Calling _verify_setup_and_load on main window")
             main_window._verify_setup_and_load()
+        else:
+            print("DEBUG: Main window does not have _verify_setup_and_load method")
+
+    def _on_wizard_closed(self, setup_wizard):
+        """Called when setup wizard is closed."""
+        # If setup was completed, _on_setup_complete already handled it
+        # If setup was not completed, the wizard will quit the application
+        pass
 
     def on_about_action(self, action, param):
         from .window import SecretsWindow # Local import

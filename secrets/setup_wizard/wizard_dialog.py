@@ -38,6 +38,9 @@ class SetupWizard(Adw.Dialog):
         # Store parent window reference
         self.parent_window = parent_window
 
+        # Track whether setup was completed successfully
+        self.setup_completed = False
+
         # Connect dialog signals
         self.connect("closed", self._on_dialog_closed)
         self.connect("close-attempt", self._on_close_attempt)
@@ -67,21 +70,7 @@ class SetupWizard(Adw.Dialog):
         nav_page.set_tag("pass-install")
         self.navigation_view.push(nav_page)
 
-    def _navigate_to_gpg_create_page(self):
-        """Navigate to the GPG creation page."""
-        # Create and push the GPG creation page programmatically
-        page = self._create_gpg_create_page()
-        nav_page = Adw.NavigationPage(child=page, title="Create GPG Key")
-        nav_page.set_tag("gpg-create")
-        self.navigation_view.push(nav_page)
 
-    def _navigate_to_complete_page(self):
-        """Navigate to the completion page."""
-        # Create and push the completion page programmatically
-        page = self._create_complete_page()
-        nav_page = Adw.NavigationPage(child=page, title="Setup Complete")
-        nav_page.set_tag("complete")
-        self.navigation_view.push(nav_page)
 
     # Event handlers from dependencies page
     def _on_dependencies_continue(self, _page):
@@ -113,7 +102,7 @@ class SetupWizard(Adw.Dialog):
 
     def _navigate_to_complete_page(self):
         """Navigate to the completion page."""
-        complete_page = SetupCompletePage()
+        complete_page = SetupCompletePage(wizard=self)
         complete_page.connect('close-wizard', self._on_close_wizard)
         self.navigation_view.push(complete_page)
 
@@ -149,9 +138,20 @@ class SetupWizard(Adw.Dialog):
         """Handle GPG creation cancellation."""
         self.navigation_view.pop()
 
-    def _on_close_wizard(self, _page):
-        """Handle wizard close request."""
+    def complete_setup(self):
+        """Mark setup as completed and close the wizard."""
+        # Mark setup as completed
+        self.setup_completed = True
+
+        # Emit the setup-complete signal
+        self.emit('setup-complete')
+
+        # Close the dialog
         self.close()
+
+    def _on_close_wizard(self, _page):
+        """Handle wizard close request from setup completion page."""
+        self.complete_setup()
 
     # Dialog event handlers
     def _on_close_attempt(self, _dialog):
@@ -159,10 +159,28 @@ class SetupWizard(Adw.Dialog):
         return False
 
     def _on_dialog_closed(self, _dialog):
-        """Handle dialog closed - quit application when dialog is closed."""
-        app = self.parent_window.get_application()
-        if app:
-            app.quit()
+        """Handle dialog closed - quit application only if setup wasn't completed."""
+        # Check if we're on the completion page when the dialog is closed
+        current_page = self.navigation_view.get_visible_page()
+
+        if current_page:
+            # Check if the current page is a SetupCompletePage
+            if hasattr(current_page, '__class__') and 'SetupCompletePage' in str(current_page.__class__):
+                self.setup_completed = True
+                self.emit('setup-complete')
+            else:
+                # Also check the page title as a fallback
+                page_title = current_page.get_title() if hasattr(current_page, 'get_title') else ""
+                if page_title == "Setup Complete":
+                    self.setup_completed = True
+                    self.emit('setup-complete')
+
+        # Only quit the application if setup was not completed
+        if not self.setup_completed:
+            app = self.parent_window.get_application()
+            if app:
+                app.quit()
+        # If setup was completed, just let the dialog close normally
 
     # Utility methods
     def _show_toast(self, message):

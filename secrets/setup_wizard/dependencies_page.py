@@ -170,10 +170,16 @@ class DependenciesPage(Adw.NavigationPage):
             store_dir = os.path.expanduser("~/.password-store")
             os.makedirs(store_dir, exist_ok=True)
 
-            # Initialize the password store with the created GPG key
-            if self.created_gpg_key_id:
+            # Initialize the password store with a GPG key
+            gpg_key_to_use = self.created_gpg_key_id
+
+            # If no stored GPG key ID, try to find an available one
+            if not gpg_key_to_use:
+                gpg_key_to_use = self._get_available_gpg_key()
+
+            if gpg_key_to_use:
                 button.set_label("Initializing...")
-                success, message = self.password_store.init_store(self.created_gpg_key_id)
+                success, message = self.password_store.init_store(gpg_key_to_use)
                 if success:
                     button.set_label("Completed")
                     # Show success and recheck dependencies
@@ -198,6 +204,21 @@ class DependenciesPage(Adw.NavigationPage):
     def _on_create_gpg_key_clicked(self, _button):
         """Handle create GPG key button click."""
         self.emit("create-gpg-key-requested")
+
+    def _get_available_gpg_key(self):
+        """Get an available GPG key ID for password store initialization."""
+        try:
+            from ..utils import GPGSetupHelper
+            success, keys = GPGSetupHelper.get_gpg_key_ids()
+
+            if success and keys:
+                # Return the first available key ID
+                return keys[0]['keyid']
+            else:
+                return None
+        except Exception as e:
+            print(f"Error getting GPG keys: {e}")
+            return None
 
     def _recheck_after_directory_creation(self):
         """Recheck dependencies after directory creation."""

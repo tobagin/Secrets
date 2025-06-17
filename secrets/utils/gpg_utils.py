@@ -66,7 +66,30 @@ Expire-Date: 0
             os.unlink(batch_file)
             
             if result.returncode == 0:
-                return True, f"GPG key created successfully for {email}"
+                # Try to get the actual key ID that was created
+                try:
+                    # List keys for this email to get the key ID
+                    list_result = subprocess.run(
+                        ["gpg", "--batch", "--list-secret-keys", "--with-colons", email],
+                        capture_output=True,
+                        text=True,
+                        timeout=10,
+                        env=env
+                    )
+
+                    if list_result.returncode == 0:
+                        # Parse the output to get the key ID
+                        for line in list_result.stdout.splitlines():
+                            fields = line.split(':')
+                            if fields[0] == 'sec':  # Secret key line
+                                key_id = fields[4]  # Key ID is in field 4
+                                return True, key_id
+
+                    # Fallback to email if we can't get the key ID
+                    return True, email
+                except:
+                    # Fallback to email if key listing fails
+                    return True, email
             else:
                 error_msg = result.stderr.strip() if result.stderr.strip() else result.stdout.strip()
                 return False, f"Failed to create GPG key: {error_msg}"

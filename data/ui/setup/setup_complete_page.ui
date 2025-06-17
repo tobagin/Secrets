@@ -34,7 +34,7 @@
                 <property name="vexpand">true</property>
                 <child>
                   <object class="GtkImage" id="success_icon">
-                    <property name="icon-name">checkmark-symbolic</property>
+                    <property name="icon-name">io.github.tobagin.secrets-verified-symbolic</property>
                     <property name="pixel-size">64</property>
                     <style><class name="success"/></style>
                   </object>

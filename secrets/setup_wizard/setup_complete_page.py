@@ -31,23 +31,28 @@ class SetupCompletePage(Adw.NavigationPage):
         'close-wizard': (GObject.SignalFlags.RUN_FIRST, None, ()),
     }
     
-    def __init__(self, **kwargs):
+    def __init__(self, wizard=None, **kwargs):
         super().__init__(**kwargs)
+        self.wizard = wizard
         self._connect_signals()
-    
+
     def _connect_signals(self):
         """Connect widget signals."""
-        self.start_button.connect("clicked", self._on_start_clicked)
-    
+        if self.start_button:
+            self.start_button.connect("clicked", self._on_start_clicked)
+
     def _on_start_clicked(self, button):
         """Handle start button click - close the wizard."""
-        self.emit('close-wizard')
+        if self.wizard:
+            self.wizard.complete_setup()
+        else:
+            self.emit('close-wizard')
     
     def set_completion_message(self, title="Setup Complete!", description="Your password manager is now ready to use."):
         """Set custom completion message."""
         self.success_title.set_text(title)
         self.success_desc.set_text(description)
     
-    def set_completion_icon(self, icon_name="emblem-ok-symbolic"):
+    def set_completion_icon(self, icon_name="io.github.tobagin.secrets-verified-symbolic"):
         """Set custom completion icon."""
         self.success_icon.set_from_icon_name(icon_name)
