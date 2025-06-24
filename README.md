@@ -2,18 +2,20 @@
 
 Secrets is a modern desktop application that provides a clean and user-friendly graphical interface for managing your passwords with `pass`, the standard unix password manager. It leverages the power and security of `pass`, GPG, and Git, wrapped in a beautiful GTK4/Libadwaita UI.
 
-## 🆕 What's New in v0.8.3
+## 🆕 What's New in v0.8.6
 
-### Enhanced Setup Experience
-- **Improved setup wizard flow** - Setup completion now properly keeps the application open instead of closing it
-- **New verified completion icon** - Custom verified symbol icon for a more polished setup completion experience
-- **Better GPG key handling** - Fixed issues with GPG key detection when reopening the application after initial setup
-- **Cross-session compatibility** - Password store initialization now works seamlessly even when GPG keys were created in previous sessions
+### Project Restructuring & Build Improvements
+- **Reorganized project structure** - Moved source code to `src/` directory following Python standards
+- **Enhanced build system** - Updated Meson configuration for better development workflow
+- **New widget architecture** - Added custom `PasswordRow` and `FolderExpanderRow` widgets for better UI organization
+- **Improved Flatpak support** - Enhanced manifest and build configuration for reliable packaging
+- **Better development tools** - Moved scripts to dedicated `scripts/` directory
 
-### User Experience Improvements
-- **Smarter dependency detection** - Enhanced logic for detecting and using available GPG keys automatically
-- **Refined setup completion** - Setup wizard now provides clear feedback and smooth transition to the main application
-- **Enhanced error handling** - Better error messages and recovery options during setup process
+### Code Quality & Maintainability
+- **Modular architecture** - Better separation of concerns with organized controllers, managers, and services
+- **Enhanced UI components** - Added missing style.css and improved widget templates
+- **Build system fixes** - Resolved path issues and improved resource compilation
+- **Development environment** - Better PYTHONPATH configuration and development setup
 
 ## ✨ Features
 
@@ -359,4 +361,50 @@ io.github.tobagin.secrets
 ## 🏗️ Project Structure
 
 ```
+src/
+├── secrets/                 # Main application package
+│   ├── controllers/         # UI controllers and state management
+│   ├── managers/            # Business logic managers
+│   ├── services/            # Core services (password, git)
+│   ├── setup_wizard/        # Setup wizard components
+│   ├── ui/                  # UI components and dialogs
+│   │   ├── components/      # Reusable UI components
+│   │   ├── dialogs/         # Dialog windows
+│   │   └── widgets/         # Custom widgets
+│   └── utils/               # Utility functions
+data/
+├── ui/                      # UI template files
+├── icons/                   # Application icons
+└── screenshots/             # Application screenshots
+po/                          # Translation files
+scripts/                     # Development and build scripts
+```
+
+## 🗺️ Roadmap
+
+### 🔄 Upcoming Features (v0.9.x)
+- **🔗 Git Integration** - Full Git synchronization with remote repositories
+  - Git push/pull operations with conflict resolution
+  - Repository setup and management
+  - Commit history and status tracking
+  - Platform integration (GitHub, GitLab, etc.)
+- **📊 Advanced Analytics** - Password security insights and statistics
+- **🔐 Enhanced Security** - Additional encryption options and security features
+- **🌐 Cloud Sync** - Alternative synchronization methods beyond Git
+
+### 🎯 Future Enhancements (v1.0+)
+- **📱 Mobile Companion** - Mobile app for secure password access
+- **🔌 Browser Extension** - Direct browser integration for autofill
+- **🏢 Team Features** - Shared password stores for organizations
+- **🔄 Advanced Import/Export** - Support for more password managers
+- **🎨 Theming System** - Custom themes and appearance options
+
+### 🐛 Known Issues & Improvements
+- Performance optimizations for large password stores
+- Enhanced search capabilities with advanced filters
+- Improved accessibility features
+- Better error handling and user feedback
+
+## 📄 License
+
 This project is licensed under the GPL-3.0-or-later License - see the [LICENSE](LICENSE) file for details.
