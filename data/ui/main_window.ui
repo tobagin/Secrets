@@ -58,6 +58,10 @@
                                 <style><class name="flat"/></style>
                               </object>
                             </child>
+                            <!-- Git buttons disabled -->
+                            <!--
+                            <!-- Git buttons disabled for v0.8.6 will be re-enabled in v0.9.x
+                            <!--
                             <child>
                               <object class="GtkButton" id="git_push_button">
                                 <property name="icon-name">io.github.tobagin.secrets-cloud-upload-symbolic</property>
@@ -74,6 +78,8 @@
                                 <style><class name="flat"/></style>
                               </object>
                             </child>
+                            -->
+                            -->
                             <child>
                               <object class="GtkToggleButton" id="search_toggle_button">
                                 <property name="icon-name">system-search-symbolic</property>
@@ -142,6 +148,7 @@
                           <object class="GtkBox">
                             <property name="orientation">horizontal</property>
                             <property name="spacing">6</property>
+                            <!-- Git status button disabled for v0.8.6
                             <child>
                               <object class="GtkButton" id="git_status_button">
                                 <property name="visible">false</property>
@@ -155,6 +162,7 @@
                                 </child>
                               </object>
                             </child>
+                            -->
                             <child>
                               <object class="GtkMenuButton" id="main_menu_button">
                                 <property name="icon-name">open-menu-symbolic</property>
