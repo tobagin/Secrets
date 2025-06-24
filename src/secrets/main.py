@@ -52,9 +52,9 @@ def main(argv=None):
     if 'SECRETS_RESOURCE_PATH' in os.environ:
         resource_paths_to_try.append(os.environ['SECRETS_RESOURCE_PATH'])
 
-    # Path 2: Development path in a typical Meson build directory (e.g., 'builddir')
-    # This assumes 'secrets.gresource' is generated in 'builddir/secrets/'
-    dev_resource_path = os.path.join(project_root, "builddir", "secrets", "secrets.gresource")
+    # Path 2: Development path in a typical Meson build directory (e.g., 'build')
+    # This assumes 'secrets.gresource' is generated in 'build/secrets/'
+    dev_resource_path = os.path.join(project_root, "build", "secrets", "secrets.gresource")
     resource_paths_to_try.append(dev_resource_path)
 
     # Path 3: Next to the module (e.g., if installed or built in-tree and copied)

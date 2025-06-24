@@ -6,7 +6,7 @@ python = import('python')
 
 project_id = 'io.github.tobagin.secrets'
 
-subdir('secrets')
+subdir('src/secrets')
 subdir('data')
 subdir('po')
 
@@ -41,5 +41,5 @@ configure_file(
 # Executable for running directly (not for flatpak main binary)
 run_target('secrets-dev',
   command: [py_mod, '-m', 'secrets.main'],
-  env: {'PYTHONPATH': meson.project_source_root()}
+  env: {'PYTHONPATH': meson.project_source_root() / 'src'}
 )

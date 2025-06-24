@@ -65,7 +65,7 @@ You can run the dependency update scripts manually at any time:
 python3 scripts/update-flatpak-deps.py
 
 # Then test the changes
-flatpak-builder --force-clean build-dir io.github.tobagin.secrets.yml
+flatpak-builder --force-clean build io.github.tobagin.secrets.yml
 
 # Commit if everything works
 git add io.github.tobagin.secrets.yml

@@ -83,10 +83,10 @@ git push origin v0.5.0
 sudo dnf install flatpak-builder
 
 # Build the Flatpak
-flatpak-builder build-dir io.github.tobagin.secrets.yml --force-clean --install-deps-from=flathub
+flatpak-builder build io.github.tobagin.secrets.yml --force-clean --install-deps-from=flathub
 
 # Test the built application
-flatpak-builder --run build-dir io.github.tobagin.secrets.yml io.github.tobagin.secrets
+flatpak-builder --run build io.github.tobagin.secrets.yml io.github.tobagin.secrets
 ```
 
 ### 3. Submit to Flathub

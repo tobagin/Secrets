@@ -10,8 +10,8 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Default to 'builddir' if not specified by $MESON_BUILD_ROOT
-BUILD_DIR="${MESON_BUILD_ROOT:-builddir}"
+# Default to 'build' if not specified by $MESON_BUILD_ROOT
+BUILD_DIR="${MESON_BUILD_ROOT:-build}"
 PROJECT_ROOT="$(cd "$(dirname "$0")" && pwd)"
 
 echo -e "${BLUE}Secrets Password Manager - Development Runner${NC}"

@@ -35,7 +35,7 @@ if ! git diff-index --quiet HEAD -- io.github.tobagin.secrets.yml 2>/dev/null; t
     echo
     echo -e "${BLUE}💡 Next steps:${NC}"
     echo "1. Review the changes: git diff io.github.tobagin.secrets.yml"
-    echo "2. Test the Flatpak build: flatpak-builder --force-clean build-dir io.github.tobagin.secrets.yml"
+    echo "2. Test the Flatpak build: flatpak-builder --force-clean build io.github.tobagin.secrets.yml"
     echo "3. Commit the changes: git add io.github.tobagin.secrets.yml && git commit -m 'chore: Update Flatpak dependencies'"
     echo
     echo -e "${YELLOW}⚠️  Remember to test the build before committing!${NC}"

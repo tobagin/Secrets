@@ -31,12 +31,12 @@ def setup_i18n(localedir: Optional[str] = None) -> None:
             import os
             build_locale_dir = None
 
-            # Check if we have a builddir with compiled translations
+            # Check if we have a build with compiled translations
             project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            builddir_locale = os.path.join(project_root, 'builddir', 'po')
+            build_locale = os.path.join(project_root, 'build', 'po')
 
-            if os.path.exists(builddir_locale):
-                build_locale_dir = builddir_locale
+            if os.path.exists(build_locale):
+                build_locale_dir = build_locale
 
             translation = gettext.translation(
                 GETTEXT_DOMAIN,

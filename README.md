@@ -253,7 +253,7 @@ LANGUAGE=es ./run-dev.sh
 1. Add language code to `po/LINGUAS`
 2. Create new .po file: `msginit --input=po/secrets.pot --locale=LANG --output=po/LANG.po`
 3. Translate strings in the .po file
-4. Rebuild: `meson compile -C builddir`
+4. Rebuild: `meson compile -C build`
 
 ### Translation File Structure
 
@@ -306,8 +306,8 @@ git clone https://github.com/tobagin/Secrets.git
 cd Secrets
 
 # Build with meson
-meson setup builddir
-meson compile -C builddir
+meson setup build
+meson compile -C build
 
 # Run for development
 ./run-dev.sh
@@ -317,7 +317,7 @@ meson compile -C builddir
 ```bash
 ./run-dev.sh                 # Recommended: run with meson devenv
 ./run-dev.sh --direct        # Run directly without meson
-./builddir/secrets-dev       # Run generated script
+./build/secrets-dev       # Run generated script
 python3 -m secrets.main      # Run module directly
 ```
 
@@ -329,7 +329,7 @@ sudo dnf install flatpak-builder  # Fedora
 sudo apt install flatpak-builder  # Ubuntu/Debian
 
 # Build and install
-flatpak-builder --user --install --force-clean build-dir io.github.tobagin.secrets.yml
+flatpak-builder --user --install --force-clean build io.github.tobagin.secrets.yml
 
 # Run the Flatpak
 flatpak run io.github.tobagin.secrets
@@ -348,9 +348,9 @@ The Flatpak version includes enhanced GPG environment setup for proper password 
 
 ```bash
 # Build and install system-wide
-meson setup builddir --prefix=/usr
-meson compile -C builddir
-sudo meson install -C builddir
+meson setup build --prefix=/usr
+meson compile -C build
+sudo meson install -C build
 
 # Run the installed application
 io.github.tobagin.secrets
@@ -359,103 +359,3 @@ io.github.tobagin.secrets
 ## 🏗️ Project Structure
 
 ```
-Secrets/
-├── secrets/                    # Main Python package
-│   ├── controllers/           # UI controllers (MVC pattern)
-│   ├── managers/              # Specialized managers package
-│   │   ├── git_manager.py     # Git operations and platform integration
-│   │   ├── toast_manager.py   # Toast notifications
-│   │   ├── clipboard_manager.py # Clipboard operations with auto-clear
-│   │   ├── password_display_manager.py # Password visibility management
-│   │   └── search_manager.py  # Search functionality
-│   ├── ui/                    # UI components and dialogs
-│   │   ├── components/        # Reusable UI components
-│   │   │   └── git_status_component.py # Git status indicators
-│   │   └── dialogs/           # Application dialogs
-│   │       ├── git_setup_dialog.py # Git repository setup
-│   │       └── git_status_dialog.py # Git status and history
-│   ├── setup_wizard/          # GPG/pass setup wizard
-│   ├── services/              # Business logic services
-│   │   └── git_service.py     # Core Git operations
-│   ├── utils/                 # Utility modules
-│   └── *.py                   # Core application files
-├── data/                      # Application data
-│   ├── ui/                    # GTK UI definition files
-│   │   ├── setup/             # Setup wizard UI templates
-│   │   ├── components/        # Reusable UI components
-│   │   └── dialogs/           # Dialog UI templates
-│   ├── icons/                 # Application icons
-│   │   ├── symbolic/          # Symbolic icons (including verified icon)
-│   │   └── *.png/svg         # Application icons in various sizes
-│   └── *.xml.in              # Desktop/AppData metadata
-├── tests/                     # Comprehensive test suite
-├── po/                        # Internationalization (i18n)
-│   ├── *.po                   # Translation files
-│   └── LINGUAS               # Supported languages
-└── *.yml                     # Flatpak manifest
-```
-
-### Architecture Patterns
-- **MVC Pattern**: Controllers manage UI logic
-- **Command Pattern**: Actions encapsulated as commands
-- **Service Pattern**: Business logic in service classes
-- **Manager Pattern**: Specialized managers for different concerns
-
-## 🧪 Testing
-
-Run the comprehensive test suite:
-
-```bash
-# Run all tests
-python3 run_tests.py
-
-# Or run specific test categories
-python3 -m unittest tests.test_models
-python3 -m unittest tests.test_services
-python3 -m unittest tests.test_commands
-
-# Test GPG environment setup (for development)
-python3 test_gpg_env.py
-
-# Test security features
-python3 test_security_features.py
-```
-
-The test suite includes:
-- **Model tests** (12 tests) - Data structures and validation
-- **Service tests** (18 tests) - Business logic and password operations
-- **Command tests** (24 tests) - User actions and clipboard operations
-- **Security tests** (4 tests) - Idle detection, session locking, and security configuration
-- **Git tests** (4 tests) - Git service, platform integration, and repository management
-- **Performance tests** - Memory usage and response times
-- **GPG environment tests** - Flatpak compatibility and GPG setup verification
-
-## 🤝 Contributing
-
-1. **Fork the repository** on GitHub
-2. **Create a feature branch**: `git checkout -b feature-name`
-3. **Make your changes** and add tests
-4. **Run the test suite**: `python3 run_tests.py`
-5. **Submit a pull request** with a clear description
-
-### Development Guidelines
-- Follow existing code patterns and architecture
-- Add tests for new functionality
-- Update documentation as needed
-- Use GTK4/Libadwaita best practices
-- Ensure accessibility compliance
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- **pass** - The standard unix password manager
-- **GNOME** - For GTK4 and Libadwaita
-- **Flatpak** - For modern Linux app distribution
-- **Contributors** - Everyone who helps improve this project
-
----
-
-**Secrets** - Secure, modern password management for the Linux desktop.

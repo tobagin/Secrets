@@ -32,6 +32,7 @@ ui_sources = [
   'ui/components/password_generator_popover.py',
   'ui/components/git_status_component.py',
   'ui/dialogs/__init__.py',
+  'ui/dialogs/add_folder_dialog.py',
   'ui/dialogs/add_password_dialog.py',
   'ui/dialogs/edit_password_dialog.py',
   'ui/dialogs/preferences_dialog.py',
@@ -39,7 +40,10 @@ ui_sources = [
   'ui/dialogs/import_export_dialog.py',
   'ui/dialogs/git_setup_dialog.py',
   'ui/dialogs/git_status_dialog.py',
-  'ui/widgets/__init__.py'
+  'ui/dialogs/lock_dialog.py',
+  'ui/widgets/__init__.py',
+  'ui/widgets/password_row.py',
+  'ui/widgets/folder_expander_row.py'
 ]
 
 # Controller files
@@ -114,6 +118,6 @@ gresource = custom_target('secrets.gresource',
 
 # Create a development environment setup
 meson.add_devenv({
-  'PYTHONPATH': meson.project_source_root(),
-  'SECRETS_RESOURCE_PATH': meson.project_build_root() / 'secrets' / 'secrets.gresource'
+  'PYTHONPATH': meson.project_source_root() / 'src',
+  'SECRETS_RESOURCE_PATH': meson.project_build_root() / 'src' / 'secrets' / 'secrets.gresource'
 })

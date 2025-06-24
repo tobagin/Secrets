@@ -106,14 +106,14 @@ git clone https://github.com/tobagin/Secrets.git
 cd Secrets
 
 # Build with Meson
-meson setup builddir
-meson compile -C builddir
+meson setup build
+meson compile -C build
 
 # Run tests
-meson test -C builddir
+meson test -C build
 
 # Install locally
-meson install -C builddir
+meson install -C build
 ```
 
 ### Contributing

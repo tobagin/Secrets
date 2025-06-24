@@ -73,12 +73,12 @@ if appstream_util.found()
 endif
 
 # Icons
-# Scalable SVG icon (fallback)
-install_data(
-  'icons/io.github.tobagin.secrets.svg',
-  install_dir: get_option('datadir') / 'icons' / 'hicolor' / 'scalable' / 'apps',
-  rename: app_id + '.svg'
-)
+# Scalable SVG icon (fallback) - commented out as file doesn't exist
+# install_data(
+#   'icons/io.github.tobagin.secrets.svg',
+#   install_dir: get_option('datadir') / 'icons' / 'hicolor' / 'scalable' / 'apps',
+#   rename: app_id + '.svg'
+# )
 
 # PNG icons in multiple sizes
 icon_sizes = ['16x16', '22x22', '24x24', '32x32', '48x48', '64x64', '96x96', '128x128', '256x256', '512x512']

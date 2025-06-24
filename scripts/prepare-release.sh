@@ -64,8 +64,8 @@ fi
 
 # Build and test
 echo -e "${YELLOW}🔨 Building project...${NC}"
-meson setup builddir --wipe
-meson compile -C builddir
+meson setup build --wipe
+meson compile -C build
 
 echo -e "${YELLOW}🧪 Running tests...${NC}"
 if [ -f "run_tests.py" ]; then
@@ -79,7 +79,7 @@ echo -e "${YELLOW}✅ Validating metadata...${NC}"
 
 # Validate desktop file
 if command -v desktop-file-validate >/dev/null 2>&1; then
-    desktop-file-validate builddir/data/io.github.tobagin.secrets.desktop
+    desktop-file-validate build/data/io.github.tobagin.secrets.desktop
     echo "✅ Desktop file is valid"
 else
     echo "⚠️  desktop-file-validate not found, skipping validation"
@@ -87,7 +87,7 @@ fi
 
 # Validate appdata
 if command -v appstream-util >/dev/null 2>&1; then
-    appstream-util validate builddir/data/io.github.tobagin.secrets.appdata.xml
+    appstream-util validate build/data/io.github.tobagin.secrets.appdata.xml
     echo "✅ AppData file is valid"
 else
     echo "⚠️  appstream-util not found, skipping validation"
