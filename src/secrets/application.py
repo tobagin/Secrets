@@ -177,7 +177,7 @@ class SecretsApplication(Adw.Application):
             version=VERSION,
             website="https://github.com/tobagin/secrets", # Replace with your actual project URL
             copyright="© 2023 tobagin", # Replace
-            license_type=Gtk.License.MIT_X11 # Or your chosen license
+            license_type=Gtk.License.GPL_3_0 # Or your chosen license
         )
         about_dialog.present()
 

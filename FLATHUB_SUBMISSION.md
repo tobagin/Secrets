@@ -46,7 +46,7 @@ All screenshots are referenced in the AppData file and README.md for Flathub sub
 - [ ] AppData file is complete and valid
 - [ ] Desktop file is correct
 - [ ] Icon is provided in SVG format
-- [ ] License is clearly specified (MIT)
+- [ ] License is clearly specified (GPL-3.0-or-later)
 - [ ] All URLs in metadata are working
 
 ### Flatpak Manifest
