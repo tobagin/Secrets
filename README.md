@@ -2,21 +2,20 @@
 
 Secrets is a modern desktop application that provides a clean and user-friendly graphical interface for managing your passwords with `pass`, the standard unix password manager. It leverages the power and security of `pass`, GPG, and Git, wrapped in a beautiful GTK4/Libadwaita UI.
 
-## 🆕 What's New in v0.8.8
+## 🆕 What's New in v0.8.9
 
-### Critical GPG Agent Fix for Flatpak
-- **Fixed GPG key creation** - Resolved "No such file or directory" error in Flatpak environments
-- **Enhanced GPG agent setup** - Improved initialization and configuration for sandboxed applications
-- **Proactive testing** - Added comprehensive GPG operation validation before key creation
-- **Better error handling** - Enhanced timeout management and restart processes for GPG agent
-- **Optimized configuration** - Flatpak-specific GPG agent settings for reliable operation
-- **Debug improvements** - Added logging for troubleshooting GPG-related issues
+### UI Improvements and Cleaner Experience
+- **Streamlined preferences** - Temporarily disabled security and search tabs to remove non-functional options
+- **Automatic import refresh** - Imported passwords now appear immediately without manual refresh
+- **Enhanced import workflow** - Better user feedback during JSON and CSV import operations
+- **Cleaner interface** - Focused preferences on working features only for better user experience
+- **Improved usability** - Removed confusing placeholder functionality from settings
 
-### Setup Wizard Reliability
-- **Guaranteed setup success** - Setup wizard now works reliably in all Flatpak installations
-- **Improved user experience** - No more failed GPG key creation during initial setup
-- **Better feedback** - Enhanced error messages and status reporting during setup process
-- **Robust initialization** - Automatic GPG environment preparation ensures consistent behavior
+### Import/Export Enhancements
+- **Instant UI updates** - Password list refreshes automatically after successful imports
+- **Better workflow** - No more manual refresh needed to see imported passwords
+- **Conditional refresh** - Only triggers when passwords are actually imported
+- **Enhanced feedback** - Clear success messages with import counts
 
 ## ✨ Features
 
