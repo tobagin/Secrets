@@ -592,9 +592,15 @@ class SecretsWindow(Adw.ApplicationWindow):
         import_export_dialog = ImportExportDialog(
             parent_window=self,
             password_store=self.password_store,
-            toast_manager=self.toast_manager
+            toast_manager=self.toast_manager,
+            refresh_callback=self._refresh_password_list_after_import
         )
         import_export_dialog.present()
+
+    def _refresh_password_list_after_import(self):
+        """Refresh the password list after import operations."""
+        if hasattr(self, 'folder_controller'):
+            self.folder_controller.load_passwords()
 
     def _on_application_locked(self):
         """Called when the application is locked."""

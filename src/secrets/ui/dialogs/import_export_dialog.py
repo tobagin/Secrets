@@ -15,17 +15,18 @@ class ImportExportDialog(Adw.Window):
     
     __gtype_name__ = "ImportExportDialog"
     
-    def __init__(self, parent_window, password_store, toast_manager, **kwargs):
+    def __init__(self, parent_window, password_store, toast_manager, refresh_callback=None, **kwargs):
         super().__init__(**kwargs)
-        
+
         self.set_transient_for(parent_window)
         self.set_modal(True)
         self.set_title("Import/Export")
         self.set_default_size(600, 500)
-        
+
         self.password_store = password_store
         self.toast_manager = toast_manager
-        
+        self.refresh_callback = refresh_callback
+
         self._setup_ui()
     
     def _setup_ui(self):
@@ -270,7 +271,11 @@ class ImportExportDialog(Adw.Window):
                         skipped_count += 1
             
             self.toast_manager.show_success(f"Imported {imported_count} passwords, skipped {skipped_count}")
-            
+
+            # Refresh the UI to show imported passwords
+            if imported_count > 0:
+                self._refresh_password_list()
+
         except Exception as e:
             self.toast_manager.show_error(f"Import failed: {e}")
     
@@ -338,6 +343,15 @@ class ImportExportDialog(Adw.Window):
                         skipped_count += 1
             
             self.toast_manager.show_success(f"Imported {imported_count} passwords, skipped {skipped_count}")
-            
+
+            # Refresh the UI to show imported passwords
+            if imported_count > 0:
+                self._refresh_password_list()
+
         except Exception as e:
             self.toast_manager.show_error(f"Import failed: {e}")
+
+    def _refresh_password_list(self):
+        """Refresh the password list in the main window."""
+        if self.refresh_callback:
+            self.refresh_callback()

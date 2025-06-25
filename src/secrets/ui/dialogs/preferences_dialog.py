@@ -72,157 +72,160 @@ class PreferencesDialog(Adw.PreferencesWindow):
         self.remember_window_row.set_subtitle("Restore window size and position on startup")
         window_group.add(self.remember_window_row)
         
-        # Security preferences page
-        security_page = Adw.PreferencesPage()
-        security_page.set_title("Security")
-        security_page.set_icon_name("security-high-symbolic")
-        self.add(security_page)
-        
-        # Password display group
-        password_group = Adw.PreferencesGroup()
-        password_group.set_title("Password Display")
-        security_page.add(password_group)
-        
-        # Auto-hide passwords
-        self.auto_hide_row = Adw.SwitchRow()
-        self.auto_hide_row.set_title("Auto-hide Passwords")
-        self.auto_hide_row.set_subtitle("Automatically hide passwords after a timeout")
-        password_group.add(self.auto_hide_row)
-        
-        # Auto-hide timeout
-        self.auto_hide_timeout_row = Adw.SpinRow()
-        self.auto_hide_timeout_row.set_title("Auto-hide Timeout")
-        self.auto_hide_timeout_row.set_subtitle("Seconds before passwords are automatically hidden")
-        adjustment = Gtk.Adjustment(value=30, lower=5, upper=300, step_increment=5)
-        self.auto_hide_timeout_row.set_adjustment(adjustment)
-        password_group.add(self.auto_hide_timeout_row)
-        
-        # Clipboard group
-        clipboard_group = Adw.PreferencesGroup()
-        clipboard_group.set_title("Clipboard")
-        security_page.add(clipboard_group)
-        
-        # Clear clipboard timeout
-        self.clipboard_timeout_row = Adw.SpinRow()
-        self.clipboard_timeout_row.set_title("Clear Clipboard Timeout")
-        self.clipboard_timeout_row.set_subtitle("Seconds before clipboard is automatically cleared")
-        clipboard_adjustment = Gtk.Adjustment(value=45, lower=10, upper=300, step_increment=5)
-        self.clipboard_timeout_row.set_adjustment(clipboard_adjustment)
-        clipboard_group.add(self.clipboard_timeout_row)
-        
-        # Confirmation group
-        confirmation_group = Adw.PreferencesGroup()
-        confirmation_group.set_title("Confirmations")
-        security_page.add(confirmation_group)
-        
-        # Require confirmation for delete
-        self.confirm_delete_row = Adw.SwitchRow()
-        self.confirm_delete_row.set_title("Confirm Deletions")
-        self.confirm_delete_row.set_subtitle("Show confirmation dialog before deleting passwords")
-        confirmation_group.add(self.confirm_delete_row)
+        # Security preferences page - disabled for v0.8.8 - will be re-enabled when features are fully implemented
+        # security_page = Adw.PreferencesPage()
+        # security_page.set_title("Security")
+        # security_page.set_icon_name("security-high-symbolic")
+        # self.add(security_page)
 
-        # Session security group
-        session_group = Adw.PreferencesGroup()
-        session_group.set_title("Session Security")
-        security_page.add(session_group)
+        # Security UI elements disabled for v0.8.8 - will be re-enabled when features are fully implemented
+        # # Password display group
+        # password_group = Adw.PreferencesGroup()
+        # password_group.set_title("Password Display")
+        # security_page.add(password_group)
+        #
+        # # Auto-hide passwords
+        # self.auto_hide_row = Adw.SwitchRow()
+        # self.auto_hide_row.set_title("Auto-hide Passwords")
+        # self.auto_hide_row.set_subtitle("Automatically hide passwords after a timeout")
+        # password_group.add(self.auto_hide_row)
+        #
+        # # Auto-hide timeout
+        # self.auto_hide_timeout_row = Adw.SpinRow()
+        # self.auto_hide_timeout_row.set_title("Auto-hide Timeout")
+        # self.auto_hide_timeout_row.set_subtitle("Seconds before passwords are automatically hidden")
+        # adjustment = Gtk.Adjustment(value=30, lower=5, upper=300, step_increment=5)
+        # self.auto_hide_timeout_row.set_adjustment(adjustment)
+        # password_group.add(self.auto_hide_timeout_row)
+        #
+        # # Clipboard group
+        # clipboard_group = Adw.PreferencesGroup()
+        # clipboard_group.set_title("Clipboard")
+        # security_page.add(clipboard_group)
+        #
+        # # Clear clipboard timeout
+        # self.clipboard_timeout_row = Adw.SpinRow()
+        # self.clipboard_timeout_row.set_title("Clear Clipboard Timeout")
+        # self.clipboard_timeout_row.set_subtitle("Seconds before clipboard is automatically cleared")
+        # clipboard_adjustment = Gtk.Adjustment(value=45, lower=10, upper=300, step_increment=5)
+        # self.clipboard_timeout_row.set_adjustment(clipboard_adjustment)
+        # clipboard_group.add(self.clipboard_timeout_row)
+        #
+        # # Confirmation group
+        # confirmation_group = Adw.PreferencesGroup()
+        # confirmation_group.set_title("Confirmations")
+        # security_page.add(confirmation_group)
+        #
+        # # Require confirmation for delete
+        # self.confirm_delete_row = Adw.SwitchRow()
+        # self.confirm_delete_row.set_title("Confirm Deletions")
+        # self.confirm_delete_row.set_subtitle("Show confirmation dialog before deleting passwords")
+        # confirmation_group.add(self.confirm_delete_row)
 
-        # Lock on idle
-        self.lock_on_idle_row = Adw.SwitchRow()
-        self.lock_on_idle_row.set_title("Lock on Idle")
-        self.lock_on_idle_row.set_subtitle("Automatically lock the application when idle")
-        session_group.add(self.lock_on_idle_row)
-
-        # Idle timeout
-        self.idle_timeout_row = Adw.SpinRow()
-        self.idle_timeout_row.set_title("Idle Timeout")
-        self.idle_timeout_row.set_subtitle("Minutes of inactivity before locking")
-        idle_adjustment = Gtk.Adjustment(value=15, lower=1, upper=120, step_increment=1)
-        self.idle_timeout_row.set_adjustment(idle_adjustment)
-        session_group.add(self.idle_timeout_row)
-
-        # Lock on screen lock
-        self.lock_on_screen_lock_row = Adw.SwitchRow()
-        self.lock_on_screen_lock_row.set_title("Lock on Screen Lock")
-        self.lock_on_screen_lock_row.set_subtitle("Lock application when system screen locks")
-        session_group.add(self.lock_on_screen_lock_row)
-
-        # Master password timeout
-        self.master_password_timeout_row = Adw.SpinRow()
-        self.master_password_timeout_row.set_title("Master Password Timeout")
-        self.master_password_timeout_row.set_subtitle("Minutes before requiring master password re-entry (0 = never)")
-        master_pw_adjustment = Gtk.Adjustment(value=60, lower=0, upper=480, step_increment=15)
-        self.master_password_timeout_row.set_adjustment(master_pw_adjustment)
-        session_group.add(self.master_password_timeout_row)
-
-        # Advanced security group
-        advanced_group = Adw.PreferencesGroup()
-        advanced_group.set_title("Advanced Security")
-        security_page.add(advanced_group)
-
-        # Clear memory on lock
-        self.clear_memory_row = Adw.SwitchRow()
-        self.clear_memory_row.set_title("Clear Memory on Lock")
-        self.clear_memory_row.set_subtitle("Clear sensitive data from memory when locked")
-        advanced_group.add(self.clear_memory_row)
-
-        # Require master password for export
-        self.require_master_for_export_row = Adw.SwitchRow()
-        self.require_master_for_export_row.set_title("Require Master Password for Export")
-        self.require_master_for_export_row.set_subtitle("Require master password when exporting data")
-        advanced_group.add(self.require_master_for_export_row)
-
-        # Failed unlock attempts
-        self.max_failed_attempts_row = Adw.SpinRow()
-        self.max_failed_attempts_row.set_title("Max Failed Unlock Attempts")
-        self.max_failed_attempts_row.set_subtitle("Maximum failed unlock attempts before lockout")
-        failed_attempts_adjustment = Gtk.Adjustment(value=3, lower=1, upper=10, step_increment=1)
-        self.max_failed_attempts_row.set_adjustment(failed_attempts_adjustment)
-        advanced_group.add(self.max_failed_attempts_row)
-
-        # Lockout duration
-        self.lockout_duration_row = Adw.SpinRow()
-        self.lockout_duration_row.set_title("Lockout Duration")
-        self.lockout_duration_row.set_subtitle("Minutes to lock out after too many failed attempts")
-        lockout_adjustment = Gtk.Adjustment(value=5, lower=1, upper=60, step_increment=1)
-        self.lockout_duration_row.set_adjustment(lockout_adjustment)
-        advanced_group.add(self.lockout_duration_row)
+        # Security UI elements disabled for v0.8.8 - will be re-enabled when features are fully implemented
+        # # Session security group
+        # session_group = Adw.PreferencesGroup()
+        # session_group.set_title("Session Security")
+        # security_page.add(session_group)
+        #
+        # # Lock on idle
+        # self.lock_on_idle_row = Adw.SwitchRow()
+        # self.lock_on_idle_row.set_title("Lock on Idle")
+        # self.lock_on_idle_row.set_subtitle("Automatically lock the application when idle")
+        # session_group.add(self.lock_on_idle_row)
+        #
+        # # Idle timeout
+        # self.idle_timeout_row = Adw.SpinRow()
+        # self.idle_timeout_row.set_title("Idle Timeout")
+        # self.idle_timeout_row.set_subtitle("Minutes of inactivity before locking")
+        # idle_adjustment = Gtk.Adjustment(value=15, lower=1, upper=120, step_increment=1)
+        # self.idle_timeout_row.set_adjustment(idle_adjustment)
+        # session_group.add(self.idle_timeout_row)
+        #
+        # # Lock on screen lock
+        # self.lock_on_screen_lock_row = Adw.SwitchRow()
+        # self.lock_on_screen_lock_row.set_title("Lock on Screen Lock")
+        # self.lock_on_screen_lock_row.set_subtitle("Lock application when system screen locks")
+        # session_group.add(self.lock_on_screen_lock_row)
+        #
+        # # Master password timeout
+        # self.master_password_timeout_row = Adw.SpinRow()
+        # self.master_password_timeout_row.set_title("Master Password Timeout")
+        # self.master_password_timeout_row.set_subtitle("Minutes before requiring master password re-entry (0 = never)")
+        # master_pw_adjustment = Gtk.Adjustment(value=60, lower=0, upper=480, step_increment=15)
+        # self.master_password_timeout_row.set_adjustment(master_pw_adjustment)
+        # session_group.add(self.master_password_timeout_row)
+        #
+        # # Advanced security group
+        # advanced_group = Adw.PreferencesGroup()
+        # advanced_group.set_title("Advanced Security")
+        # security_page.add(advanced_group)
+        #
+        # # Clear memory on lock
+        # self.clear_memory_row = Adw.SwitchRow()
+        # self.clear_memory_row.set_title("Clear Memory on Lock")
+        # self.clear_memory_row.set_subtitle("Clear sensitive data from memory when locked")
+        # advanced_group.add(self.clear_memory_row)
+        #
+        # # Require master password for export
+        # self.require_master_for_export_row = Adw.SwitchRow()
+        # self.require_master_for_export_row.set_title("Require Master Password for Export")
+        # self.require_master_for_export_row.set_subtitle("Require master password when exporting data")
+        # advanced_group.add(self.require_master_for_export_row)
+        #
+        # # Failed unlock attempts
+        # self.max_failed_attempts_row = Adw.SpinRow()
+        # self.max_failed_attempts_row.set_title("Max Failed Unlock Attempts")
+        # self.max_failed_attempts_row.set_subtitle("Maximum failed unlock attempts before lockout")
+        # failed_attempts_adjustment = Gtk.Adjustment(value=3, lower=1, upper=10, step_increment=1)
+        # self.max_failed_attempts_row.set_adjustment(failed_attempts_adjustment)
+        # advanced_group.add(self.max_failed_attempts_row)
+        #
+        # # Lockout duration
+        # self.lockout_duration_row = Adw.SpinRow()
+        # self.lockout_duration_row.set_title("Lockout Duration")
+        # self.lockout_duration_row.set_subtitle("Minutes to lock out after too many failed attempts")
+        # lockout_adjustment = Gtk.Adjustment(value=5, lower=1, upper=60, step_increment=1)
+        # self.lockout_duration_row.set_adjustment(lockout_adjustment)
+        # advanced_group.add(self.lockout_duration_row)
         
-        # Search preferences page
-        search_page = Adw.PreferencesPage()
-        search_page.set_title("Search")
-        search_page.set_icon_name("system-search-symbolic")
-        self.add(search_page)
-        
-        # Search options group
-        search_options_group = Adw.PreferencesGroup()
-        search_options_group.set_title("Search Options")
-        search_page.add(search_options_group)
-        
-        # Case sensitive search
-        self.case_sensitive_row = Adw.SwitchRow()
-        self.case_sensitive_row.set_title("Case Sensitive")
-        self.case_sensitive_row.set_subtitle("Make searches case sensitive")
-        search_options_group.add(self.case_sensitive_row)
-        
-        # Search in content
-        self.search_content_row = Adw.SwitchRow()
-        self.search_content_row.set_title("Search in Content")
-        self.search_content_row.set_subtitle("Include password content in search")
-        search_options_group.add(self.search_content_row)
-        
-        # Search in filenames
-        self.search_filenames_row = Adw.SwitchRow()
-        self.search_filenames_row.set_title("Search in Filenames")
-        self.search_filenames_row.set_subtitle("Include filenames in search")
-        search_options_group.add(self.search_filenames_row)
-        
-        # Max search results
-        self.max_results_row = Adw.SpinRow()
-        self.max_results_row.set_title("Maximum Results")
-        self.max_results_row.set_subtitle("Maximum number of search results to display")
-        results_adjustment = Gtk.Adjustment(value=100, lower=10, upper=1000, step_increment=10)
-        self.max_results_row.set_adjustment(results_adjustment)
-        search_options_group.add(self.max_results_row)
+        # Search preferences page - disabled for v0.8.8 - will be re-enabled when features are fully implemented
+        # search_page = Adw.PreferencesPage()
+        # search_page.set_title("Search")
+        # search_page.set_icon_name("system-search-symbolic")
+        # self.add(search_page)
+
+        # Search UI elements disabled for v0.8.8 - will be re-enabled when features are fully implemented
+        # # Search options group
+        # search_options_group = Adw.PreferencesGroup()
+        # search_options_group.set_title("Search Options")
+        # search_page.add(search_options_group)
+        #
+        # # Case sensitive search
+        # self.case_sensitive_row = Adw.SwitchRow()
+        # self.case_sensitive_row.set_title("Case Sensitive")
+        # self.case_sensitive_row.set_subtitle("Make searches case sensitive")
+        # search_options_group.add(self.case_sensitive_row)
+        #
+        # # Search in content
+        # self.search_content_row = Adw.SwitchRow()
+        # self.search_content_row.set_title("Search in Content")
+        # self.search_content_row.set_subtitle("Include password content in search")
+        # search_options_group.add(self.search_content_row)
+        #
+        # # Search in filenames
+        # self.search_filenames_row = Adw.SwitchRow()
+        # self.search_filenames_row.set_title("Search in Filenames")
+        # self.search_filenames_row.set_subtitle("Include filenames in search")
+        # search_options_group.add(self.search_filenames_row)
+        #
+        # # Max search results
+        # self.max_results_row = Adw.SpinRow()
+        # self.max_results_row.set_title("Maximum Results")
+        # self.max_results_row.set_subtitle("Maximum number of search results to display")
+        # results_adjustment = Gtk.Adjustment(value=100, lower=10, upper=1000, step_increment=10)
+        # self.max_results_row.set_adjustment(results_adjustment)
+        # search_options_group.add(self.max_results_row)
         
         # Git preferences page disabled for v0.8.6 - will be re-enabled in v0.9.x
         # git_page = Adw.PreferencesPage()
@@ -321,14 +324,17 @@ class PreferencesDialog(Adw.PreferencesWindow):
         """Connect signals for preference changes."""
         self.theme_row.connect("notify::selected", self._on_theme_changed)
         self.remember_window_row.connect("notify::active", self._on_setting_changed)
-        self.auto_hide_row.connect("notify::active", self._on_setting_changed)
-        self.auto_hide_timeout_row.connect("notify::value", self._on_setting_changed)
-        self.clipboard_timeout_row.connect("notify::value", self._on_setting_changed)
-        self.confirm_delete_row.connect("notify::active", self._on_setting_changed)
-        self.case_sensitive_row.connect("notify::active", self._on_setting_changed)
-        self.search_content_row.connect("notify::active", self._on_setting_changed)
-        self.search_filenames_row.connect("notify::active", self._on_setting_changed)
-        self.max_results_row.connect("notify::value", self._on_setting_changed)
+
+        # Security and search signal connections disabled for v0.8.8 - will be re-enabled when features are fully implemented
+        # self.auto_hide_row.connect("notify::active", self._on_setting_changed)
+        # self.auto_hide_timeout_row.connect("notify::value", self._on_setting_changed)
+        # self.clipboard_timeout_row.connect("notify::value", self._on_setting_changed)
+        # self.confirm_delete_row.connect("notify::active", self._on_setting_changed)
+        # self.case_sensitive_row.connect("notify::active", self._on_setting_changed)
+        # self.search_content_row.connect("notify::active", self._on_setting_changed)
+        # self.search_filenames_row.connect("notify::active", self._on_setting_changed)
+        # self.max_results_row.connect("notify::value", self._on_setting_changed)
+
         # Git signal connections disabled for v0.8.6
         # self.auto_pull_row.connect("notify::active", self._on_setting_changed)
         # self.auto_push_row.connect("notify::active", self._on_setting_changed)
@@ -338,15 +344,15 @@ class PreferencesDialog(Adw.PreferencesWindow):
         # self.git_notifications_row.connect("notify::active", self._on_setting_changed)
         # self.check_remote_row.connect("notify::active", self._on_setting_changed)
 
-        # Security signal connections
-        self.lock_on_idle_row.connect("notify::active", self._on_setting_changed)
-        self.idle_timeout_row.connect("notify::value", self._on_setting_changed)
-        self.lock_on_screen_lock_row.connect("notify::active", self._on_setting_changed)
-        self.master_password_timeout_row.connect("notify::value", self._on_setting_changed)
-        self.clear_memory_row.connect("notify::active", self._on_setting_changed)
-        self.require_master_for_export_row.connect("notify::active", self._on_setting_changed)
-        self.max_failed_attempts_row.connect("notify::value", self._on_setting_changed)
-        self.lockout_duration_row.connect("notify::value", self._on_setting_changed)
+        # Security signal connections disabled for v0.8.8 - will be re-enabled when features are fully implemented
+        # self.lock_on_idle_row.connect("notify::active", self._on_setting_changed)
+        # self.idle_timeout_row.connect("notify::value", self._on_setting_changed)
+        # self.lock_on_screen_lock_row.connect("notify::active", self._on_setting_changed)
+        # self.master_password_timeout_row.connect("notify::value", self._on_setting_changed)
+        # self.clear_memory_row.connect("notify::active", self._on_setting_changed)
+        # self.require_master_for_export_row.connect("notify::active", self._on_setting_changed)
+        # self.max_failed_attempts_row.connect("notify::value", self._on_setting_changed)
+        # self.lockout_duration_row.connect("notify::value", self._on_setting_changed)
     
     def _load_current_settings(self):
         """Load current settings into the UI."""
@@ -357,25 +363,26 @@ class PreferencesDialog(Adw.PreferencesWindow):
         # UI settings
         self.remember_window_row.set_active(self.config.ui.remember_window_state)
         
-        # Security settings
-        self.auto_hide_row.set_active(self.config.security.auto_hide_passwords)
-        self.auto_hide_timeout_row.set_value(self.config.security.auto_hide_timeout_seconds)
-        self.clipboard_timeout_row.set_value(self.config.security.clear_clipboard_timeout)
-        self.confirm_delete_row.set_active(self.config.security.require_confirmation_for_delete)
-        self.lock_on_idle_row.set_active(self.config.security.lock_on_idle)
-        self.idle_timeout_row.set_value(self.config.security.idle_timeout_minutes)
-        self.lock_on_screen_lock_row.set_active(self.config.security.lock_on_screen_lock)
-        self.master_password_timeout_row.set_value(self.config.security.master_password_timeout_minutes)
-        self.clear_memory_row.set_active(self.config.security.clear_memory_on_lock)
-        self.require_master_for_export_row.set_active(self.config.security.require_master_password_for_export)
-        self.max_failed_attempts_row.set_value(self.config.security.max_failed_unlock_attempts)
-        self.lockout_duration_row.set_value(self.config.security.lockout_duration_minutes)
-        
-        # Search settings
-        self.case_sensitive_row.set_active(self.config.search.case_sensitive)
-        self.search_content_row.set_active(self.config.search.search_in_content)
-        self.search_filenames_row.set_active(self.config.search.search_in_filenames)
-        self.max_results_row.set_value(self.config.search.max_search_results)
+        # Security and search settings loading disabled for v0.8.8 - will be re-enabled when features are fully implemented
+        # # Security settings
+        # self.auto_hide_row.set_active(self.config.security.auto_hide_passwords)
+        # self.auto_hide_timeout_row.set_value(self.config.security.auto_hide_timeout_seconds)
+        # self.clipboard_timeout_row.set_value(self.config.security.clear_clipboard_timeout)
+        # self.confirm_delete_row.set_active(self.config.security.require_confirmation_for_delete)
+        # self.lock_on_idle_row.set_active(self.config.security.lock_on_idle)
+        # self.idle_timeout_row.set_value(self.config.security.idle_timeout_minutes)
+        # self.lock_on_screen_lock_row.set_active(self.config.security.lock_on_screen_lock)
+        # self.master_password_timeout_row.set_value(self.config.security.master_password_timeout_minutes)
+        # self.clear_memory_row.set_active(self.config.security.clear_memory_on_lock)
+        # self.require_master_for_export_row.set_active(self.config.security.require_master_password_for_export)
+        # self.max_failed_attempts_row.set_value(self.config.security.max_failed_unlock_attempts)
+        # self.lockout_duration_row.set_value(self.config.security.lockout_duration_minutes)
+        #
+        # # Search settings
+        # self.case_sensitive_row.set_active(self.config.search.case_sensitive)
+        # self.search_content_row.set_active(self.config.search.search_in_content)
+        # self.search_filenames_row.set_active(self.config.search.search_in_filenames)
+        # self.max_results_row.set_value(self.config.search.max_search_results)
 
         # Git settings disabled for v0.8.6
         # self.auto_pull_row.set_active(self.config.git.auto_pull_on_startup)
@@ -406,25 +413,26 @@ class PreferencesDialog(Adw.PreferencesWindow):
         # UI settings
         self.config.ui.remember_window_state = self.remember_window_row.get_active()
 
-        # Security settings
-        self.config.security.auto_hide_passwords = self.auto_hide_row.get_active()
-        self.config.security.auto_hide_timeout_seconds = int(self.auto_hide_timeout_row.get_value())
-        self.config.security.clear_clipboard_timeout = int(self.clipboard_timeout_row.get_value())
-        self.config.security.require_confirmation_for_delete = self.confirm_delete_row.get_active()
-        self.config.security.lock_on_idle = self.lock_on_idle_row.get_active()
-        self.config.security.idle_timeout_minutes = int(self.idle_timeout_row.get_value())
-        self.config.security.lock_on_screen_lock = self.lock_on_screen_lock_row.get_active()
-        self.config.security.master_password_timeout_minutes = int(self.master_password_timeout_row.get_value())
-        self.config.security.clear_memory_on_lock = self.clear_memory_row.get_active()
-        self.config.security.require_master_password_for_export = self.require_master_for_export_row.get_active()
-        self.config.security.max_failed_unlock_attempts = int(self.max_failed_attempts_row.get_value())
-        self.config.security.lockout_duration_minutes = int(self.lockout_duration_row.get_value())
-
-        # Search settings
-        self.config.search.case_sensitive = self.case_sensitive_row.get_active()
-        self.config.search.search_in_content = self.search_content_row.get_active()
-        self.config.search.search_in_filenames = self.search_filenames_row.get_active()
-        self.config.search.max_search_results = int(self.max_results_row.get_value())
+        # Security and search settings saving disabled for v0.8.8 - will be re-enabled when features are fully implemented
+        # # Security settings
+        # self.config.security.auto_hide_passwords = self.auto_hide_row.get_active()
+        # self.config.security.auto_hide_timeout_seconds = int(self.auto_hide_timeout_row.get_value())
+        # self.config.security.clear_clipboard_timeout = int(self.clipboard_timeout_row.get_value())
+        # self.config.security.require_confirmation_for_delete = self.confirm_delete_row.get_active()
+        # self.config.security.lock_on_idle = self.lock_on_idle_row.get_active()
+        # self.config.security.idle_timeout_minutes = int(self.idle_timeout_row.get_value())
+        # self.config.security.lock_on_screen_lock = self.lock_on_screen_lock_row.get_active()
+        # self.config.security.master_password_timeout_minutes = int(self.master_password_timeout_row.get_value())
+        # self.config.security.clear_memory_on_lock = self.clear_memory_row.get_active()
+        # self.config.security.require_master_password_for_export = self.require_master_for_export_row.get_active()
+        # self.config.security.max_failed_unlock_attempts = int(self.max_failed_attempts_row.get_value())
+        # self.config.security.lockout_duration_minutes = int(self.lockout_duration_row.get_value())
+        #
+        # # Search settings
+        # self.config.search.case_sensitive = self.case_sensitive_row.get_active()
+        # self.config.search.search_in_content = self.search_content_row.get_active()
+        # self.config.search.search_in_filenames = self.search_filenames_row.get_active()
+        # self.config.search.max_search_results = int(self.max_results_row.get_value())
 
         # Git settings disabled for v0.8.6
         # self.config.git.auto_pull_on_startup = self.auto_pull_row.get_active()
