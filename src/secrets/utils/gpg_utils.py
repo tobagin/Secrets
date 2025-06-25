@@ -20,15 +20,27 @@ class GPGSetupHelper:
     def create_gpg_key_batch(name: str, email: str, passphrase: str = "") -> Tuple[bool, str]:
         """
         Create a GPG key using batch mode for automation.
-        
+
         Args:
             name: Full name for the key
             email: Email address for the key
             passphrase: Passphrase for the key (empty for no passphrase)
-            
+
         Returns:
             Tuple of (success, message_or_error)
         """
+        try:
+            # Ensure GPG agent is properly configured for GUI operation in Flatpak
+            GPGSetupHelper.ensure_gui_pinentry()
+
+            # Test if GPG operations work before attempting key creation
+            test_success, test_message = GPGSetupHelper.test_basic_gpg_operation()
+            if not test_success:
+                return False, f"GPG not ready: {test_message}"
+
+        except Exception as e:
+            return False, f"Failed to initialize GPG environment: {e}"
+
         # Create a temporary batch file for GPG key generation
         batch_content = f"""
 Key-Type: RSA
@@ -39,19 +51,19 @@ Name-Real: {name}
 Name-Email: {email}
 Expire-Date: 0
 """
-        
+
         if passphrase:
             batch_content += f"Passphrase: {passphrase}\n"
         else:
             batch_content += "%no-protection\n"
-            
+
         batch_content += "%commit\n"
-        
+
         try:
             with tempfile.NamedTemporaryFile(mode='w', suffix='.batch', delete=False) as f:
                 f.write(batch_content)
                 batch_file = f.name
-            
+
             # Generate the key with proper environment setup
             env = GPGSetupHelper.setup_gpg_environment()
             result = subprocess.run(
@@ -260,6 +272,12 @@ Expire-Date: 0
         if not os.path.exists(gnupg_home):
             os.makedirs(gnupg_home, mode=0o700, exist_ok=True)
 
+        # Ensure proper permissions on .gnupg directory
+        try:
+            os.chmod(gnupg_home, 0o700)
+        except Exception as e:
+            print(f"Warning: Could not set permissions on {gnupg_home}: {e}")
+
         # Configure gpg-agent.conf for GUI pinentry
         config_lines = []
 
@@ -294,7 +312,11 @@ Expire-Date: 0
             'enable-ssh-support',
             'no-grab',  # Don't grab keyboard/mouse in Flatpak
             'no-allow-external-cache',  # Security in sandboxed environment
-            'disable-scdaemon'  # Disable smartcard daemon in Flatpak
+            'disable-scdaemon',  # Disable smartcard daemon in Flatpak
+            'log-file ~/.gnupg/gpg-agent.log',  # Enable logging for debugging
+            'debug-level basic',  # Basic debug level
+            'keep-tty',  # Keep TTY for better compatibility
+            'ignore-cache-for-signing'  # Force pinentry for signing operations
         ])
 
         # Write configuration
@@ -333,26 +355,33 @@ Expire-Date: 0
         """
         try:
             # Kill existing agent
+            env = GPGSetupHelper.setup_gpg_environment()
             result = subprocess.run(['gpgconf', '--kill', 'gpg-agent'],
-                                  capture_output=True, timeout=3)
+                                  capture_output=True, timeout=5, env=env)
 
             # Wait a moment for the agent to fully stop
             import time
-            time.sleep(0.2)
+            time.sleep(0.5)
 
-            # Try to start agent with new configuration using a simpler approach
-            env = GPGSetupHelper.setup_gpg_environment()
+            # Try to start agent with new configuration
+            # First try to launch the agent explicitly
+            try:
+                subprocess.run(['gpgconf', '--launch', 'gpg-agent'],
+                             capture_output=True, timeout=5, env=env)
+                time.sleep(0.2)
+            except subprocess.TimeoutExpired:
+                pass  # Continue with other methods
 
-            # Use gpgconf to reload the agent instead of gpg-connect-agent
+            # Use gpgconf to reload the agent
             try:
                 subprocess.run(['gpgconf', '--reload', 'gpg-agent'],
-                             capture_output=True, timeout=2, env=env)
+                             capture_output=True, timeout=3, env=env)
             except subprocess.TimeoutExpired:
                 # If reload times out, try a different approach
                 try:
                     # Just run a simple GPG command to trigger agent start
                     subprocess.run(['gpg', '--batch', '--list-keys'],
-                                 capture_output=True, timeout=2, env=env)
+                                 capture_output=True, timeout=3, env=env)
                 except:
                     pass  # Ignore errors, agent will start when needed
 
@@ -392,6 +421,49 @@ Expire-Date: 0
 
         except Exception as e:
             print(f"Warning: Could not ensure GUI pinentry: {e}")
+
+    @staticmethod
+    def test_basic_gpg_operation() -> Tuple[bool, str]:
+        """
+        Test if basic GPG operations work (without requiring existing keys).
+
+        Returns:
+            Tuple of (success, message)
+        """
+        try:
+            # Set up environment
+            env = GPGSetupHelper.setup_gpg_environment()
+
+            # Test GPG version
+            result = subprocess.run(
+                ['gpg', '--version'],
+                capture_output=True,
+                text=True,
+                timeout=10,
+                env=env
+            )
+
+            if result.returncode != 0:
+                return False, "GPG command failed"
+
+            # Test basic GPG functionality by listing keys (this should work even with no keys)
+            result = subprocess.run(
+                ['gpg', '--batch', '--list-keys'],
+                capture_output=True,
+                text=True,
+                timeout=10,
+                env=env
+            )
+
+            if result.returncode != 0:
+                return False, f"GPG agent not responding: {result.stderr.strip() if result.stderr else 'Unknown error'}"
+
+            return True, "GPG basic operations working"
+
+        except subprocess.TimeoutExpired:
+            return False, "GPG operation timed out - agent may not be running"
+        except Exception as e:
+            return False, f"GPG test failed: {e}"
 
     @staticmethod
     def test_gpg_operation() -> Tuple[bool, str]:
