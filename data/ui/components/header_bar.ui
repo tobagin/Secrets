@@ -28,6 +28,7 @@
             <property name="margin-end">6</property>
           </object>
         </child>
+        <!-- Git buttons disabled for v0.8.6
         <child>
           <object class="GtkButton" id="git_pull_button">
             <property name="icon-name">vcs-pull-symbolic</property>
@@ -42,6 +43,7 @@
             <style><class name="flat"/></style>
           </object>
         </child>
+        -->
       </object>
     </child>
     <child type="end">
