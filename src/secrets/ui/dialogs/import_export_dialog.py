@@ -32,13 +32,19 @@ class ImportExportDialog(Adw.Window):
     def _setup_ui(self):
         """Setup the import/export UI."""
         # Main content box
-        content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.set_content(content_box)
+        main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        content_box.set_margin_top(12)
+        content_box.set_margin_bottom(12)
+        content_box.set_margin_start(12)
+        content_box.set_margin_end(12)
+        self.set_content(main_box)
         
         # Header bar
         header_bar = Adw.HeaderBar()
         header_bar.set_title_widget(Adw.WindowTitle(title="Import/Export"))
-        content_box.append(header_bar)
+        main_box.append(header_bar)
+        main_box.append(content_box)
         
         # Export section
         export_group = Adw.PreferencesGroup()

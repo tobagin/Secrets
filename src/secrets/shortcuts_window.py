@@ -31,8 +31,6 @@ class ShortcutsWindow(Adw.Window):
         header_bar = Adw.HeaderBar()
         header_bar.set_title_widget(Adw.WindowTitle(title="Keyboard Shortcuts"))
 
-        header_bar.pack_end(close_button)
-
         content_box.append(header_bar)
 
         # Scrolled window for shortcuts
