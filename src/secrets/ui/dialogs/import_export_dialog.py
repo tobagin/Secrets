@@ -9,104 +9,39 @@ gi.require_version("Adw", "1")
 
 from gi.repository import Gtk, Adw, Gio, GLib
 
+from secrets.app_info import APP_ID
 
+
+@Gtk.Template(resource_path=f'/{APP_ID.replace(".", "/")}/ui/dialogs/import_export_dialog.ui')
 class ImportExportDialog(Adw.Window):
     """Dialog for importing and exporting password data."""
-    
+
     __gtype_name__ = "ImportExportDialog"
-    
+
+    # Template widgets
+    export_json_button = Gtk.Template.Child()
+    export_csv_button = Gtk.Template.Child()
+    import_json_button = Gtk.Template.Child()
+    import_csv_button = Gtk.Template.Child()
+
     def __init__(self, parent_window, password_store, toast_manager, refresh_callback=None, **kwargs):
         super().__init__(**kwargs)
 
         self.set_transient_for(parent_window)
-        self.set_modal(True)
-        self.set_title("Import/Export")
-        self.set_default_size(600, 500)
 
         self.password_store = password_store
         self.toast_manager = toast_manager
         self.refresh_callback = refresh_callback
 
-        self._setup_ui()
+        self._setup_signals()
     
-    def _setup_ui(self):
-        """Setup the import/export UI."""
-        # Main content box
-        main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        content_box.set_margin_top(12)
-        content_box.set_margin_bottom(12)
-        content_box.set_margin_start(12)
-        content_box.set_margin_end(12)
-        self.set_content(main_box)
-        
-        # Header bar
-        header_bar = Adw.HeaderBar()
-        header_bar.set_title_widget(Adw.WindowTitle(title="Import/Export"))
-        main_box.append(header_bar)
-        main_box.append(content_box)
-        
-        # Export section
-        export_group = Adw.PreferencesGroup()
-        export_group.set_title("Export")
-        export_group.set_description("Export your passwords to various formats")
-        content_box.append(export_group)
-        
-        # Export to JSON
-        export_json_row = Adw.ActionRow()
-        export_json_row.set_title("Export to JSON")
-        export_json_row.set_subtitle("Export all passwords in JSON format")
-        
-        export_json_button = Gtk.Button(label="Export")
-        export_json_button.connect("clicked", self._on_export_json)
-        export_json_row.add_suffix(export_json_button)
-        export_group.add(export_json_row)
-        
-        # Export to CSV
-        export_csv_row = Adw.ActionRow()
-        export_csv_row.set_title("Export to CSV")
-        export_csv_row.set_subtitle("Export passwords in CSV format (compatible with many password managers)")
-        
-        export_csv_button = Gtk.Button(label="Export")
-        export_csv_button.connect("clicked", self._on_export_csv)
-        export_csv_row.add_suffix(export_csv_button)
-        export_group.add(export_csv_row)
-        
-        # Import section
-        import_group = Adw.PreferencesGroup()
-        import_group.set_title("Import")
-        import_group.set_description("Import passwords from various formats")
-        content_box.append(import_group)
-        
-        # Import from JSON
-        import_json_row = Adw.ActionRow()
-        import_json_row.set_title("Import from JSON")
-        import_json_row.set_subtitle("Import passwords from JSON format")
-        
-        import_json_button = Gtk.Button(label="Import")
-        import_json_button.connect("clicked", self._on_import_json)
-        import_json_row.add_suffix(import_json_button)
-        import_group.add(import_json_row)
-        
-        # Import from CSV
-        import_csv_row = Adw.ActionRow()
-        import_csv_row.set_title("Import from CSV")
-        import_csv_row.set_subtitle("Import passwords from CSV format")
-        
-        import_csv_button = Gtk.Button(label="Import")
-        import_csv_button.connect("clicked", self._on_import_csv)
-        import_csv_row.add_suffix(import_csv_button)
-        import_group.add(import_csv_row)
-        
-        # Warning section
-        warning_group = Adw.PreferencesGroup()
-        warning_group.set_title("Security Warning")
-        content_box.append(warning_group)
-        
-        warning_row = Adw.ActionRow()
-        warning_row.set_title("⚠️ Important Security Notice")
-        warning_row.set_subtitle("Exported files contain unencrypted passwords. Store them securely and delete after use.")
-        warning_group.add(warning_row)
+    def _setup_signals(self):
+        """Setup signal connections for UI elements."""
+        # Connect signals
+        self.export_json_button.connect("clicked", self._on_export_json)
+        self.export_csv_button.connect("clicked", self._on_export_csv)
+        self.import_json_button.connect("clicked", self._on_import_json)
+        self.import_csv_button.connect("clicked", self._on_import_csv)
     
     def _on_export_json(self, button):
         """Export passwords to JSON format."""

@@ -39,6 +39,8 @@ class SecretsApplication(Adw.Application):
         self.set_accels_for_action("win.refresh", ["F5"])
         self.set_accels_for_action("win.toggle-password", ["<Primary>h"])
         self.set_accels_for_action("win.generate-password", ["<Primary>g"])
+        self.set_accels_for_action("win.show-help-overlay", ["<Primary>question", "F1"])
+        self.set_accels_for_action("win.import-export", ["<Primary><Shift>i"])
 
         self._make_action("quit", self.on_quit_action)
         self._make_action("about", self.on_about_action)

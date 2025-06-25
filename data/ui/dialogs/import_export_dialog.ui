@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <requires lib="libadwaita" version="1.0"/>
+  
+  <template class="ImportExportDialog" parent="AdwWindow">
+    <property name="title">Import/Export</property>
+    <property name="default-width">600</property>
+    <property name="default-height">500</property>
+    <property name="modal">true</property>
+    
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        
+        <!-- Header Bar -->
+        <child>
+          <object class="AdwHeaderBar">
+            <child type="title">
+              <object class="AdwWindowTitle">
+                <property name="title">Import/Export</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        
+        <!-- Main Content -->
+        <child>
+          <object class="GtkScrolledWindow">
+            <property name="vexpand">true</property>
+            <property name="hscrollbar-policy">never</property>
+            
+            <child>
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <property name="spacing">12</property>
+                <property name="margin-top">12</property>
+                <property name="margin-bottom">12</property>
+                <property name="margin-start">12</property>
+                <property name="margin-end">12</property>
+                
+                <!-- Export section -->
+                <child>
+                  <object class="AdwPreferencesGroup">
+                    <property name="title">Export</property>
+                    <property name="description">Export your passwords to various formats</property>
+                    
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title">Export to JSON</property>
+                        <property name="subtitle">Export all passwords in JSON format</property>
+                        
+                        <child type="suffix">
+                          <object class="GtkButton" id="export_json_button">
+                            <property name="label">Export</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title">Export to CSV</property>
+                        <property name="subtitle">Export passwords in CSV format (compatible with many password managers)</property>
+                        
+                        <child type="suffix">
+                          <object class="GtkButton" id="export_csv_button">
+                            <property name="label">Export</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                
+                <!-- Import section -->
+                <child>
+                  <object class="AdwPreferencesGroup">
+                    <property name="title">Import</property>
+                    <property name="description">Import passwords from various formats</property>
+                    
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title">Import from JSON</property>
+                        <property name="subtitle">Import passwords from JSON format</property>
+                        
+                        <child type="suffix">
+                          <object class="GtkButton" id="import_json_button">
+                            <property name="label">Import</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title">Import from CSV</property>
+                        <property name="subtitle">Import passwords from CSV format</property>
+                        
+                        <child type="suffix">
+                          <object class="GtkButton" id="import_csv_button">
+                            <property name="label">Import</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                
+                <!-- Warning section -->
+                <child>
+                  <object class="AdwPreferencesGroup">
+                    <property name="title">Security Warning</property>
+                    
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title">⚠️ Important Security Notice</property>
+                        <property name="subtitle">Exported files contain unencrypted passwords. Store them securely and delete after use.</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

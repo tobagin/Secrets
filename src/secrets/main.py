@@ -43,7 +43,7 @@ def main(argv=None):
     # Load GResources
     # Construct the path to the .gresource file.
     module_dir = os.path.dirname(__file__)
-    project_root = os.path.abspath(os.path.join(module_dir, ".."))
+    project_root = os.path.abspath(os.path.join(module_dir, "..", ".."))
 
     # List of paths to check for the gresource file
     resource_paths_to_try = []
@@ -53,8 +53,8 @@ def main(argv=None):
         resource_paths_to_try.append(os.environ['SECRETS_RESOURCE_PATH'])
 
     # Path 2: Development path in a typical Meson build directory (e.g., 'build')
-    # This assumes 'secrets.gresource' is generated in 'build/secrets/'
-    dev_resource_path = os.path.join(project_root, "build", "secrets", "secrets.gresource")
+    # This assumes 'secrets.gresource' is generated in 'build/src/secrets/'
+    dev_resource_path = os.path.join(project_root, "build", "src", "secrets", "secrets.gresource")
     resource_paths_to_try.append(dev_resource_path)
 
     # Path 3: Next to the module (e.g., if installed or built in-tree and copied)

@@ -28,6 +28,7 @@ class PasswordGeneratorPopover(Gtk.Popover):
     numbers_row = Gtk.Template.Child()
     symbols_row = Gtk.Template.Child()
     exclude_ambiguous_row = Gtk.Template.Child()
+    strength_label = Gtk.Template.Child()
     use_button = Gtk.Template.Child()
 
     # Signal emitted when a password is generated and accepted
@@ -94,8 +95,9 @@ class PasswordGeneratorPopover(Gtk.Popover):
         
         # Generate password using cryptographically secure random
         password = "".join(_secure_random.choice(charset) for _ in range(length))
-        
+
         self.password_entry.set_text(password)
+        self._update_strength_indicator(password)
     
     def _on_copy_password(self, button):
         """Copy password to clipboard."""
@@ -117,3 +119,47 @@ class PasswordGeneratorPopover(Gtk.Popover):
         password = self.password_entry.get_text()
         self.emit('password-generated', password)
         self.popdown()
+
+    def _update_strength_indicator(self, password):
+        """Update the password strength indicator."""
+        score = self._calculate_strength(password)
+
+        if score < 30:
+            strength_text = "Weak"
+            css_class = "error"
+        elif score < 60:
+            strength_text = "Fair"
+            css_class = "warning"
+        elif score < 80:
+            strength_text = "Good"
+            css_class = "accent"
+        else:
+            strength_text = "Strong"
+            css_class = "success"
+
+        self.strength_label.set_text(strength_text)
+
+        # Remove old CSS classes and add new one
+        # CSS styling will be handled in UI files
+
+    def _calculate_strength(self, password):
+        """Calculate password strength score (0-100)."""
+        score = 0
+
+        # Length bonus
+        score += min(len(password) * 2, 25)
+
+        # Character variety bonus
+        has_lower = any(c.islower() for c in password)
+        has_upper = any(c.isupper() for c in password)
+        has_digit = any(c.isdigit() for c in password)
+        has_symbol = any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in password)
+
+        variety_count = sum([has_lower, has_upper, has_digit, has_symbol])
+        score += variety_count * 15
+
+        # Entropy bonus (simplified)
+        unique_chars = len(set(password))
+        score += min(unique_chars * 2, 20)
+
+        return min(score, 100)

@@ -11,7 +11,7 @@ app_id = get_variable('project_id', 'io.github.tobagin.secrets')
 # UI files and CSS - organized structure
 # Main UI files
 install_data(
-  ['ui/main_window.ui', 'style.css'],
+  ['ui/main_window.ui', 'ui/shortcuts_window.ui', 'style.css'],
   install_dir: get_option('datadir') / app_id / 'ui'
 )
 
@@ -26,7 +26,8 @@ install_data(
 # Dialog UI files
 install_data(
   ['ui/dialogs/add_password_dialog.ui', 'ui/dialogs/edit_password_dialog.ui',
-   'ui/dialogs/add_folder_dialog.ui'],
+   'ui/dialogs/add_folder_dialog.ui', 'ui/dialogs/password_generator_dialog.ui',
+   'ui/dialogs/import_export_dialog.ui'],
   install_dir: get_option('datadir') / app_id / 'ui' / 'dialogs'
 )
 

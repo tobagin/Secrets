@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <requires lib="libadwaita" version="1.0"/>
+  
+  <template class="ShortcutsWindow" parent="AdwWindow">
+    <property name="title">Keyboard Shortcuts</property>
+    <property name="default-width">600</property>
+    <property name="default-height">700</property>
+    <property name="modal">true</property>
+    
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        
+        <!-- Header Bar -->
+        <child>
+          <object class="AdwHeaderBar">
+            <child type="title">
+              <object class="AdwWindowTitle">
+                <property name="title">Keyboard Shortcuts</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        
+        <!-- Scrolled Window for shortcuts -->
+        <child>
+          <object class="GtkScrolledWindow">
+            <property name="vexpand">true</property>
+            <property name="hscrollbar-policy">never</property>
+            <property name="vscrollbar-policy">automatic</property>
+            
+            <child>
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <property name="spacing">24</property>
+                <property name="margin-top">12</property>
+                <property name="margin-bottom">12</property>
+                <property name="margin-start">12</property>
+                <property name="margin-end">12</property>
+                
+                <!-- Application group -->
+                <child>
+                  <object class="AdwPreferencesGroup">
+                    <property name="title">Application</property>
+                    
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title">Quit</property>
+                        <child type="suffix">
+                          <object class="GtkLabel">
+                            <property name="label">Ctrl+Q</property>
+                            <property name="valign">center</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title">Preferences</property>
+                        <child type="suffix">
+                          <object class="GtkLabel">
+                            <property name="label">Ctrl+,</property>
+                            <property name="valign">center</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title">About</property>
+                        <child type="suffix">
+                          <object class="GtkLabel">
+                            <property name="label">Ctrl+?</property>
+                            <property name="valign">center</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title">Keyboard Shortcuts</property>
+                        <child type="suffix">
+                          <object class="GtkLabel">
+                            <property name="label">Ctrl+? / F1</property>
+                            <property name="valign">center</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                
+                <!-- Password Management group -->
+                <child>
+                  <object class="AdwPreferencesGroup">
+                    <property name="title">Password Management</property>
+                    
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title">Add New Password</property>
+                        <child type="suffix">
+                          <object class="GtkLabel">
+                            <property name="label">Ctrl+N</property>
+                            <property name="valign">center</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title">Edit Selected Password</property>
+                        <child type="suffix">
+                          <object class="GtkLabel">
+                            <property name="label">Ctrl+E</property>
+                            <property name="valign">center</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title">Delete Selected Password</property>
+                        <child type="suffix">
+                          <object class="GtkLabel">
+                            <property name="label">Delete</property>
+                            <property name="valign">center</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title">Copy Password</property>
+                        <child type="suffix">
+                          <object class="GtkLabel">
+                            <property name="label">Ctrl+C</property>
+                            <property name="valign">center</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title">Copy Username</property>
+                        <child type="suffix">
+                          <object class="GtkLabel">
+                            <property name="label">Ctrl+Shift+C</property>
+                            <property name="valign">center</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                
+                <!-- Navigation group -->
+                <child>
+                  <object class="AdwPreferencesGroup">
+                    <property name="title">Navigation</property>
+                    
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title">Focus Search</property>
+                        <child type="suffix">
+                          <object class="GtkLabel">
+                            <property name="label">Ctrl+F</property>
+                            <property name="valign">center</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title">Clear Search</property>
+                        <child type="suffix">
+                          <object class="GtkLabel">
+                            <property name="label">Escape</property>
+                            <property name="valign">center</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title">Refresh Password List</property>
+                        <child type="suffix">
+                          <object class="GtkLabel">
+                            <property name="label">F5</property>
+                            <property name="valign">center</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                
+                <!-- View group -->
+                <child>
+                  <object class="AdwPreferencesGroup">
+                    <property name="title">View</property>
+                    
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title">Toggle Password Visibility</property>
+                        <child type="suffix">
+                          <object class="GtkLabel">
+                            <property name="label">Ctrl+H</property>
+                            <property name="valign">center</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title">Generate Password</property>
+                        <child type="suffix">
+                          <object class="GtkLabel">
+                            <property name="label">Ctrl+G</property>
+                            <property name="valign">center</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title">Import/Export</property>
+                        <child type="suffix">
+                          <object class="GtkLabel">
+                            <property name="label">Ctrl+Shift+I</property>
+                            <property name="valign">center</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>
