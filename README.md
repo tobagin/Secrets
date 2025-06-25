@@ -2,20 +2,20 @@
 
 Secrets is a modern desktop application that provides a clean and user-friendly graphical interface for managing your passwords with `pass`, the standard unix password manager. It leverages the power and security of `pass`, GPG, and Git, wrapped in a beautiful GTK4/Libadwaita UI.
 
-## 🆕 What's New in v0.8.6
+## 🆕 What's New in v0.8.7
 
-### Project Restructuring & Build Improvements
-- **Reorganized project structure** - Moved source code to `src/` directory following Python standards
-- **Enhanced build system** - Updated Meson configuration for better development workflow
-- **New widget architecture** - Added custom `PasswordRow` and `FolderExpanderRow` widgets for better UI organization
-- **Improved Flatpak support** - Enhanced manifest and build configuration for reliable packaging
-- **Better development tools** - Moved scripts to dedicated `scripts/` directory
+### Git Functionality Management & UI Cleanup
+- **Complete Git feature removal** - All Git functionality temporarily disabled for stable release
+- **Clean user interface** - Removed Git buttons, menu items, and settings from all UI components
+- **Streamlined preferences** - Git settings page removed from preferences dialog
+- **Enhanced stability** - Application runs without Git dependencies or non-functional features
+- **Future-ready codebase** - All Git code preserved with comments for v0.9.x restoration
 
-### Code Quality & Maintainability
-- **Modular architecture** - Better separation of concerns with organized controllers, managers, and services
-- **Enhanced UI components** - Added missing style.css and improved widget templates
-- **Build system fixes** - Resolved path issues and improved resource compilation
-- **Development environment** - Better PYTHONPATH configuration and development setup
+### User Experience Improvements
+- **Simplified interface** - Focus on core password management without confusing disabled features
+- **Consistent behavior** - No broken Git buttons or menu items that don't work
+- **Better performance** - Reduced overhead from disabled Git monitoring and status checking
+- **Cleaner navigation** - Streamlined menus and settings without placeholder functionality
 
 ## ✨ Features
 
