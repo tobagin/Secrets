@@ -32,11 +32,7 @@ class ImportExportDialog(Adw.Window):
     def _setup_ui(self):
         """Setup the import/export UI."""
         # Main content box
-        content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        content_box.set_margin_top(12)
-        content_box.set_margin_bottom(12)
-        content_box.set_margin_start(12)
-        content_box.set_margin_end(12)
+        content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.set_content(content_box)
         
         # Header bar

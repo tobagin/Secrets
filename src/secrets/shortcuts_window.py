@@ -24,20 +24,13 @@ class ShortcutsWindow(Adw.Window):
     def _setup_shortcuts(self):
         """Setup the shortcuts window content."""
         # Main content box
-        content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        content_box.set_margin_top(12)
-        content_box.set_margin_bottom(12)
-        content_box.set_margin_start(12)
-        content_box.set_margin_end(12)
+        content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.set_content(content_box)
 
         # Header bar
         header_bar = Adw.HeaderBar()
         header_bar.set_title_widget(Adw.WindowTitle(title="Keyboard Shortcuts"))
 
-        # Close button
-        close_button = Gtk.Button(label="Close")
-        close_button.connect("clicked", lambda x: self.close())
         header_bar.pack_end(close_button)
 
         content_box.append(header_bar)
@@ -86,14 +79,14 @@ class ShortcutsWindow(Adw.Window):
         self._add_shortcut_row(nav_group, "Refresh Password List", "F5")
 
         # Git group
-        git_group = Adw.PreferencesGroup()
-        git_group.set_title("Git Operations")
-        shortcuts_box.append(git_group)
+        #git_group = Adw.PreferencesGroup()
+        #git_group.set_title("Git Operations")
+        #shortcuts_box.append(git_group)
 
-        self._add_shortcut_row(git_group, "Git Pull", "Ctrl+Shift+P")
-        self._add_shortcut_row(git_group, "Git Push", "Ctrl+Shift+U")
-        self._add_shortcut_row(git_group, "Git Status", "Ctrl+Shift+S")
-        self._add_shortcut_row(git_group, "Git Setup", "Ctrl+Shift+G")
+        #self._add_shortcut_row(git_group, "Git Pull", "Ctrl+Shift+P")
+        #self._add_shortcut_row(git_group, "Git Push", "Ctrl+Shift+U")
+        #self._add_shortcut_row(git_group, "Git Status", "Ctrl+Shift+S")
+        #self._add_shortcut_row(git_group, "Git Setup", "Ctrl+Shift+G")
 
         # View group
         view_group = Adw.PreferencesGroup()
