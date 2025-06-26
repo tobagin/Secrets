@@ -249,6 +249,24 @@ Expire-Date: 0
         env['WAYLAND_DISPLAY'] = os.environ.get('WAYLAND_DISPLAY', '')
         env['XDG_SESSION_TYPE'] = os.environ.get('XDG_SESSION_TYPE', '')
 
+        # Ensure GPG home directory is set
+        if 'GNUPGHOME' not in env:
+            env['GNUPGHOME'] = os.path.expanduser('~/.gnupg')
+
+        # Create GPG home directory if it doesn't exist
+        gnupg_home = env['GNUPGHOME']
+        if not os.path.exists(gnupg_home):
+            try:
+                os.makedirs(gnupg_home, mode=0o700)
+            except OSError:
+                pass  # Directory might already exist
+
+        # Set proper permissions on GPG home directory
+        try:
+            os.chmod(gnupg_home, 0o700)
+        except OSError:
+            pass  # Permissions might already be correct
+
         # Set GPG home directory if not set
         if 'GNUPGHOME' not in env:
             env['GNUPGHOME'] = os.path.expanduser('~/.gnupg')
@@ -423,6 +441,65 @@ Expire-Date: 0
             print(f"Warning: Could not ensure GUI pinentry: {e}")
 
     @staticmethod
+    def start_gpg_agent() -> Tuple[bool, str]:
+        """
+        Explicitly start the GPG agent if it's not running.
+
+        Returns:
+            Tuple of (success, message)
+        """
+        try:
+            env = GPGSetupHelper.setup_gpg_environment()
+
+            # First check if gpg-agent is already running
+            try:
+                result = subprocess.run(
+                    ['gpg-connect-agent', '/bye'],
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                    env=env
+                )
+                if result.returncode == 0:
+                    return True, "GPG agent already running"
+            except:
+                pass  # Agent not running, continue to start it
+
+            # Try to start gpg-agent explicitly with proper options for Flatpak
+            result = subprocess.run(
+                ['gpg-agent', '--daemon', '--batch', '--allow-loopback-pinentry'],
+                capture_output=True,
+                text=True,
+                timeout=10,
+                env=env
+            )
+
+            # gpg-agent --daemon returns 0 if it starts or if already running
+            if result.returncode == 0:
+                # Verify the agent is actually working
+                try:
+                    test_result = subprocess.run(
+                        ['gpg-connect-agent', '/bye'],
+                        capture_output=True,
+                        text=True,
+                        timeout=5,
+                        env=env
+                    )
+                    if test_result.returncode == 0:
+                        return True, "GPG agent started and verified"
+                    else:
+                        return False, "GPG agent started but not responding"
+                except:
+                    return False, "GPG agent started but verification failed"
+            else:
+                return False, f"Failed to start GPG agent: {result.stderr.strip() if result.stderr else 'Unknown error'}"
+
+        except subprocess.TimeoutExpired:
+            return False, "GPG agent start timed out"
+        except Exception as e:
+            return False, f"Failed to start GPG agent: {e}"
+
+    @staticmethod
     def test_basic_gpg_operation() -> Tuple[bool, str]:
         """
         Test if basic GPG operations work (without requiring existing keys).
@@ -433,6 +510,11 @@ Expire-Date: 0
         try:
             # Set up environment
             env = GPGSetupHelper.setup_gpg_environment()
+
+            # First, try to start the GPG agent
+            agent_success, agent_message = GPGSetupHelper.start_gpg_agent()
+            if not agent_success:
+                return False, f"GPG agent startup failed: {agent_message}"
 
             # Test GPG version
             result = subprocess.run(
