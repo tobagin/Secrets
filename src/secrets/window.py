@@ -578,7 +578,7 @@ class SecretsWindow(Adw.ApplicationWindow):
             display = self.get_display()
             if display:
                 clipboard = display.get_clipboard()
-                clipboard.set_text(password)
+                clipboard.set(password)
                 self.toast_manager.show_success("Generated password copied to clipboard")
         except Exception as e:
             print(f"Error copying generated password to clipboard: {e}")

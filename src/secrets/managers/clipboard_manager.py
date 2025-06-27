@@ -23,7 +23,7 @@ class ClipboardManager:
             return False
 
         try:
-            self.clipboard.set_text(text)
+            self.clipboard.set(text)
             self.toast_manager.show_success(f"{description} copied to clipboard")
 
             # Set up auto-clear if requested
@@ -70,12 +70,12 @@ class ClipboardManager:
                 try:
                     current_text = clipboard.read_text_finish(result)
                     if current_text == original_text:
-                        self.clipboard.set_text("")
+                        self.clipboard.set("")
                         self.toast_manager.show_info("Clipboard automatically cleared")
                 except Exception:
                     # If we can't read clipboard, just clear it to be safe
                     try:
-                        self.clipboard.set_text("")
+                        self.clipboard.set("")
                         self.toast_manager.show_info("Clipboard automatically cleared")
                     except Exception:
                         pass  # Ignore errors during auto-clear
@@ -84,7 +84,7 @@ class ClipboardManager:
         except Exception:
             # Fallback: just clear the clipboard
             try:
-                self.clipboard.set_text("")
+                self.clipboard.set("")
                 self.toast_manager.show_info("Clipboard automatically cleared")
             except Exception:
                 pass  # Ignore errors during auto-clear

@@ -110,7 +110,7 @@ class PasswordGeneratorPopover(Gtk.Popover):
             display = self.get_display()
             if display:
                 clipboard = display.get_clipboard()
-                clipboard.set_text(password)
+                clipboard.set(password)
 
                 # Show toast notification if possible
                 parent = self.get_parent()

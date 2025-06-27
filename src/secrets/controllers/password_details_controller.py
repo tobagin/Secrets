@@ -369,8 +369,9 @@ class PasswordDetailsController:
             # Copy the currently displayed TOTP code
             current_code = self.totp_code_label.get_text().replace(' ', '')  # Remove space formatting
             if current_code and current_code.isdigit() and len(current_code) == 6:
-                self.clipboard_manager.copy_text(current_code)
-                self.toast_manager.show_success("TOTP code copied to clipboard")
+                # Use clipboard manager's copy_text but with custom description to avoid duplicate toasts
+                if self.clipboard_manager.copy_text(current_code, "TOTP code"):
+                    pass  # Toast already shown by clipboard manager
             else:
                 # Try to generate a fresh code if display is invalid
                 try:
@@ -379,8 +380,9 @@ class PasswordDetailsController:
                     if normalized_secret:
                         totp = pyotp.TOTP(normalized_secret)
                         fresh_code = totp.now()
-                        self.clipboard_manager.copy_text(fresh_code)
-                        self.toast_manager.show_success("TOTP code copied to clipboard")
+                        # Use clipboard manager's copy_text but with custom description
+                        if not self.clipboard_manager.copy_text(fresh_code, "TOTP code"):
+                            self.toast_manager.show_error("Failed to copy TOTP code")
                     else:
                         self.toast_manager.show_warning("Invalid TOTP secret")
                 except Exception as e:
@@ -533,8 +535,8 @@ class PasswordDetailsController:
 
     def _on_copy_recovery_code_clicked(self, button, code):
         """Handle copy recovery code button click."""
-        self.clipboard_manager.copy_text(code)
-        self.toast_manager.show_success("Recovery code copied to clipboard")
+        # Use clipboard manager's copy_text with custom description to avoid duplicate toasts
+        self.clipboard_manager.copy_text(code, "Recovery code")
 
     def _validate_totp_secret(self, secret):
         """Validate TOTP secret without generating codes."""
