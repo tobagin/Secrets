@@ -254,17 +254,11 @@ class EditPasswordDialog(Adw.Window):
             self.generator_popover.set_parent(button)
             self.generator_popover.connect('password-generated', self.on_password_generated)
 
-            # Show the popover after it's fully set up
-            def show_popover():
-                self.generator_popover.popup()
-                return False  # Don't repeat
+            # Ensure the popover has proper size
+            self.generator_popover.set_size_request(350, 450)
 
-            # Use idle_add to ensure the popover is shown after the widget is realized
-            from gi.repository import GLib
-            GLib.idle_add(show_popover)
-        else:
-            # If popover already exists, show it immediately
-            self.generator_popover.popup()
+        # Show the popover
+        self.generator_popover.popup()
 
     def on_password_generated(self, popover, password):
         """Handle generated password from popover."""

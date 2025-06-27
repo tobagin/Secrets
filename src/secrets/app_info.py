@@ -6,7 +6,7 @@
 # See: https://developer.gnome.org/documentation/tutorials/application_id.html
 APP_ID = "io.github.tobagin.secrets"
 
-VERSION = "0.8.11"
+VERSION = "0.8.12"
 
 # Name of the gettext domain
 # Usually, this is the same as your application ID or your project name

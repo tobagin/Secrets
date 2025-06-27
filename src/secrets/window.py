@@ -573,10 +573,16 @@ class SecretsWindow(Adw.ApplicationWindow):
 
     def _on_password_generated(self, dialog, password):
         """Handle generated password from generator dialog."""
-        # Copy to clipboard
-        clipboard = self.get_clipboard()
-        clipboard.set(password)
-        self.toast_manager.show_success("Generated password copied to clipboard")
+        # Copy to clipboard using proper method
+        try:
+            display = self.get_display()
+            if display:
+                clipboard = display.get_clipboard()
+                clipboard.set_text(password)
+                self.toast_manager.show_success("Generated password copied to clipboard")
+        except Exception as e:
+            print(f"Error copying generated password to clipboard: {e}")
+            self.toast_manager.show_error("Failed to copy password to clipboard")
 
     def _on_show_help_overlay(self, action=None, param=None):
         """Show keyboard shortcuts help overlay."""

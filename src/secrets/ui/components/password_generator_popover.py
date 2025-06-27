@@ -102,17 +102,34 @@ class PasswordGeneratorPopover(Gtk.Popover):
     def _on_copy_password(self, button):
         """Copy password to clipboard."""
         password = self.password_entry.get_text()
-        clipboard = self.get_clipboard()
-        clipboard.set(password)
-        
-        # Show toast notification if possible
-        parent = self.get_parent()
-        while parent and not hasattr(parent, 'toast_overlay'):
-            parent = parent.get_parent()
-        
-        if parent and hasattr(parent, 'toast_overlay'):
-            toast = Adw.Toast.new("Password copied to clipboard")
-            parent.toast_overlay.add_toast(toast)
+        if not password:
+            return
+
+        try:
+            # Get the display and clipboard properly
+            display = self.get_display()
+            if display:
+                clipboard = display.get_clipboard()
+                clipboard.set_text(password)
+
+                # Show toast notification if possible
+                parent = self.get_parent()
+                while parent and not hasattr(parent, 'toast_overlay'):
+                    parent = parent.get_parent()
+
+                if parent and hasattr(parent, 'toast_overlay'):
+                    toast = Adw.Toast.new("Password copied to clipboard")
+                    parent.toast_overlay.add_toast(toast)
+        except Exception as e:
+            print(f"Error copying password to clipboard: {e}")
+            # Try to show error toast if possible
+            parent = self.get_parent()
+            while parent and not hasattr(parent, 'toast_overlay'):
+                parent = parent.get_parent()
+
+            if parent and hasattr(parent, 'toast_overlay'):
+                toast = Adw.Toast.new("Failed to copy password")
+                parent.toast_overlay.add_toast(toast)
     
     def _on_use_password(self, button):
         """Emit signal with generated password and close popover."""

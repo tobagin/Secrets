@@ -65,13 +65,24 @@ class ClipboardManager:
     def _auto_clear_callback(self, original_text: str):
         """Auto-clear callback that only clears if clipboard still contains the original text."""
         try:
-            # Check if clipboard still contains our text
-            current_text = self.clipboard.read_text()
-            if current_text == original_text:
-                self.clipboard.set_text("")
-                self.toast_manager.show_info("Clipboard automatically cleared")
+            # Use async read to avoid blocking
+            def on_read_complete(clipboard, result):
+                try:
+                    current_text = clipboard.read_text_finish(result)
+                    if current_text == original_text:
+                        self.clipboard.set_text("")
+                        self.toast_manager.show_info("Clipboard automatically cleared")
+                except Exception:
+                    # If we can't read clipboard, just clear it to be safe
+                    try:
+                        self.clipboard.set_text("")
+                        self.toast_manager.show_info("Clipboard automatically cleared")
+                    except Exception:
+                        pass  # Ignore errors during auto-clear
+
+            self.clipboard.read_text_async(None, on_read_complete)
         except Exception:
-            # If we can't read clipboard, just clear it to be safe
+            # Fallback: just clear the clipboard
             try:
                 self.clipboard.set_text("")
                 self.toast_manager.show_info("Clipboard automatically cleared")
