@@ -164,7 +164,9 @@ class SecretsApplication(Adw.Application):
         pass
 
     def on_about_action(self, action, param):
+        from .ui.dialogs.about_dialog import create_about_dialog
         from .window import SecretsWindow # Local import
+
         active_window = self.get_active_window()
         # Fallback if active_window is not the main one (e.g. a dialog is focused)
         if not isinstance(active_window, SecretsWindow) and self.get_windows():
@@ -173,16 +175,7 @@ class SecretsApplication(Adw.Application):
                      active_window = w
                      break
 
-        about_dialog = Adw.AboutWindow(
-            transient_for=active_window,
-            application_name="Secrets",
-            application_icon=APP_ID,
-            developer_name="tobagin", # Replace with your actual name/handle
-            version=VERSION,
-            website="https://github.com/tobagin/secrets", # Replace with your actual project URL
-            copyright="© 2023 tobagin", # Replace
-            license_type=Gtk.License.GPL_3_0 # Or your chosen license
-        )
+        about_dialog = create_about_dialog(transient_for=active_window)
         about_dialog.present()
 
     def on_quit_action(self, action, param):

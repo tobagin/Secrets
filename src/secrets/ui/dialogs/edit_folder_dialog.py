@@ -9,37 +9,40 @@ from ...app_info import APP_ID
 from ..widgets import ColorPicker, IconPicker
 
 
-@Gtk.Template(resource_path=f'/{APP_ID.replace(".", "/")}/ui/dialogs/add_folder_dialog.ui')
-class AddFolderDialog(Adw.Window):
-    """Dialog for creating new folders in the password store."""
+@Gtk.Template(resource_path=f'/{APP_ID.replace(".", "/")}/ui/dialogs/edit_folder_dialog.ui')
+class EditFolderDialog(Adw.Window):
+    """Dialog for editing existing folders in the password store."""
 
-    __gtype_name__ = "AddFolderDialog"
+    __gtype_name__ = "EditFolderDialog"
 
     # Template widgets
-    create_button = Gtk.Template.Child()
+    window_title = Gtk.Template.Child()
     path_entry = Gtk.Template.Child()
     color_row = Gtk.Template.Child()
     color_avatar = Gtk.Template.Child()
     color_select_button = Gtk.Template.Child()
     icon_row = Gtk.Template.Child()
     icon_avatar = Gtk.Template.Child()
+    save_button = Gtk.Template.Child()
 
     # Define custom signals
     __gsignals__ = {
-        "folder-create-requested": (GObject.SIGNAL_RUN_FIRST, None, (str, str, str)),
+        "folder-edit-requested": (GObject.SIGNAL_RUN_FIRST, None, (str, str, str, str)),
     }
 
-    def __init__(self, transient_for_window=None, suggested_parent_path="", **kwargs):
+    def __init__(self, folder_path, current_color=None, current_icon=None, transient_for_window=None, **kwargs):
         super().__init__(modal=True, transient_for=transient_for_window, **kwargs)
 
-        self.suggested_parent_path = suggested_parent_path
+        self.original_folder_path = folder_path
+        self.current_color = current_color or "#3584e4"  # Default blue
+        self.current_icon = current_icon or "folder-symbolic"  # Default folder icon
 
-        # Initialize color and icon
-        self.selected_color = "#3584e4"  # Default blue
-        self.selected_icon = "folder-symbolic"  # Default folder icon
+        # Initialize selected values
+        self.selected_color = self.current_color
+        self.selected_icon = self.current_icon
 
         # Create color paintable for avatar
-        self.color_paintable = ColorPaintable(self.selected_color, self.selected_icon)
+        self.color_paintable = ColorPaintable(self.selected_color)
 
         # Icon options for folders
         self.folder_icons = [
@@ -56,35 +59,33 @@ class AddFolderDialog(Adw.Window):
             ("network-workgroup-symbolic", "Network"),
             ("folder-remote-symbolic", "Remote"),
         ]
-
+        
         self._setup_initial_state()
 
     def _setup_initial_state(self):
         """Setup initial state after template is loaded."""
+        # Set dialog title
+        title = f"Edit: {self.original_folder_path}"
+        self.set_title(title)
+        self.window_title.set_title(title)
+        
         # Connect signals programmatically to ensure they work
         self.path_entry.connect("notify::text", self.on_path_changed)
-        self.create_button.connect("clicked", self.on_create_clicked)
+        self.save_button.connect("clicked", self.on_save_clicked)
 
-        # Connect color button and icon row signals
+        # Connect color and icon signals
         self.color_select_button.connect("clicked", self.on_color_button_clicked)
         self.icon_row.connect("notify::selected", self.on_icon_changed)
 
-        # Setup icon combo row
+        # Set initial values
+        self.path_entry.set_text(self.original_folder_path)
         self._setup_icon_combo()
-
-        # Update avatars
         self._update_color_avatar()
         self._update_icon_avatar()
 
         # Connect to theme changes to update icon avatar
         style_manager = Adw.StyleManager.get_default()
         style_manager.connect("notify::dark", self._on_theme_changed)
-
-        # Pre-fill with suggested parent path if provided
-        if self.suggested_parent_path:
-            if not self.suggested_parent_path.endswith('/'):
-                self.suggested_parent_path += '/'
-            self.path_entry.set_text(self.suggested_parent_path)
 
         # Focus the path entry
         self.path_entry.grab_focus()
@@ -93,12 +94,20 @@ class AddFolderDialog(Adw.Window):
         self._update_button_state()
 
     def _update_button_state(self):
-        """Update the create button state based on current text."""
+        """Update the save button state based on current text and changes."""
         path = self.path_entry.get_text().strip()
-        self.create_button.set_sensitive(bool(path))
+
+        # Enable save button if path is not empty and something has changed
+        has_changes = (
+            path != self.original_folder_path or
+            self.selected_color != self.current_color or
+            self.selected_icon != self.current_icon
+        )
+
+        self.save_button.set_sensitive(bool(path) and has_changes)
 
     def on_path_changed(self, entry, pspec):
-        """Handle path entry changes to enable/disable create button."""
+        """Handle path entry changes to enable/disable save button."""
         self._update_button_state()
 
     def _setup_icon_combo(self):
@@ -116,8 +125,13 @@ class AddFolderDialog(Adw.Window):
         factory.connect("bind", self._on_icon_item_bind)
         self.icon_row.set_factory(factory)
 
-        # Set default selection (first item - folder-symbolic)
-        self.icon_row.set_selected(0)
+        # Set current selection based on current icon
+        current_index = 0
+        for i, (icon_name, _) in enumerate(self.folder_icons):
+            if icon_name == self.current_icon:
+                current_index = i
+                break
+        self.icon_row.set_selected(current_index)
 
     def on_color_button_clicked(self, button):
         """Handle color button click - show color chooser dialog."""
@@ -142,6 +156,7 @@ class AddFolderDialog(Adw.Window):
             # Convert RGBA to hex
             self.selected_color = f"#{int(rgba.red * 255):02x}{int(rgba.green * 255):02x}{int(rgba.blue * 255):02x}"
             self._update_color_avatar()
+            self._update_button_state()
         dialog.destroy()
 
     def on_icon_changed(self, combo_row, pspec):
@@ -150,6 +165,7 @@ class AddFolderDialog(Adw.Window):
         if selected_index < len(self.folder_icons):
             self.selected_icon = self.folder_icons[selected_index][0]
             self._update_icon_avatar()
+            self._update_button_state()
 
     def _update_color_avatar(self):
         """Update the color avatar using custom paintable."""
@@ -182,22 +198,24 @@ class AddFolderDialog(Adw.Window):
 
     def on_path_activated(self, entry):
         """Handle Enter key in path entry."""
-        if self.create_button.get_sensitive():
-            self.on_create_clicked(None)
+        if self.save_button.get_sensitive():
+            self.on_save_clicked(None)
 
-    def on_create_clicked(self, widget):
-        """Handle create button click."""
-        path = self.path_entry.get_text().strip()
 
-        if not path:
+
+    def on_save_clicked(self, widget):
+        """Handle save button click."""
+        new_path = self.path_entry.get_text().strip()
+
+        if not new_path:
             # This shouldn't happen due to button sensitivity, but just in case
             self.path_entry.grab_focus()
             return
 
         # Clean the path (remove leading/trailing slashes)
-        path = path.strip('/')
+        new_path = new_path.strip('/')
 
-        if not path:
+        if not new_path:
             # Path was only slashes
             self.path_entry.grab_focus()
             return
@@ -206,24 +224,27 @@ class AddFolderDialog(Adw.Window):
         selected_color = self.selected_color
         selected_icon = self.selected_icon
 
-        # Emit the signal with the folder path, color, and icon
-        self.emit("folder-create-requested", path, selected_color, selected_icon)
-
-
+        # Emit the signal with old path, new path, color, and icon
+        self.emit("folder-edit-requested", self.original_folder_path, new_path, selected_color, selected_icon)
 
 
 if __name__ == '__main__':
     # Basic testing of the dialog
-    app = Adw.Application(application_id="com.example.testaddfolderdialog")
+    app = Adw.Application(application_id="com.example.testeditfolderdialog")
 
     def on_activate(application):
-        dialog = AddFolderDialog(transient_for_window=None, suggested_parent_path="websites")
+        dialog = EditFolderDialog(
+            folder_path="websites",
+            current_color="#33d17a",
+            current_icon="network-wired-symbolic",
+            transient_for_window=None
+        )
 
-        def handle_create(dialog_instance, folder_path, color, icon):
-            print(f"Create folder requested: {folder_path}, color: {color}, icon: {icon}")
+        def handle_edit(dialog_instance, old_path, new_path, color, icon):
+            print(f"Edit folder requested: {old_path} -> {new_path}, color: {color}, icon: {icon}")
             dialog_instance.close()
 
-        dialog.connect('folder-create-requested', handle_create)
+        dialog.connect('folder-edit-requested', handle_edit)
         dialog.present()
 
     app.connect("activate", on_activate)

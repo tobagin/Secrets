@@ -32,7 +32,9 @@ ui_sources = [
   'ui/components/password_generator_popover.py',
   'ui/components/git_status_component.py',
   'ui/dialogs/__init__.py',
+  'ui/dialogs/about_dialog.py',
   'ui/dialogs/add_folder_dialog.py',
+  'ui/dialogs/edit_folder_dialog.py',
   'ui/dialogs/add_password_dialog.py',
   'ui/dialogs/edit_password_dialog.py',
   'ui/dialogs/preferences_dialog.py',
@@ -42,8 +44,11 @@ ui_sources = [
   'ui/dialogs/git_status_dialog.py',
   'ui/dialogs/lock_dialog.py',
   'ui/widgets/__init__.py',
+  'ui/widgets/color_paintable.py',
   'ui/widgets/password_row.py',
-  'ui/widgets/folder_expander_row.py'
+  'ui/widgets/folder_expander_row.py',
+  'ui/widgets/color_picker.py',
+  'ui/widgets/icon_picker.py'
 ]
 
 # Controller files
@@ -89,7 +94,9 @@ managers_sources = [
   'managers/clipboard_manager.py',
   'managers/password_display_manager.py',
   'managers/search_manager.py',
-  'managers/git_manager.py'
+  'managers/git_manager.py',
+  'managers/favicon_manager.py',
+  'managers/metadata_manager.py'
 ]
 
 # Install all Python files

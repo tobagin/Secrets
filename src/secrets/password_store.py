@@ -22,6 +22,10 @@ class PasswordStore:
         self.gpg_health_status = None  # Will be set by validate_gpg_setup()
         # Don't raise error here immediately; let UI handle prompting.
 
+        # Initialize metadata manager (import locally to avoid circular imports)
+        from .managers.metadata_manager import MetadataManager
+        self.metadata_manager = MetadataManager(self.store_dir)
+
     @property
     def is_initialized(self):
         """Check if the password store is properly initialized with a .gpg-id file."""
@@ -924,6 +928,98 @@ class PasswordStore:
         except Exception as e:
             return False, f"Unexpected error deleting folder: {str(e)}"
 
+    def rename_folder(self, old_folder_path, new_folder_path):
+        """
+        Rename a folder in the password store by moving all its contents.
+
+        Args:
+            old_folder_path (str): The current path of the folder to rename
+            new_folder_path (str): The new path for the folder
+
+        Returns:
+            tuple: (success: bool, message: str)
+        """
+        if not old_folder_path or not new_folder_path:
+            return False, "Old and new folder paths cannot be empty"
+
+        # Clean the folder paths
+        old_folder_path = old_folder_path.strip().strip('/')
+        new_folder_path = new_folder_path.strip().strip('/')
+
+        if old_folder_path == new_folder_path:
+            return False, "Old and new folder paths cannot be the same"
+
+        # Validate folder paths (no invalid characters)
+        invalid_chars = ['<', '>', ':', '"', '|', '?', '*']
+        for char in invalid_chars:
+            if char in new_folder_path:
+                return False, f"New folder path cannot contain '{char}'"
+
+        try:
+            # Create the full paths in the password store
+            old_full_path = os.path.join(self.store_dir, old_folder_path)
+            new_full_path = os.path.join(self.store_dir, new_folder_path)
+
+            # Check if old folder exists
+            if not os.path.exists(old_full_path):
+                return False, f"Folder '{old_folder_path}' does not exist"
+
+            # Check if new folder already exists
+            if os.path.exists(new_full_path):
+                return False, f"Folder '{new_folder_path}' already exists"
+
+            # Rename the directory
+            os.rename(old_full_path, new_full_path)
+
+            # Verify rename
+            if os.path.isdir(new_full_path) and not os.path.exists(old_full_path):
+                return True, f"Folder renamed from '{old_folder_path}' to '{new_folder_path}'"
+            else:
+                return False, f"Failed to rename folder '{old_folder_path}'"
+
+        except OSError as e:
+            return False, f"Error renaming folder: {str(e)}"
+        except Exception as e:
+            return False, f"Unexpected error renaming folder: {str(e)}"
+
+    # Metadata management methods
+
+    def set_folder_metadata(self, folder_path: str, color: str, icon: str):
+        """Set color and icon metadata for a folder."""
+        self.metadata_manager.set_folder_metadata(folder_path, color, icon)
+
+    def get_folder_metadata(self, folder_path: str):
+        """Get color and icon metadata for a folder."""
+        return self.metadata_manager.get_folder_metadata(folder_path)
+
+    def set_password_metadata(self, password_path: str, color: str, icon: str):
+        """Set color and icon metadata for a password."""
+        self.metadata_manager.set_password_metadata(password_path, color, icon)
+
+    def get_password_metadata(self, password_path: str):
+        """Get color, icon, and favicon metadata for a password."""
+        return self.metadata_manager.get_password_metadata(password_path)
+
+    def set_password_favicon(self, password_path: str, favicon_data: str):
+        """Set favicon base64 data for a password."""
+        self.metadata_manager.set_password_favicon(password_path, favicon_data)
+
+    def remove_folder_metadata(self, folder_path: str):
+        """Remove metadata for a folder."""
+        self.metadata_manager.remove_folder_metadata(folder_path)
+
+    def remove_password_metadata(self, password_path: str):
+        """Remove metadata for a password."""
+        self.metadata_manager.remove_password_metadata(password_path)
+
+    def rename_folder_metadata(self, old_path: str, new_path: str):
+        """Update metadata when a folder is renamed."""
+        self.metadata_manager.rename_folder_metadata(old_path, new_path)
+
+    def rename_password_metadata(self, old_path: str, new_path: str):
+        """Update metadata when a password is renamed/moved."""
+        self.metadata_manager.rename_password_metadata(old_path, new_path)
+
     def is_folder_empty(self, folder_path):
         """
         Check if a folder is empty (contains no .gpg files).
@@ -1061,7 +1157,9 @@ class PasswordStore:
         # Regex for username (case-insensitive key, various separators)
         # Allows 'login:', 'user :', 'Username = value' etc.
         username_regex = re.compile(r"^(login|user(?:name)?)\s*[:=-]?\s*(.+)$", re.IGNORECASE)
-        # Regex for URL (simple version, assumes it starts with http/https or www.)
+        # Regex for URL field (url: prefix)
+        url_field_regex = re.compile(r"^(url|website)\s*:\s*(.+)$", re.IGNORECASE)
+        # Regex for direct URL (simple version, assumes it starts with http/https or www.)
         url_regex = re.compile(r"^(https?://[^\s]+|[wW]{3}\.[^\s]+)$") # More permissive: re.compile(r"^\S+://\S+$")
 
         for line in other_lines:
@@ -1070,7 +1168,13 @@ class PasswordStore:
                 details['username'] = username_match.group(2).strip()
                 continue # Line claimed as username
 
-            # Check for URL after username, as some URLs might have 'user' in them
+            # Check for URL field (url: prefix) first
+            url_field_match = url_field_regex.match(line.strip())
+            if not details['url'] and url_field_match: # Take first URL field found
+                details['url'] = url_field_match.group(2).strip()
+                continue # Line claimed as URL field
+
+            # Check for direct URL after username, as some URLs might have 'user' in them
             # A simple check: if the line looks like a URL.
             # More robust URL detection can be complex.
             url_match = url_regex.match(line.strip()) # Strip line for URL check

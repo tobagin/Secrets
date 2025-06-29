@@ -6,6 +6,14 @@
   <template class="FolderExpanderRow" parent="AdwExpanderRow">
     <property name="title-lines">1</property>
     <property name="subtitle-lines">1</property>
+
+    <!-- Folder avatar -->
+    <child type="prefix">
+      <object class="AdwAvatar" id="folder_avatar">
+        <property name="size">32</property>
+        <property name="icon-name">folder-symbolic</property>
+      </object>
+    </child>
     
     <!-- Action buttons for the folder -->
     <child type="action">
@@ -21,7 +29,6 @@
             <property name="valign">center</property>
             <style>
               <class name="flat"/>
-              <class name="circular"/>
             </style>
           </object>
         </child>
@@ -33,7 +40,6 @@
             <property name="valign">center</property>
             <style>
               <class name="flat"/>
-              <class name="circular"/>
             </style>
           </object>
         </child>
@@ -45,7 +51,6 @@
             <property name="valign">center</property>
             <style>
               <class name="flat"/>
-              <class name="circular"/>
               <class name="destructive-action"/>
             </style>
           </object>

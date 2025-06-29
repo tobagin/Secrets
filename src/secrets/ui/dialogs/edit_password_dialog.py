@@ -5,10 +5,12 @@ import random
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 
-from gi.repository import Gtk, Adw, GObject
+from gi.repository import Gtk, Adw, GObject, Gio
+from ..widgets.color_paintable import ColorPaintable
 from ...utils import DialogManager, UIConstants, AccessibilityHelper
 from ..components.password_generator_popover import PasswordGeneratorPopover
 from ...app_info import APP_ID
+from ..widgets import ColorPicker, IconPicker
 
 # Use SystemRandom for cryptographically secure random generation
 _secure_random = random.SystemRandom()
@@ -29,20 +31,27 @@ class EditPasswordDialog(Adw.Window):
     recovery_expander = Gtk.Template.Child()
     add_recovery_button = Gtk.Template.Child()
     recovery_codes_box = Gtk.Template.Child()
+    color_row = Gtk.Template.Child()
+    color_avatar = Gtk.Template.Child()
+    color_select_button = Gtk.Template.Child()
+    icon_row = Gtk.Template.Child()
+    icon_avatar = Gtk.Template.Child()
     notes_view = Gtk.Template.Child()
     save_button = Gtk.Template.Child()
 
     # Define a signal that the dialog can emit when save is attempted
-    # The signal will carry the old path, new path, and new content.
+    # The signal will carry the old path, new path, new content, color, and icon.
     # This allows handling both content changes and path/name changes.
-    sig_save_requested = GObject.Signal(name='save-requested', arg_types=[str, str, str])
+    sig_save_requested = GObject.Signal(name='save-requested', arg_types=[str, str, str, str, str])
 
-    def __init__(self, password_path, password_content, transient_for_window, password_store=None, **kwargs):
+    def __init__(self, password_path, password_content, transient_for_window, password_store=None, current_color=None, current_icon=None, **kwargs):
         super().__init__(modal=True, transient_for=transient_for_window, **kwargs)
 
         self.password_path = password_path
         self.initial_content = password_content
         self.password_store = password_store
+        self.current_color = current_color or "#3584e4"  # Default blue
+        self.current_icon = current_icon or "dialog-password-symbolic"  # Default password icon
 
         # Configure dialog title
         title = f"Edit: {os.path.basename(password_path)}"
@@ -55,6 +64,29 @@ class EditPasswordDialog(Adw.Window):
 
         # Initialize recovery codes list
         self.recovery_codes = []
+
+        # Initialize color and icon
+        self.selected_color = self.current_color
+        self.selected_icon = self.current_icon
+
+        # Create color paintable for avatar
+        self.color_paintable = ColorPaintable(self.selected_color)
+
+        # Icon options for passwords
+        self.password_icons = [
+            ("dialog-password-symbolic", "Password"),
+            ("network-server-symbolic", "Server"),
+            ("web-browser-symbolic", "Website"),
+            ("mail-send-symbolic", "Email"),
+            ("applications-games-symbolic", "Game"),
+            ("preferences-system-symbolic", "System"),
+            ("network-workgroup-symbolic", "Network"),
+            ("document-edit-symbolic", "Document"),
+            ("applications-multimedia-symbolic", "Media"),
+            ("applications-development-symbolic", "Development"),
+            ("user-info-symbolic", "Personal"),
+            ("emblem-important-symbolic", "Important"),
+        ]
 
         # Create string list for folders
         self.folder_model = Gtk.StringList()
@@ -90,10 +122,28 @@ class EditPasswordDialog(Adw.Window):
         self.add_recovery_button.connect("clicked", self.on_add_recovery_code_clicked)
         self.save_button.connect("clicked", self.on_save_clicked)
 
+        # Connect color and icon signals
+        self.color_select_button.connect("clicked", self.on_color_button_clicked)
+        self.icon_row.connect("notify::selected", self.on_icon_changed)
+
+        # Setup icon combo row
+        self._setup_icon_combo()
+
+        # Update avatars
+        self._update_color_avatar()
+        self._update_icon_avatar()
+
+        # Connect to theme changes to update icon avatar
+        style_manager = Adw.StyleManager.get_default()
+        style_manager.connect("notify::dark", self._on_theme_changed)
+
         # Populate existing recovery codes and set expansion behavior
         recovery_codes = parsed_content.get('recovery_codes', [])
         self._populate_recovery_codes(recovery_codes)
         self._update_recovery_expansion(recovery_codes)
+
+        # Set initial color and icon values (handled by setup methods)
+        # Color and icon are set up in _setup_color_combo and _setup_icon_combo
 
         # Set up dialog behavior
         self._setup_dialog_behavior()
@@ -168,7 +218,13 @@ class EditPasswordDialog(Adw.Window):
                     parsed['totp'] = line_stripped.split(':', 1)[1].strip()
                 continue
 
-            # Check for URL patterns (simple check)
+            # Check for URL patterns
+            if line_stripped.lower().startswith(('url:', 'website:')):
+                if not parsed['url']:  # Take first URL found
+                    parsed['url'] = line_stripped.split(':', 1)[1].strip()
+                continue
+
+            # Check for direct URL patterns (legacy format)
             if line_stripped.startswith(('http://', 'https://', 'www.')):
                 if not parsed['url']:  # Take first URL found
                     parsed['url'] = line_stripped
@@ -264,6 +320,102 @@ class EditPasswordDialog(Adw.Window):
         """Handle generated password from popover."""
         self.password_entry.set_text(password)
 
+    def _setup_icon_combo(self):
+        """Setup the icon combo row with available icons."""
+        # Create a list store with icon names
+        list_store = Gio.ListStore.new(Gtk.StringObject)
+        for icon_name, display_name in self.password_icons:
+            list_store.append(Gtk.StringObject.new(icon_name))
+
+        self.icon_row.set_model(list_store)
+
+        # Set up the factory to display icons instead of text
+        factory = Gtk.SignalListItemFactory()
+        factory.connect("setup", self._on_icon_item_setup)
+        factory.connect("bind", self._on_icon_item_bind)
+        self.icon_row.set_factory(factory)
+
+        # Set current selection based on current icon
+        current_index = 0
+        for i, (icon_name, _) in enumerate(self.password_icons):
+            if icon_name == self.current_icon:
+                current_index = i
+                break
+        self.icon_row.set_selected(current_index)
+
+    def on_color_button_clicked(self, button):
+        """Handle color button click - show color chooser dialog."""
+        color_dialog = Gtk.ColorChooserDialog()
+        color_dialog.set_transient_for(self)
+        color_dialog.set_modal(True)
+        color_dialog.set_title("Choose Password Color")
+
+        # Set current color
+        from gi.repository import Gdk
+        rgba = Gdk.RGBA()
+        rgba.parse(self.selected_color)
+        color_dialog.set_rgba(rgba)
+
+        color_dialog.connect("response", self.on_color_dialog_response)
+        color_dialog.present()
+
+    def on_color_dialog_response(self, dialog, response_id):
+        """Handle color dialog response."""
+        if response_id == Gtk.ResponseType.OK:
+            rgba = dialog.get_rgba()
+            # Convert RGBA to hex
+            self.selected_color = f"#{int(rgba.red * 255):02x}{int(rgba.green * 255):02x}{int(rgba.blue * 255):02x}"
+            self._update_color_avatar()
+            self._update_save_button_state()
+        dialog.destroy()
+
+    def on_icon_changed(self, combo_row, pspec):
+        """Handle icon selection changes."""
+        selected_index = self.icon_row.get_selected()
+        if selected_index < len(self.password_icons):
+            self.selected_icon = self.password_icons[selected_index][0]
+            self._update_icon_avatar()
+            self._update_save_button_state()
+
+    def _update_color_avatar(self):
+        """Update the color avatar using custom paintable."""
+        self.color_paintable.set_color(self.selected_color)
+        self.color_avatar.set_custom_image(self.color_paintable)
+
+    def _update_icon_avatar(self):
+        """Update the icon avatar with transparent background."""
+        # Create a transparent paintable with just the icon
+        icon_paintable = ColorPaintable("transparent", self.selected_icon)
+        self.icon_avatar.set_custom_image(icon_paintable)
+
+    def _on_icon_item_setup(self, factory, list_item):
+        """Setup the icon list item widget."""
+        image = Gtk.Image()
+        image.set_icon_size(Gtk.IconSize.INHERIT)
+        image.set_pixel_size(16)  # Standard icon size
+        list_item.set_child(image)
+
+    def _on_icon_item_bind(self, factory, list_item):
+        """Bind the icon to the list item."""
+        string_object = list_item.get_item()
+        icon_name = string_object.get_string()
+        image = list_item.get_child()
+        image.set_from_icon_name(icon_name)
+
+    def _on_theme_changed(self, style_manager, param):
+        """Handle theme changes to update icon avatar."""
+        self._update_icon_avatar()
+
+    def _update_save_button_state(self):
+        """Update the save button state based on form validity."""
+        # Check if required fields are filled
+        name_text = self.name_entry.get_text().strip()
+        password_text = self.password_entry.get_text().strip()
+
+        # Enable save button if name and password are provided
+        is_valid = bool(name_text and password_text)
+        self.save_button.set_sensitive(is_valid)
+
     def _populate_recovery_codes(self, recovery_codes):
         """Populate existing recovery codes."""
         for code in recovery_codes:
@@ -354,7 +506,8 @@ class EditPasswordDialog(Adw.Window):
             content_lines.append(f"username: {username}")
 
         if url:
-            content_lines.append(url)
+            # Always save URL with url: prefix for consistency
+            content_lines.append(f"url: {url}")
 
         if totp:
             content_lines.append(f"totp: {totp}")
@@ -371,9 +524,12 @@ class EditPasswordDialog(Adw.Window):
 
         new_content = "\n".join(content_lines)
 
-        # Emit the signal with old path, new path, and new content
-        # We need to update the signal to handle path changes
-        self.emit("save-requested", self.password_path, new_path, new_content)
+        # Get selected color and icon
+        selected_color = self.selected_color
+        selected_icon = self.selected_icon
+
+        # Emit the signal with old path, new path, new content, color, and icon
+        self.emit("save-requested", self.password_path, new_path, new_content, selected_color, selected_icon)
 
 if __name__ == '__main__': # For basic testing of the dialog itself
     # import os # Already at module level
@@ -386,9 +542,10 @@ if __name__ == '__main__': # For basic testing of the dialog itself
 
         dialog = EditPasswordDialog(test_path, test_content, transient_for_window=None)
 
-        def handle_save(dialog_instance, path, content):
-            print(f"Save requested for path: {path}")
+        def handle_save(dialog_instance, old_path, new_path, content, color, icon):
+            print(f"Save requested for path: {old_path} -> {new_path}")
             print(f"New content:\n{content}")
+            print(f"Color: {color}, Icon: {icon}")
             dialog_instance.close() # Close after handling
 
         dialog.connect('save-requested', handle_save)

@@ -1,41 +1,56 @@
 # Screenshots
 
-This directory contains screenshots for the Secrets application.
+This directory contains screenshots for the Secrets application. All screenshots show both light and dark themes side-by-side for comprehensive theme coverage.
 
 ## Available Screenshots
 
 ### Main Interface
-1. **main-window.png** - Main application window showing the password list and details
-2. **password-page-view.png** - Detailed password view with TOTP and structured fields
+1. **main-window.png** - Main application window showing password store with hierarchical folder organization (light/dark theme comparison)
 
-### Dialogs and Features
-3. **add-new-password.png** - Add password dialog with structured fields
-4. **about-dialog.png** - About dialog showing application information
-5. **edit-password.png** - Edit password dialog with comprehensive options
-6. **keyboard-shortcuts.png** - Keyboard shortcuts help dialog
+### Password Management
+2. **add-new-password.png** - Add new password dialog with comprehensive field options (light/dark theme comparison)
+3. **edit-password.png** - Edit password dialog with comprehensive field options (light/dark theme comparison)
+4. **password-generator.png** - Password generator with strength indicators and customizable options (light/dark theme comparison)
 
-### Settings and Preferences
-7. **general-settings.png** - General application preferences
-8. **security-settings.png** - Security settings and session management
-9. **search-settings.png** - Search and filtering preferences
-10. **git-settings.png** - Git integration configuration
+### Folder Management
+5. **add-new-folder.png** - Add new folder dialog with color and icon customization (light/dark theme comparison)
+6. **edit-folder.png** - Edit folder dialog with color and icon customization (light/dark theme comparison)
 
-### Git Integration
-11. **git-status-dialog.png** - Git status and repository information
-12. **git-repo-history.png** - Git commit history viewer
+### Application Features
+7. **search-filter.png** - Search and filtering interface (light/dark theme comparison)
+8. **general-settings.png** - General settings and preferences dialog (light/dark theme comparison)
+9. **about-dialog.png** - About dialog showing application information (light/dark theme comparison)
+
+## Screenshot Format
+
+All screenshots in this directory are **combined theme screenshots** that show:
+- **Left half**: Light theme version
+- **Right half**: Dark theme version
+
+This format provides comprehensive theme coverage in a single image, making it easier for users to see how the application looks in both themes.
 
 ## Screenshot Guidelines
 
-- Use 16:10 aspect ratio (e.g., 1280x800)
-- Show the application in a realistic use case
-- Use light theme for consistency
+- Combined screenshots show both light and dark themes side-by-side
+- Use realistic aspect ratios that match typical dialog sizes
+- Show the application in realistic use cases
 - Ensure no real passwords or sensitive data are visible
 - Use placeholder data that looks realistic but is clearly fake
+- Maintain consistent window sizes between light and dark versions
 
-## Taking Screenshots
+## Taking Combined Screenshots
 
 1. Run the application: `./run-dev.sh`
 2. Set up some test data in your password store
-3. Take screenshots using your system's screenshot tool
-4. Save them in this directory with descriptive names
-5. Update the appdata.xml.in file with the correct screenshot URLs
+3. Take screenshots in light theme first
+4. Switch to dark theme and take matching screenshots
+5. Use image editing tools to combine them side-by-side (left=light, right=dark)
+6. Save the combined images in this directory with descriptive names
+7. Update the appdata.xml.in file with the correct screenshot URLs
+
+## Image Processing
+
+Combined screenshots are created using Python PIL (Pillow) to merge light and dark theme versions:
+- Left half: Light theme screenshot
+- Right half: Dark theme screenshot
+- Maintains original image quality and dimensions

@@ -7,6 +7,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 
 from gi.repository import Gtk, Adw, GObject
+from .color_paintable import ColorPaintable
 from ...app_info import APP_ID
 
 
@@ -17,6 +18,7 @@ class FolderExpanderRow(Adw.ExpanderRow):
     __gtype_name__ = "FolderExpanderRow"
     
     # Template widgets
+    folder_avatar = Gtk.Template.Child()
     folder_actions_box = Gtk.Template.Child()
     add_password_to_folder_button = Gtk.Template.Child()
     edit_folder_button = Gtk.Template.Child()
@@ -68,6 +70,12 @@ class FolderExpanderRow(Adw.ExpanderRow):
     def get_folder_path(self):
         """Get the folder path associated with this row."""
         return self._folder_path
+
+    def set_avatar_color_and_icon(self, color, icon_name):
+        """Set the avatar color and icon using custom paintable."""
+        # Create combined paintable with color and icon
+        paintable = ColorPaintable(color, icon_name)
+        self.folder_avatar.set_custom_image(paintable)
     
     def add_password_row(self, password_row):
         """

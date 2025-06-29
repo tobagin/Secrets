@@ -26,70 +26,49 @@
                         <style>
                           <class name="flat"/>
                         </style>
+
+                        <!-- Left side buttons -->
+                        <child type="start">
+                          <object class="GtkBox">
+                            <property name="orientation">horizontal</property>
+                            <property name="spacing">6</property>
+
+                            <!-- Search toggle button -->
+                            <child>
+                              <object class="GtkToggleButton" id="search_toggle_button">
+                                <property name="icon-name">system-search-symbolic</property>
+                                <property name="tooltip-text" translatable="yes">Toggle Search</property>
+                                <style><class name="flat"/></style>
+                              </object>
+                            </child>
+
+                            <!-- Add split button -->
+                            <child>
+                              <object class="AdwSplitButton" id="add_split_button">
+                                <property name="icon-name">io.github.tobagin.secrets-add-password-symbolic</property>
+                                <property name="tooltip-text" translatable="yes">Add Password</property>
+                                <property name="menu-model">add_menu</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+
+                        <!-- Right side buttons -->
+                        <child type="end">
+                          <object class="GtkMenuButton" id="sidebar_menu_button">
+                            <property name="icon-name">open-menu-symbolic</property>
+                            <property name="tooltip-text" translatable="yes">Main Menu</property>
+                            <property name="menu-model">main_menu</property>
+                            <style><class name="flat"/></style>
+                          </object>
+                        </child>
                       </object>
                     </child>
                     <property name="content">
                       <object class="GtkBox" id="sidebar_content">
                         <property name="orientation">vertical</property>
                         <property name="spacing">0</property>
-                        <child>
-                          <object class="GtkBox" id="action_buttons_bar">
-                            <property name="orientation">horizontal</property>
-                            <property name="spacing">6</property>
-                            <property name="homogeneous">True</property>
-                            <property name="margin-start">12</property>
-                            <property name="margin-end">12</property>
-                            <property name="margin-top">6</property>
-                            <property name="margin-bottom">6</property>
 
-                            <child>
-                              <object class="GtkButton" id="add_password_button">
-                                <property name="icon-name">list-add-symbolic</property>
-                                <property name="tooltip-text" translatable="yes">Add Password</property>
-                                <property name="halign">center</property>
-                                <style><class name="flat"/></style>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkButton" id="add_folder_button">
-                                <property name="icon-name">folder-new-symbolic</property>
-                                <property name="tooltip-text" translatable="yes">Add Folder</property>
-                                <property name="halign">center</property>
-                                <style><class name="flat"/></style>
-                              </object>
-                            </child>
-                            <!-- Git buttons disabled -->
-                            <!--
-                            <!-- Git buttons disabled for v0.8.6 will be re-enabled in v0.9.x
-                            <!--
-                            <child>
-                              <object class="GtkButton" id="git_push_button">
-                                <property name="icon-name">io.github.tobagin.secrets-cloud-upload-symbolic</property>
-                                <property name="tooltip-text" translatable="yes">Git Push</property>
-                                <property name="halign">center</property>
-                                <style><class name="flat"/></style>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkButton" id="git_pull_button">
-                                <property name="icon-name">io.github.tobagin.secrets-cloud-download-symbolic</property>
-                                <property name="tooltip-text" translatable="yes">Git Pull</property>
-                                <property name="halign">center</property>
-                                <style><class name="flat"/></style>
-                              </object>
-                            </child>
-                            -->
-                            -->
-                            <child>
-                              <object class="GtkToggleButton" id="search_toggle_button">
-                                <property name="icon-name">system-search-symbolic</property>
-                                <property name="tooltip-text" translatable="yes">Toggle Search</property>
-                                <property name="halign">center</property>
-                                <style><class name="flat"/></style>
-                              </object>
-                            </child>
-                          </object>
-                        </child>
                         <child>
                           <object class="AdwClamp" id="search_clamp">
                             <property name="visible">False</property>
@@ -140,7 +119,7 @@
                       <object class="AdwHeaderBar" id="content_header">
                         <child type="title">
                           <object class="AdwWindowTitle">
-                            <property name="title" translatable="yes">Secrets</property>
+                            <property name="title" translatable="yes">Secrets Manager</property>
                             <property name="subtitle" translatable="yes">GUI for pass password manager</property>
                           </object>
                         </child>
@@ -163,12 +142,6 @@
                               </object>
                             </child>
                             -->
-                            <child>
-                              <object class="GtkMenuButton" id="main_menu_button">
-                                <property name="icon-name">open-menu-symbolic</property>
-                                <property name="menu-model">main_menu</property>
-                              </object>
-                            </child>
                           </object>
                         </child>
                       </object>
@@ -531,6 +504,16 @@
       <item>
         <attribute name="label" translatable="yes">_Quit</attribute>
         <attribute name="action">app.quit</attribute>
+      </item>
+    </section>
+  </menu>
+
+  <!-- Add menu for the split button dropdown -->
+  <menu id="add_menu">
+    <section>
+      <item>
+        <attribute name="action">win.add_folder</attribute>
+        <attribute name="icon">folder-new-symbolic</attribute>
       </item>
     </section>
   </menu>

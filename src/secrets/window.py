@@ -3,7 +3,7 @@ import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 
-from gi.repository import Gtk, Adw, Gio, GObject, Gdk, GLib # Added GLib
+from gi.repository import Gtk, Adw, Gio, GObject, Gio, Gdk, GLib # Added GLib
 import os
 
 from .password_store import PasswordStore
@@ -70,12 +70,9 @@ class SecretsWindow(Adw.ApplicationWindow):
     # Sidebar widgets
     sidebar_page = Gtk.Template.Child()
     sidebar_header = Gtk.Template.Child()
-    action_buttons_bar = Gtk.Template.Child()
-    add_password_button = Gtk.Template.Child()
-    add_folder_button = Gtk.Template.Child()
-    # git_push_button = Gtk.Template.Child()  # Disabled for v0.8.6
-    # git_pull_button = Gtk.Template.Child()  # Disabled for v0.8.6
     search_toggle_button = Gtk.Template.Child()
+    add_split_button = Gtk.Template.Child()
+    sidebar_menu_button = Gtk.Template.Child()
     search_clamp = Gtk.Template.Child()
     search_entry = Gtk.Template.Child()
     folders_scrolled = Gtk.Template.Child()
@@ -87,7 +84,7 @@ class SecretsWindow(Adw.ApplicationWindow):
     content_page = Gtk.Template.Child()
     content_header = Gtk.Template.Child()
     # git_status_button = Gtk.Template.Child()  # Disabled for v0.8.6
-    main_menu_button = Gtk.Template.Child()
+    # main_menu_button = Gtk.Template.Child()  # Removed - menu is now in sidebar header
     details_stack = Gtk.Template.Child()
     placeholder_page = Gtk.Template.Child()
 
@@ -165,16 +162,27 @@ class SecretsWindow(Adw.ApplicationWindow):
         # Connect remaining signals for buttons that aren't handled by controllers
         self.edit_button.connect("clicked", self.on_edit_button_clicked)
         self.remove_button.connect("clicked", self.on_remove_button_clicked)
-        self.add_password_button.connect("clicked", self.on_add_password_button_clicked)
-        self.add_folder_button.connect("clicked", self.on_add_folder_button_clicked)
-        # Git button connections disabled for v0.8.6
-        # self.git_pull_button.connect("clicked", self.on_git_pull_clicked)
-        # self.git_push_button.connect("clicked", self.on_git_push_clicked)
-        # self.git_status_button.connect("clicked", self.on_git_status_button_clicked)
         self.search_toggle_button.connect("toggled", self.on_search_toggle_clicked)
+
+        # Connect split button main action to add password
+        self.add_split_button.connect("clicked", self.on_add_password_button_clicked)
+
+        # Setup actions for the add menu
+        self._setup_add_actions()
 
         # Git status monitoring disabled for v0.8.6
         # self._setup_git_status_monitoring()
+
+    def _setup_add_actions(self):
+        """Setup actions for the add menu."""
+        # Add folder action (only action needed in dropdown)
+        add_folder_action = Gio.SimpleAction.new("add_folder", None)
+        add_folder_action.connect("activate", self._on_add_folder_action)
+        self.add_action(add_folder_action)
+
+    def _on_add_folder_action(self, action, parameter):
+        """Handle add folder action from menu."""
+        self.on_add_folder_button_clicked(None)
 
         # Folder signals are handled by the DynamicFolderController
 
@@ -200,6 +208,12 @@ class SecretsWindow(Adw.ApplicationWindow):
             self.search_entry,
             on_selection_changed=self._on_selection_changed
         )
+
+        # Set up folder edit callback
+        self.folder_controller.edit_folder_requested = self._on_edit_folder_requested
+
+        # Set up add password to folder callback
+        self.folder_controller.add_password_to_folder_requested = self._on_add_password_to_folder_requested
 
         # Connect folder deletion dialog handling
         self.folder_controller.delete_folder_requested = self._on_delete_folder_dialog_requested
@@ -390,12 +404,20 @@ class SecretsWindow(Adw.ApplicationWindow):
             success, content_or_error = self.password_store.get_password_content(password_path)
             if success:
                 current_content = content_or_error
+
+                # Load current color and icon from metadata
+                password_metadata = self.password_store.get_password_metadata(password_path)
+                current_color = password_metadata["color"]
+                current_icon = password_metadata["icon"]
+
                 # Create and show the edit dialog
                 dialog = EditPasswordDialog(
                     password_path=password_path,
                     password_content=current_content,
                     transient_for_window=self,
-                    password_store=self.password_store
+                    password_store=self.password_store,
+                    current_color=current_color,
+                    current_icon=current_icon
                 )
                 dialog.connect("save-requested", self.on_edit_dialog_save_requested)
                 dialog.present()
@@ -405,7 +427,7 @@ class SecretsWindow(Adw.ApplicationWindow):
         else:
             self.toast_manager.show_warning("No item selected to edit.")
 
-    def on_edit_dialog_save_requested(self, dialog, old_path, new_path, new_content):
+    def on_edit_dialog_save_requested(self, dialog, old_path, new_path, new_content, color, icon):
         # Handle both content changes and path changes
         if old_path != new_path:
             # Path changed - need to move/rename and update content
@@ -415,6 +437,9 @@ class SecretsWindow(Adw.ApplicationWindow):
                 # Then move to the new location (this preserves folder structure)
                 move_success, move_message = self.password_store.move_password(old_path, new_path)
                 if move_success:
+                    # Update metadata for the moved password
+                    self.password_store.rename_password_metadata(old_path, new_path)
+                    self.password_store.set_password_metadata(new_path, color, icon)
                     self.toast_manager.show_success(f"Password moved from '{old_path}' to '{new_path}' and updated")
                     self.folder_controller.load_passwords()  # Refresh the entire list
                     self.details_controller.update_details(None)  # Clear details view
@@ -427,7 +452,11 @@ class SecretsWindow(Adw.ApplicationWindow):
             # Path unchanged - just update content
             success, message = self.password_store.insert_password(new_path, new_content, multiline=True, force=True)
             if success:
+                # Store color and icon metadata for the password
+                self.password_store.set_password_metadata(new_path, color, icon)
                 self.toast_manager.show_success(message)
+                # Refresh the specific password display with new metadata
+                self.folder_controller.refresh_password_display(new_path)
                 # Refresh the details view to show updated content
                 selected_item = self.folder_controller.get_selected_item()
                 if selected_item:
@@ -523,13 +552,15 @@ class SecretsWindow(Adw.ApplicationWindow):
         dialog.connect("add-requested", self.on_add_dialog_add_requested)
         dialog.present()
 
-    def on_add_folder_dialog_create_requested(self, dialog, folder_path):
+    def on_add_folder_dialog_create_requested(self, dialog, folder_path, color, icon):
         """Handle folder creation request from add folder dialog."""
         try:
             # Create the folder in the password store
             success, message = self.password_store.create_folder(folder_path)
 
             if success:
+                # Store color and icon metadata for the folder
+                self.password_store.set_folder_metadata(folder_path, color, icon)
                 self.toast_manager.show_success(f"Folder '{folder_path}' created successfully")
                 # Refresh the folder list to show the new folder
                 self.folder_controller.load_passwords()
@@ -541,12 +572,73 @@ class SecretsWindow(Adw.ApplicationWindow):
             self.toast_manager.show_error(f"Error creating folder: {str(e)}")
             print(f"Error creating folder '{folder_path}': {e}")
 
-    def on_add_dialog_add_requested(self, dialog, path, content):
+    def _on_edit_folder_requested(self, folder_path, folder_name):
+        """Handle edit folder request from folder controller."""
+        from .ui.dialogs.edit_folder_dialog import EditFolderDialog
+
+        # Load current color and icon from metadata
+        folder_metadata = self.password_store.get_folder_metadata(folder_path)
+        current_color = folder_metadata["color"]
+        current_icon = folder_metadata["icon"]
+
+        dialog = EditFolderDialog(
+            folder_path=folder_path,
+            current_color=current_color,
+            current_icon=current_icon,
+            transient_for_window=self
+        )
+        dialog.connect("folder-edit-requested", self.on_edit_folder_dialog_save_requested)
+        dialog.present()
+
+    def _on_add_password_to_folder_requested(self, folder_path):
+        """Handle add password to folder request from folder controller."""
+        from .ui.dialogs.add_password_dialog import AddPasswordDialog
+
+        dialog = AddPasswordDialog(
+            transient_for_window=self,
+            suggested_folder_path=folder_path,
+            password_store=self.password_store
+        )
+        dialog.connect("add-requested", self.on_add_dialog_add_requested)
+        dialog.present()
+
+    def on_edit_folder_dialog_save_requested(self, dialog, old_path, new_path, color, icon):
+        """Handle folder edit save request from edit folder dialog."""
+        try:
+            if old_path != new_path:
+                # Folder path changed - need to rename the folder
+                success, message = self.password_store.rename_folder(old_path, new_path)
+
+                if success:
+                    # Update metadata for the renamed folder
+                    self.password_store.rename_folder_metadata(old_path, new_path)
+                    self.password_store.set_folder_metadata(new_path, color, icon)
+                    self.toast_manager.show_success(f"Folder renamed from '{old_path}' to '{new_path}'")
+                    # Refresh the folder list to show the changes
+                    self.folder_controller.load_passwords()
+                    dialog.close()
+                else:
+                    self.toast_manager.show_error(f"Failed to rename folder: {message}")
+            else:
+                # Only color/icon changed
+                self.password_store.set_folder_metadata(old_path, color, icon)
+                self.toast_manager.show_success(f"Folder '{old_path}' appearance updated")
+                # Refresh the folder list to show the changes
+                self.folder_controller.load_passwords()
+                dialog.close()
+
+        except Exception as e:
+            self.toast_manager.show_error(f"Error editing folder: {str(e)}")
+            print(f"Error editing folder '{old_path}': {e}")
+
+    def on_add_dialog_add_requested(self, dialog, path, content, color, icon):
         # Use force=False to prevent overwriting existing entries by mistake.
         # `pass insert` without -f will fail if the entry already exists.
         success, message = self.password_store.insert_password(path, content, multiline=True, force=False)
 
         if success:
+            # Store color and icon metadata for the password
+            self.password_store.set_password_metadata(path, color, icon)
             self.toast_manager.show_success(message)
             self.folder_controller.load_passwords() # Refresh the list
         else:

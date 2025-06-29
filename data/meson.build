@@ -26,9 +26,16 @@ install_data(
 # Dialog UI files
 install_data(
   ['ui/dialogs/add_password_dialog.ui', 'ui/dialogs/edit_password_dialog.ui',
-   'ui/dialogs/add_folder_dialog.ui', 'ui/dialogs/password_generator_dialog.ui',
-   'ui/dialogs/import_export_dialog.ui'],
+   'ui/dialogs/add_folder_dialog.ui', 'ui/dialogs/edit_folder_dialog.ui',
+   'ui/dialogs/password_generator_dialog.ui', 'ui/dialogs/import_export_dialog.ui'],
   install_dir: get_option('datadir') / app_id / 'ui' / 'dialogs'
+)
+
+# Widget UI files
+install_data(
+  ['ui/widgets/password_row.ui', 'ui/widgets/folder_expander_row.ui',
+   'ui/widgets/color_picker.ui', 'ui/widgets/icon_picker.ui'],
+  install_dir: get_option('datadir') / app_id / 'ui' / 'widgets'
 )
 
 # Setup wizard UI files
@@ -91,6 +98,12 @@ foreach size : icon_sizes
     rename: app_id + '.png'
   )
 endforeach
+
+# Custom symbolic icons
+install_data(
+  'icons/scalable/actions/io.github.tobagin.secrets-add-password-symbolic.svg',
+  install_dir: get_option('datadir') / 'icons' / 'hicolor' / 'scalable' / 'actions'
+)
 
 # Symbolic icons
 install_data(

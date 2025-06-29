@@ -3,9 +3,9 @@
   <requires lib="gtk" version="4.0"/>
   <requires lib="libadwaita" version="1.0"/>
   
-  <template class="AddFolderDialog" parent="AdwWindow">
+  <template class="EditFolderDialog" parent="AdwWindow">
     <property name="modal">true</property>
-    <property name="title">Create New Folder</property>
+    <property name="title">Edit Folder</property>
     <property name="default-width">450</property>
     <property name="default-height">550</property>
     <property name="resizable">true</property>
@@ -21,8 +21,8 @@
         <child>
           <object class="AdwHeaderBar">
             <property name="title-widget">
-              <object class="AdwWindowTitle">
-                <property name="title">Create New Folder</property>
+              <object class="AdwWindowTitle" id="window_title">
+                <property name="title">Edit Folder</property>
               </object>
             </property>
           </object>
@@ -42,7 +42,7 @@
                 <child>
                   <object class="AdwPreferencesGroup">
                     <property name="title">Folder Details</property>
-                    <property name="description">Create a new folder to organize your passwords</property>
+                    <property name="description">Edit folder name and appearance</property>
 
                     <child>
                       <object class="AdwEntryRow" id="path_entry">
@@ -61,7 +61,7 @@
                     </child>
                   </object>
                 </child>
-
+                
                 <!-- Color Selection -->
                 <child>
                   <object class="AdwPreferencesGroup">
@@ -72,6 +72,7 @@
                       <object class="AdwActionRow" id="color_row">
                         <property name="title">Color</property>
                         <property name="subtitle">Choose a color for this folder</property>
+                        <property name="activatable">true</property>
                         <child type="prefix">
                           <object class="AdwAvatar" id="color_avatar">
                             <property name="size">32</property>
@@ -106,20 +107,20 @@
                     </child>
                   </object>
                 </child>
-
+                
 
               </object>
             </child>
           </object>
         </child>
 
-        <!-- Bottom HeaderBar with action button -->
+        <!-- Bottom HeaderBar with save button -->
         <child>
           <object class="AdwHeaderBar">
             <property name="show-end-title-buttons">false</property>
             <property name="title-widget">
-              <object class="GtkButton" id="create_button">
-                <property name="label">Create</property>
+              <object class="GtkButton" id="save_button">
+                <property name="label">Save</property>
                 <property name="sensitive">False</property>
                 <style>
                   <class name="suggested-action"/>

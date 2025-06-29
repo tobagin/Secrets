@@ -478,7 +478,13 @@ class PasswordDetailsController:
                     parsed['totp'] = line_stripped.split(':', 1)[1].strip()
                 continue
 
-            # Check for URL patterns (simple check)
+            # Check for URL patterns
+            if line_stripped.lower().startswith(('url:', 'website:')):
+                if not parsed['url']:  # Take first URL found
+                    parsed['url'] = line_stripped.split(':', 1)[1].strip()
+                continue
+
+            # Check for direct URL patterns (legacy format)
             if line_stripped.startswith(('http://', 'https://', 'www.')):
                 if not parsed['url']:  # Take first URL found
                     parsed['url'] = line_stripped

@@ -7,6 +7,8 @@ from .clipboard_manager import ClipboardManager
 from .password_display_manager import PasswordDisplayManager
 from .search_manager import SearchManager
 from .git_manager import GitManager, GitPlatformManager
+from .favicon_manager import FaviconManager, get_favicon_manager
+from .metadata_manager import MetadataManager
 
 __all__ = [
     'ToastManager',
@@ -14,5 +16,8 @@ __all__ = [
     'PasswordDisplayManager',
     'SearchManager',
     'GitManager',
-    'GitPlatformManager'
+    'GitPlatformManager',
+    'FaviconManager',
+    'get_favicon_manager',
+    'MetadataManager'
 ]
