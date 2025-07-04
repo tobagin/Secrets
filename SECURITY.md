@@ -44,15 +44,23 @@ Secrets is a security-critical application that manages user passwords. This doc
 - Command injection protection through argument validation
 - Sanitized environment variables for subprocess calls
 
-## Known Security Issues
+## Security Enhancements Implemented
 
-### Critical
-1. **Memory Exposure**: Passwords can be swapped to disk due to lack of memory locking
-2. **Token Storage**: Git platform tokens stored in plaintext in config.json
+### Critical Issues Fixed ✅
+1. **Memory Security**: Implemented secure memory handling with mlock and automatic wiping
+2. **Token Storage**: Integrated system keyring for encrypted credential storage
+3. **Cache Duration**: Reduced default cache TTL from 5 minutes to 60 seconds
+4. **Memory Cleanup**: Added secure string implementation with automatic memory wiping
 
-### Important
-1. **Cache Duration**: Default 5-minute cache may be too long for high-security environments
-2. **Memory Cleanup**: No secure wiping of password data from memory
+### Medium Priority Features Added ✅
+1. **Hardware Security Keys**: Full support for YubiKey and FIDO2 devices
+2. **Two-Factor Authentication**: TOTP, hardware keys, and backup codes
+3. **Encrypted Configuration**: All sensitive config stored encrypted
+4. **Audit Logging**: Comprehensive security event logging
+
+### Low Priority Features Added ✅
+1. **Certificate Pinning**: Protection against MITM attacks for Git operations
+2. **Incident Response**: Automated security incident detection and response
 
 ## Security Best Practices
 
@@ -78,19 +86,25 @@ If you discover a security vulnerability:
 3. Include steps to reproduce and potential impact
 4. Allow reasonable time for a fix before public disclosure
 
-## Future Security Enhancements
+## Advanced Security Features
 
-### Planned
-- Implement memory locking (mlock) for sensitive data
-- Add secure string implementation with automatic wiping
-- Integrate with system keyring for token storage
-- Add support for hardware security keys
+### Available Security Modules
+- **SecureMemory**: Memory locking and secure wiping for sensitive data
+- **KeyringManager**: Integration with system keyrings (GNOME, KDE, macOS, Windows)
+- **EncryptedConfigManager**: Encrypted storage for all sensitive configuration
+- **HardwareKeyManager**: Support for YubiKey, FIDO2, and other hardware keys
+- **TwoFactorAuthManager**: TOTP, hardware key, and backup code authentication
+- **AuditLogger**: Comprehensive security event logging with multiple outputs
+- **CertificatePinningManager**: Protection against certificate-based attacks
+- **IncidentManager**: Automated security incident detection and response
 
-### Under Consideration
-- Two-factor authentication for application unlock
-- Encrypted configuration files
-- Audit logging for security events
-- Certificate pinning for Git operations
+### Security Configuration
+All security features can be configured through encrypted configuration files:
+- 2FA settings with multiple methods
+- Hardware key registration and management
+- Audit logging with customizable rules
+- Incident response with automated actions
+- Certificate pinning for trusted hosts
 
 ## Compliance
 

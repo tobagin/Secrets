@@ -12,6 +12,9 @@ from .environment_setup import EnvironmentSetup, PasswordStoreEnvironment, GPGEn
 from .metadata_handler import MetadataHandler, EntryMetadata, FolderMetadata
 from .url_extractor import URLExtractor, ExtractedURL
 
+# Import security module
+from ..security import *
+
 __all__ = [
     'DialogManager',
     'UIConstants', 
