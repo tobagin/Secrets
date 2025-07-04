@@ -59,7 +59,7 @@ class LRUCache:
 class PasswordCache:
     """Specialized cache for password entries with TTL support."""
     
-    def __init__(self, max_size: int = 50, ttl_seconds: int = 300):
+    def __init__(self, max_size: int = 50, ttl_seconds: int = 60):
         self.max_size = max_size
         self.ttl_seconds = ttl_seconds
         self.cache: Dict[str, Tuple[Any, float]] = {}
@@ -321,7 +321,7 @@ class LazyLoader:
 
 
 # Global instances
-password_cache = PasswordCache()
+password_cache = PasswordCache(ttl_seconds=60)
 search_debouncer = Debouncer(delay_ms=300)
 performance_monitor = PerformanceMonitor()
 lazy_loader = LazyLoader()
