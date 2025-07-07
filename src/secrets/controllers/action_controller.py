@@ -30,7 +30,8 @@ class ActionController:
                  on_toggle_password: Optional[Callable] = None,
                  on_generate_password: Optional[Callable] = None,
                  on_show_help: Optional[Callable] = None,
-                 on_import_export: Optional[Callable] = None):
+                 on_import_export: Optional[Callable] = None,
+                 on_compliance_dashboard: Optional[Callable] = None):
         
         self.window = window
         self.toast_manager = toast_manager
@@ -48,7 +49,8 @@ class ActionController:
             'toggle_password': on_toggle_password,
             'generate_password': on_generate_password,
             'show_help': on_show_help,
-            'import_export': on_import_export
+            'import_export': on_import_export,
+            'compliance_dashboard': on_compliance_dashboard
         }
         
         # Setup window actions
@@ -68,7 +70,8 @@ class ActionController:
             ("toggle-password", self._on_toggle_password),
             ("generate-password", self._on_generate_password),
             ("show-help-overlay", self._on_show_help_overlay),
-            ("import-export", self._on_import_export)
+            ("import-export", self._on_import_export),
+            ("compliance-dashboard", self._on_compliance_dashboard)
         ]
         
         for action_name, callback in actions:
@@ -134,6 +137,10 @@ class ActionController:
     def _on_import_export(self, action, param):
         """Handle import/export action."""
         self._execute_callback('import_export')
+    
+    def _on_compliance_dashboard(self, action, param):
+        """Handle compliance dashboard action."""
+        self._execute_callback('compliance_dashboard')
     
     def update_callback(self, callback_name: str, callback: Callable):
         """Update a callback function."""

@@ -106,14 +106,106 @@ All security features can be configured through encrypted configuration files:
 - Incident response with automated actions
 - Certificate pinning for trusted hosts
 
-## Compliance
+## Compliance Framework Support
 
-This application is designed for personal use and may not meet regulatory requirements for:
-- HIPAA (healthcare data)
-- PCI DSS (payment card data)
-- GDPR (without additional configuration)
+Secrets Password Manager now includes comprehensive compliance framework support for regulated industries:
 
-Users in regulated industries should consult with security professionals before use.
+### Supported Compliance Frameworks
+
+#### HIPAA (Health Insurance Portability and Accountability Act)
+- **Administrative Safeguards**: Security officer designation, workforce training, access management
+- **Technical Safeguards**: Unique user identification, audit controls, encryption, transmission security
+- **Physical Safeguards**: Device and media controls, workstation security
+- **Documentation**: Security policies, risk assessments, contingency plans
+- **Features**: PHI access logging, workforce training tracking, breach notification
+
+#### PCI DSS (Payment Card Industry Data Security Standard)
+- **Access Control**: Role-based access control, strong authentication, password complexity
+- **Data Protection**: Encryption at rest and in transit, key management, data retention policies
+- **Monitoring**: Comprehensive audit logging, intrusion detection, file integrity monitoring
+- **Testing**: Vulnerability scanning, penetration testing, security assessments
+- **Features**: Card data access logging, password history enforcement, account lockout
+
+#### GDPR (General Data Protection Regulation)
+- **Data Protection Principles**: Lawfulness, purpose limitation, data minimisation, accuracy
+- **Individual Rights**: Access, rectification, erasure (right to be forgotten), portability
+- **Privacy by Design**: Data protection by design and by default
+- **Consent Management**: Valid consent recording, easy withdrawal mechanisms
+- **Features**: Data subject request handling, breach notification, consent tracking
+
+### Compliance Architecture
+
+#### Role-Based Access Control (RBAC)
+- Hierarchical role system with inheritance
+- Fine-grained permissions for all resource types
+- Automated access auditing and reporting
+- Principle of least privilege enforcement
+- Configurable role assignments with expiration
+
+#### Audit and Monitoring
+- Comprehensive compliance event logging
+- Real-time access control decisions
+- Automated violation detection
+- Compliance dashboard and reporting
+- Regular compliance assessments
+
+#### Data Protection
+- Encrypted configuration storage for sensitive settings
+- Secure memory handling for compliance data
+- Automated data retention and deletion policies
+- Data export capabilities for subject rights
+- Privacy impact assessment tools
+
+### Configuration Requirements
+
+To enable compliance features, administrators must:
+
+1. **Configure Compliance Manager**:
+   ```python
+   from secrets.compliance import HIPAAComplianceManager, PCIDSSComplianceManager, GDPRComplianceManager
+   ```
+
+2. **Enable RBAC**:
+   - Configure role-based access control
+   - Assign appropriate roles to users
+   - Set up access review processes
+
+3. **Configure Audit Logging**:
+   - Enable comprehensive audit events
+   - Set appropriate retention periods
+   - Configure log integrity protection
+
+4. **Implement Policies**:
+   - Define security policies and procedures
+   - Set up training programs
+   - Establish incident response plans
+
+### Compliance Reporting
+
+- Automated compliance assessments
+- Export compliance reports in multiple formats (JSON, HTML)
+- Track compliance scores and trends
+- Violation tracking and remediation
+- Evidence collection and management
+
+### Important Notes
+
+- **Professional Consultation Required**: Organizations in regulated industries must consult with qualified security and compliance professionals
+- **Risk Assessment**: Perform thorough risk assessments before production deployment
+- **Regular Reviews**: Compliance status requires ongoing monitoring and regular reviews
+- **Documentation**: Maintain comprehensive documentation of all compliance measures
+- **Training**: Ensure all users receive appropriate security awareness training
+
+### Implementation Status
+
+✅ **Core Compliance Framework**: Complete  
+✅ **HIPAA Support**: Administrative, technical, and physical safeguards implemented  
+✅ **PCI DSS Support**: All 12 requirements addressed with automated controls  
+✅ **GDPR Support**: Data protection principles and individual rights implemented  
+✅ **RBAC System**: Comprehensive role-based access control  
+✅ **Audit Framework**: Compliance-aware audit logging and reporting  
+
+For detailed implementation guidance, see the compliance module documentation in `src/secrets/compliance/`.
 
 ## Security Checklist for Releases
 

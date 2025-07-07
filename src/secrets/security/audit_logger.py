@@ -57,6 +57,12 @@ class AuditEventType(Enum):
     KEYRING_ACCESS = "keyring_access"
     HARDWARE_KEY_USED = "hardware_key_used"
     
+    # Compliance events
+    COMPLIANCE_ASSESSMENT = "compliance_assessment"
+    COMPLIANCE_VIOLATION = "compliance_violation"
+    COMPLIANCE_REQUIREMENT = "compliance_requirement"
+    COMPLIANCE_EVENT = "compliance_event"
+    
     # Application events
     APP_STARTED = "app_started"
     APP_STOPPED = "app_stopped"
@@ -425,6 +431,53 @@ class AuditLogger:
         """Log security-related event."""
         self.log_event(event_type, message, level, details=details)
     
+    def audit_compliance_event(self, framework: str, event_type: str,
+                              requirement_id: Optional[str] = None,
+                              violation_id: Optional[str] = None,
+                              severity: Optional[str] = None,
+                              details: Optional[Dict[str, Any]] = None):
+        """Log compliance-related event."""
+        # Map event types to audit event types
+        event_map = {
+            'assessment_completed': AuditEventType.COMPLIANCE_ASSESSMENT,
+            'violation_detected': AuditEventType.COMPLIANCE_VIOLATION,
+            'violation_resolved': AuditEventType.COMPLIANCE_VIOLATION,
+            'requirement_implemented': AuditEventType.COMPLIANCE_REQUIREMENT,
+        }
+        
+        audit_event_type = event_map.get(event_type, AuditEventType.COMPLIANCE_EVENT)
+        
+        # Determine audit level based on event type and severity
+        if event_type == 'violation_detected':
+            level = AuditLevel.CRITICAL if severity == 'critical' else AuditLevel.HIGH
+        elif event_type == 'assessment_completed':
+            level = AuditLevel.MEDIUM
+        else:
+            level = AuditLevel.LOW
+        
+        # Build message
+        message = f"Compliance event ({framework}): {event_type}"
+        if requirement_id:
+            message += f" - Requirement: {requirement_id}"
+        if violation_id:
+            message += f" - Violation: {violation_id}"
+        
+        # Combine details
+        event_details = {
+            'framework': framework,
+            'compliance_event_type': event_type,
+        }
+        if requirement_id:
+            event_details['requirement_id'] = requirement_id
+        if violation_id:
+            event_details['violation_id'] = violation_id
+        if severity:
+            event_details['severity'] = severity
+        if details:
+            event_details.update(details)
+        
+        self.log_event(audit_event_type, message, level, details=event_details)
+    
     def log_application_event(self, event_type: AuditEventType, message: str,
                              details: Optional[Dict[str, Any]] = None):
         """Log application lifecycle event."""
@@ -579,3 +632,8 @@ def audit_app_start():
 def audit_app_stop():
     """Log application stop."""
     get_audit_logger().log_application_event(AuditEventType.APP_STOPPED, "Application stopped")
+
+
+def audit_compliance_event(framework: str, event_type: str, **kwargs):
+    """Log compliance event."""
+    get_audit_logger().audit_compliance_event(framework, event_type, **kwargs)

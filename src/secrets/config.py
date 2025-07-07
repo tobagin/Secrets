@@ -47,6 +47,46 @@ class SecurityConfig:
 
 
 @dataclass
+class ComplianceConfig:
+    """Compliance-related configuration."""
+    # Framework enablement
+    hipaa_enabled: bool = False
+    pci_dss_enabled: bool = False
+    gdpr_enabled: bool = False
+    rbac_enabled: bool = False
+    
+    # Audit settings
+    audit_enabled: bool = True
+    audit_retention_days: int = 2190  # 6 years for HIPAA
+    log_all_access: bool = True
+    real_time_monitoring: bool = True
+    
+    # HIPAA specific (simplified for personal use)
+    # Personal health info tracking reminder intervals
+    health_data_review_days: int = 90
+    backup_verification_days: int = 30
+    
+    # PCI DSS specific
+    password_complexity_enabled: bool = True
+    password_min_length: int = 12
+    password_history_count: int = 4
+    password_expiry_days: int = 90
+    account_lockout_enabled: bool = True
+    lockout_attempts: int = 6
+    lockout_duration_minutes: int = 30
+    session_timeout_minutes: int = 15
+    
+    # GDPR specific (simplified for personal use)
+    data_retention_enabled: bool = True
+    data_export_enabled: bool = True
+    
+    # Encryption and key management (kept for personal security)
+    encryption_algorithm: str = "AES-256"
+    key_rotation_enabled: bool = True
+    key_rotation_days: int = 365
+
+
+@dataclass
 class SearchConfig:
     """Search-related configuration."""
     case_sensitive: bool = False
@@ -87,7 +127,7 @@ class AppConfig:
     security: SecurityConfig
     search: SearchConfig
     git: GitConfig
-    password_store_dir: Optional[str] = None
+    compliance: ComplianceConfig
     last_selected_path: Optional[str] = None
     
     def __post_init__(self):
@@ -100,6 +140,8 @@ class AppConfig:
             self.search = SearchConfig(**self.search)
         if isinstance(self.git, dict):
             self.git = GitConfig(**self.git)
+        if isinstance(self.compliance, dict):
+            self.compliance = ComplianceConfig(**self.compliance)
 
 
 class ConfigManager:
@@ -123,6 +165,8 @@ class ConfigManager:
             try:
                 with open(self.config_file, 'r') as f:
                     data = json.load(f)
+                # Remove deprecated fields for Flatpak compatibility
+                data.pop('password_store_dir', None)
                 self._config = AppConfig(**data)
             except (json.JSONDecodeError, TypeError, ValueError) as e:
                 print(f"Error loading config: {e}. Using defaults.")
@@ -152,7 +196,8 @@ class ConfigManager:
             ui=UIConfig(),
             security=SecurityConfig(),
             search=SearchConfig(),
-            git=GitConfig()
+            git=GitConfig(),
+            compliance=ComplianceConfig()
         )
     
     def get_config(self) -> AppConfig:
@@ -175,6 +220,14 @@ class ConfigManager:
         for key, value in kwargs.items():
             if hasattr(config.security, key):
                 setattr(config.security, key, value)
+        self.save_config(config)
+    
+    def update_compliance_config(self, **kwargs):
+        """Update compliance configuration."""
+        config = self.get_config()
+        for key, value in kwargs.items():
+            if hasattr(config.compliance, key):
+                setattr(config.compliance, key, value)
         self.save_config(config)
     
     def update_search_config(self, **kwargs):

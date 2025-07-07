@@ -43,6 +43,7 @@ ui_sources = [
   'ui/dialogs/git_setup_dialog.py',
   'ui/dialogs/git_status_dialog.py',
   'ui/dialogs/lock_dialog.py',
+  'ui/dialogs/compliance_dashboard_dialog.py',
   'ui/widgets/__init__.py',
   'ui/widgets/color_paintable.py',
   'ui/widgets/password_row.py',
@@ -77,7 +78,11 @@ utils_sources = [
   'utils/__init__.py',
   'utils/ui_utils.py',
   'utils/system_utils.py',
-  'utils/gpg_utils.py'
+  'utils/gpg_utils.py',
+  'utils/path_validator.py',
+  'utils/environment_setup.py',
+  'utils/metadata_handler.py',
+  'utils/url_extractor.py'
 ]
 
 # Services files
@@ -99,6 +104,31 @@ managers_sources = [
   'managers/metadata_manager.py'
 ]
 
+# Security files
+security_sources = [
+  'security/__init__.py',
+  'security/secure_memory.py',
+  'security/keyring_manager.py',
+  'security/encrypted_config.py',
+  'security/hardware_keys.py',
+  'security/two_factor_auth.py',
+  'security/cert_pinning.py',
+  'security/audit_logger.py',
+  'security/incident_response.py'
+]
+
+# Compliance files
+compliance_sources = [
+  'compliance/__init__.py',
+  'compliance/compliance_manager.py',
+  'compliance/hipaa/__init__.py',
+  'compliance/hipaa/hipaa_compliance.py',
+  'compliance/pci_dss/__init__.py',
+  'compliance/pci_dss/pci_dss_compliance.py',
+  'compliance/gdpr/__init__.py',
+  'compliance/gdpr/gdpr_compliance.py'
+]
+
 # Install all Python files
 install_data(python_sources, install_dir : py_install_dir / 'secrets')
 install_data(ui_sources, install_dir : py_install_dir / 'secrets', preserve_path: true)
@@ -107,6 +137,8 @@ install_data(setup_wizard_sources, install_dir : py_install_dir / 'secrets', pre
 install_data(utils_sources, install_dir : py_install_dir / 'secrets', preserve_path: true)
 install_data(services_sources, install_dir : py_install_dir / 'secrets', preserve_path: true)
 install_data(managers_sources, install_dir : py_install_dir / 'secrets', preserve_path: true)
+install_data(security_sources, install_dir : py_install_dir / 'secrets', preserve_path: true)
+install_data(compliance_sources, install_dir : py_install_dir / 'secrets', preserve_path: true)
 
 # Compile GResources for Python: generate .gresource file, not C code
 gresource = custom_target('secrets.gresource',

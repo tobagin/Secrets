@@ -73,6 +73,9 @@ make quality-check     # All quality checks
 - **GitService** (`services/git_service.py`): Git synchronization functionality
 - **MainWindow** (`main_window.py`): Primary application window
 - **SetupWizard** (`setup_wizard/`): Initial configuration flow
+- **ComplianceManager** (`compliance/`): Regulatory compliance framework (HIPAA, PCI DSS, GDPR)
+- **RBACManager** (`compliance/rbac/`): Role-based access control system
+- **AuditLogger** (`security/audit_logger.py`): Comprehensive security event logging
 
 ### Dependencies
 - **Runtime**: GTK 4.0+, Libadwaita 1.4+, Python 3.11+
@@ -115,3 +118,11 @@ make quality-check     # All quality checks
 - Verify clipboard clearing works correctly
 - Ensure failed login attempts trigger rate limiting
 - Check that GPG operations fail gracefully with proper error messages
+
+### Testing Compliance Features
+- Run compliance assessments for each framework (HIPAA, PCI DSS, GDPR)
+- Test RBAC role assignments and access control decisions
+- Verify audit logging captures all required compliance events
+- Test data subject rights (access, rectification, erasure, portability)
+- Validate consent management and withdrawal mechanisms
+- Check breach notification and incident response procedures

@@ -1,0 +1,5 @@
+.icon-only-menu > popover > .background > box > .menu-item.modelbutton {
+    padding-left: 6px;
+    padding-right: 6px;
+    min-height: 0;
+}

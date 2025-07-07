@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <requires lib="libadwaita" version="1.0"/>
+  <template class="LockDialog" parent="AdwWindow">
+    <property name="title" translatable="yes">Secrets - Locked</property>
+    <property name="default-width">400</property>
+    <property name="default-height">300</property>
+    <property name="resizable">False</property>
+    <property name="deletable">False</property>
+    <property name="modal">True</property>
+    
+    <!-- Accessibility -->
+    <accessibility>
+      <property name="label" translatable="yes">Application lock dialog</property>
+      <property name="description" translatable="yes">Enter your master password to unlock the application</property>
+    </accessibility>
+    
+    <property name="content">
+      <object class="GtkBox" id="main_box">
+        <property name="orientation">vertical</property>
+        <property name="spacing">24</property>
+        <property name="margin-top">48</property>
+        <property name="margin-bottom">48</property>
+        <property name="margin-start">48</property>
+        <property name="margin-end">48</property>
+        <property name="halign">center</property>
+        <property name="valign">center</property>
+        
+        <!-- Lock Icon -->
+        <child>
+          <object class="GtkImage" id="lock_icon">
+            <property name="icon-name">changes-prevent-symbolic</property>
+            <property name="pixel-size">64</property>
+            <style>
+              <class name="dim-label"/>
+            </style>
+          </object>
+        </child>
+        
+        <!-- Title -->
+        <child>
+          <object class="GtkLabel" id="title_label">
+            <property name="label" translatable="yes">Application Locked</property>
+            <property name="halign">center</property>
+            <attributes>
+              <attribute name="weight" value="bold"/>
+              <attribute name="scale" value="1.5"/>
+            </attributes>
+          </object>
+        </child>
+        
+        <!-- Subtitle -->
+        <child>
+          <object class="GtkLabel" id="subtitle_label">
+            <property name="label" translatable="yes">Enter your master password to unlock</property>
+            <property name="halign">center</property>
+            <style>
+              <class name="dim-label"/>
+            </style>
+          </object>
+        </child>
+        
+        <!-- Entry Box -->
+        <child>
+          <object class="GtkBox" id="entry_box">
+            <property name="orientation">vertical</property>
+            <property name="spacing">12</property>
+            
+            <!-- Password Entry -->
+            <child>
+              <object class="AdwPasswordEntryRow" id="password_entry">
+                <property name="title" translatable="yes">Master Password</property>
+                <property name="show-apply-button">True</property>
+                <signal name="apply" handler="_on_unlock_clicked" swapped="no"/>
+                <signal name="entry-activated" handler="_on_unlock_clicked" swapped="no"/>
+              </object>
+            </child>
+            
+            <!-- Error Label -->
+            <child>
+              <object class="GtkLabel" id="error_label">
+                <property name="halign">center</property>
+                <property name="visible">False</property>
+                <style>
+                  <class name="error"/>
+                </style>
+              </object>
+            </child>
+            
+            <!-- Lockout Label -->
+            <child>
+              <object class="GtkLabel" id="lockout_label">
+                <property name="halign">center</property>
+                <property name="visible">False</property>
+                <style>
+                  <class name="warning"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+        
+        <!-- Button Box -->
+        <child>
+          <object class="GtkBox" id="button_box">
+            <property name="orientation">horizontal</property>
+            <property name="spacing">12</property>
+            <property name="halign">center</property>
+            
+            <!-- Unlock Button -->
+            <child>
+              <object class="GtkButton" id="unlock_button">
+                <property name="label" translatable="yes">Unlock</property>
+                <signal name="clicked" handler="_on_unlock_clicked" swapped="no"/>
+                <style>
+                  <class name="suggested-action"/>
+                </style>
+              </object>
+            </child>
+            
+            <!-- Quit Button -->
+            <child>
+              <object class="GtkButton" id="quit_button">
+                <property name="label" translatable="yes">Quit Application</property>
+                <signal name="clicked" handler="_on_quit_clicked" swapped="no"/>
+                <style>
+                  <class name="destructive-action"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </property>
+  </template>
+</interface>

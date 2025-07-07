@@ -12,6 +12,7 @@ from .edit_folder_dialog import EditFolderDialog
 from .preferences_dialog import PreferencesDialog
 from .password_generator_dialog import PasswordGeneratorDialog
 from .import_export_dialog import ImportExportDialog
+from .compliance_dashboard_dialog import ComplianceDashboardDialog
 
 __all__ = [
     'AboutDialog',
@@ -21,5 +22,6 @@ __all__ = [
     'EditFolderDialog',
     'PreferencesDialog',
     'PasswordGeneratorDialog',
-    'ImportExportDialog'
+    'ImportExportDialog',
+    'ComplianceDashboardDialog'
 ]

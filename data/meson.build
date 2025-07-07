@@ -27,7 +27,9 @@ install_data(
 install_data(
   ['ui/dialogs/add_password_dialog.ui', 'ui/dialogs/edit_password_dialog.ui',
    'ui/dialogs/add_folder_dialog.ui', 'ui/dialogs/edit_folder_dialog.ui',
-   'ui/dialogs/password_generator_dialog.ui', 'ui/dialogs/import_export_dialog.ui'],
+   'ui/dialogs/password_generator_dialog.ui', 'ui/dialogs/import_export_dialog.ui',
+   'ui/dialogs/git_setup_dialog.ui', 'ui/dialogs/git_status_dialog.ui',
+   'ui/dialogs/lock_dialog.ui'],
   install_dir: get_option('datadir') / app_id / 'ui' / 'dialogs'
 )
 
@@ -123,6 +125,16 @@ install_data(
 
 install_data(
   'icons/symbolic/checkmark-symbolic.svg',
+  install_dir: get_option('datadir') / 'icons' / 'hicolor' / 'symbolic' / 'apps'
+)
+
+install_data(
+  'icons/symbolic/io.github.tobagin.secrets-export-symbolic.svg',
+  install_dir: get_option('datadir') / 'icons' / 'hicolor' / 'symbolic' / 'apps'
+)
+
+install_data(
+  'icons/symbolic/io.github.tobagin.secrets-import-symbolic.svg',
   install_dir: get_option('datadir') / 'icons' / 'hicolor' / 'symbolic' / 'apps'
 )
 

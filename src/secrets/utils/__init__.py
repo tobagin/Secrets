@@ -13,7 +13,7 @@ from .metadata_handler import MetadataHandler, EntryMetadata, FolderMetadata
 from .url_extractor import URLExtractor, ExtractedURL
 
 # Import security module
-from ..security import *
+# from ..security import *
 
 __all__ = [
     'DialogManager',

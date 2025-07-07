@@ -52,7 +52,9 @@
                         
                         <child type="suffix">
                           <object class="GtkButton" id="export_json_button">
-                            <property name="label">Export</property>
+                            <property name="icon-name">io.github.tobagin.secrets-export-symbolic</property>
+                            <property name="valign">center</property>
+                            <property name="tooltip-text">Export to JSON</property>
                           </object>
                         </child>
                       </object>
@@ -65,7 +67,9 @@
                         
                         <child type="suffix">
                           <object class="GtkButton" id="export_csv_button">
-                            <property name="label">Export</property>
+                            <property name="icon-name">io.github.tobagin.secrets-export-symbolic</property>
+                            <property name="valign">center</property>
+                            <property name="tooltip-text">Export to CSV</property>
                           </object>
                         </child>
                       </object>
@@ -76,8 +80,159 @@
                 <!-- Import section -->
                 <child>
                   <object class="AdwPreferencesGroup">
-                    <property name="title">Import</property>
-                    <property name="description">Import passwords from various formats</property>
+                    <property name="title">Import from Password Managers</property>
+                    <property name="description">Import passwords from popular password managers</property>
+                    
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title">1Password</property>
+                        <property name="subtitle">Import from 1Password CSV export</property>
+                        
+                        <child type="suffix">
+                          <object class="GtkButton" id="import_1password_button">
+                            <property name="icon-name">io.github.tobagin.secrets-import-symbolic</property>
+                            <property name="valign">center</property>
+                            <property name="tooltip-text">Import from 1Password</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title">LastPass</property>
+                        <property name="subtitle">Import from LastPass CSV export</property>
+                        
+                        <child type="suffix">
+                          <object class="GtkButton" id="import_lastpass_button">
+                            <property name="icon-name">io.github.tobagin.secrets-import-symbolic</property>
+                            <property name="valign">center</property>
+                            <property name="tooltip-text">Import from LastPass</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title">Bitwarden</property>
+                        <property name="subtitle">Import from Bitwarden JSON export</property>
+                        
+                        <child type="suffix">
+                          <object class="GtkButton" id="import_bitwarden_button">
+                            <property name="icon-name">io.github.tobagin.secrets-import-symbolic</property>
+                            <property name="valign">center</property>
+                            <property name="tooltip-text">Import from Bitwarden</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title">Dashlane</property>
+                        <property name="subtitle">Import from Dashlane CSV export</property>
+                        
+                        <child type="suffix">
+                          <object class="GtkButton" id="import_dashlane_button">
+                            <property name="icon-name">io.github.tobagin.secrets-import-symbolic</property>
+                            <property name="valign">center</property>
+                            <property name="tooltip-text">Import from Dashlane</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title">KeePass</property>
+                        <property name="subtitle">Import from KeePass/KeePassX CSV export</property>
+                        
+                        <child type="suffix">
+                          <object class="GtkButton" id="import_keepass_button">
+                            <property name="icon-name">io.github.tobagin.secrets-import-symbolic</property>
+                            <property name="valign">center</property>
+                            <property name="tooltip-text">Import from KeePass</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                
+                <!-- Import from Browsers section -->
+                <child>
+                  <object class="AdwPreferencesGroup">
+                    <property name="title">Import from Browsers</property>
+                    <property name="description">Import saved passwords from web browsers</property>
+                    
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title">Chrome/Chromium</property>
+                        <property name="subtitle">Import from Chrome/Chromium CSV export</property>
+                        
+                        <child type="suffix">
+                          <object class="GtkButton" id="import_chrome_button">
+                            <property name="icon-name">io.github.tobagin.secrets-import-symbolic</property>
+                            <property name="valign">center</property>
+                            <property name="tooltip-text">Import from Chrome</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title">Firefox</property>
+                        <property name="subtitle">Import from Firefox CSV export</property>
+                        
+                        <child type="suffix">
+                          <object class="GtkButton" id="import_firefox_button">
+                            <property name="icon-name">io.github.tobagin.secrets-import-symbolic</property>
+                            <property name="valign">center</property>
+                            <property name="tooltip-text">Import from Firefox</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title">Safari</property>
+                        <property name="subtitle">Import from Safari CSV export</property>
+                        
+                        <child type="suffix">
+                          <object class="GtkButton" id="import_safari_button">
+                            <property name="icon-name">io.github.tobagin.secrets-import-symbolic</property>
+                            <property name="valign">center</property>
+                            <property name="tooltip-text">Import from Safari</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title">Microsoft Edge</property>
+                        <property name="subtitle">Import from Edge CSV export</property>
+                        
+                        <child type="suffix">
+                          <object class="GtkButton" id="import_edge_button">
+                            <property name="icon-name">io.github.tobagin.secrets-import-symbolic</property>
+                            <property name="valign">center</property>
+                            <property name="tooltip-text">Import from Edge</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                
+                <!-- Generic Import section -->
+                <child>
+                  <object class="AdwPreferencesGroup">
+                    <property name="title">Generic Import</property>
+                    <property name="description">Import from standard formats</property>
                     
                     <child>
                       <object class="AdwActionRow">
@@ -86,7 +241,9 @@
                         
                         <child type="suffix">
                           <object class="GtkButton" id="import_json_button">
-                            <property name="label">Import</property>
+                            <property name="icon-name">io.github.tobagin.secrets-import-symbolic</property>
+                            <property name="valign">center</property>
+                            <property name="tooltip-text">Import from JSON</property>
                           </object>
                         </child>
                       </object>
@@ -99,7 +256,9 @@
                         
                         <child type="suffix">
                           <object class="GtkButton" id="import_csv_button">
-                            <property name="label">Import</property>
+                            <property name="icon-name">io.github.tobagin.secrets-import-symbolic</property>
+                            <property name="valign">center</property>
+                            <property name="tooltip-text">Import from CSV</property>
                           </object>
                         </child>
                       </object>

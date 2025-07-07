@@ -10,15 +10,26 @@ from gi.repository import Gtk, Adw, GObject, GLib, Gio
 import threading
 from typing import List
 
+from ...app_info import APP_ID
 from ...managers.git_manager import GitManager
 from ...services.git_service import GitCommit, GitStatus
 from ...ui.components.git_status_component import GitStatusComponent
 
 
+@Gtk.Template(resource_path=f'/{APP_ID.replace(".", "/")}/ui/dialogs/git_status_dialog.ui')
 class GitStatusDialog(Adw.Window):
     """Dialog for viewing Git repository status and history."""
     
     __gtype_name__ = "GitStatusDialog"
+    
+    # Template widgets
+    view_switcher = Gtk.Template.Child()
+    view_stack = Gtk.Template.Child()
+    refresh_button = Gtk.Template.Child()
+    status_content_box = Gtk.Template.Child()
+    summary_text = Gtk.Template.Child()
+    commit_button = Gtk.Template.Child()
+    history_list = Gtk.Template.Child()
     
     def __init__(self, git_manager: GitManager, **kwargs):
         super().__init__(**kwargs)
@@ -26,118 +37,11 @@ class GitStatusDialog(Adw.Window):
         self.git_manager = git_manager
         self.status_component = GitStatusComponent(git_manager)
         
-        self.set_title("Git Repository Status")
-        self.set_default_size(700, 600)
-        self.set_modal(True)
+        # Set up view switcher
+        self.view_switcher.set_stack(self.view_stack)
         
-        self._setup_ui()
-        self._load_data()
-    
-    def _setup_ui(self):
-        """Set up the dialog UI."""
-        # Main container
-        main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.set_content(main_box)
-        
-        # Header bar
-        header_bar = Adw.HeaderBar()
-        header_bar.set_title_widget(Adw.WindowTitle(title="Git Status"))
-        
-        # Refresh button
-        refresh_button = Gtk.Button()
-        refresh_button.set_icon_name("view-refresh-symbolic")
-        refresh_button.set_tooltip_text("Refresh status")
-        refresh_button.connect("clicked", self._on_refresh_clicked)
-        header_bar.pack_start(refresh_button)
-        
-        main_box.append(header_bar)
-        
-        # Content with tabs
-        self.view_stack = Adw.ViewStack()
-        main_box.append(self.view_stack)
-        
-        # Status tab
-        self._setup_status_tab()
-        
-        # History tab
-        self._setup_history_tab()
-        
-        # View switcher
-        view_switcher = Adw.ViewSwitcher()
-        view_switcher.set_stack(self.view_stack)
-        view_switcher.set_policy(Adw.ViewSwitcherPolicy.WIDE)
-        header_bar.set_title_widget(view_switcher)
-    
-    def _setup_status_tab(self):
-        """Set up the status tab."""
-        # Scrolled window
-        scrolled = Gtk.ScrolledWindow()
-        scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        
-        # Content box
-        content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        content_box.set_margin_top(12)
-        content_box.set_margin_bottom(12)
-        content_box.set_margin_start(12)
-        content_box.set_margin_end(12)
-        scrolled.set_child(content_box)
-        
-        # Add detailed status widget
-        self.detailed_status = self.status_component.create_detailed_status_widget()
-        content_box.append(self.detailed_status)
-        
-        # Repository summary
-        summary_group = Adw.PreferencesGroup()
-        summary_group.set_title("Repository Summary")
-        content_box.append(summary_group)
-        
-        self.summary_text = Gtk.TextView()
-        self.summary_text.set_editable(False)
-        self.summary_text.set_cursor_visible(False)
-        self.summary_text.set_wrap_mode(Gtk.WrapMode.WORD)
-        self.summary_text.add_css_class("card")
-        self.summary_text.set_margin_top(6)
-        self.summary_text.set_margin_bottom(6)
-        self.summary_text.set_margin_start(6)
-        self.summary_text.set_margin_end(6)
-        
-        summary_frame = Gtk.Frame()
-        summary_frame.set_child(self.summary_text)
-        summary_group.add(summary_frame)
-
-        # Add the page to the view stack with proper method
-        status_page = self.view_stack.add_named(scrolled, "status")
-        status_page.set_title("Status")
-        status_page.set_icon_name("dialog-information-symbolic")
-    
-    def _setup_history_tab(self):
-        """Set up the history tab."""
-        # Main box
-        history_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        
-        # Toolbar
-        toolbar = Adw.HeaderBar()
-        toolbar.add_css_class("flat")
-        
-        # Commit button
-        commit_button = Gtk.Button(label="Commit Changes")
-        commit_button.set_icon_name("document-save-symbolic")
-        commit_button.add_css_class("suggested-action")
-        commit_button.connect("clicked", self._on_commit_clicked)
-        toolbar.pack_start(commit_button)
-        self.commit_button = commit_button
-        
-        history_box.append(toolbar)
-        
-        # History list
-        scrolled = Gtk.ScrolledWindow()
-        scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        history_box.append(scrolled)
-        
-        # Create list model and view
+        # Set up history list
         self.history_model = Gio.ListStore.new(GObject.Object)
-        
-        self.history_list = Gtk.ListView()
         self.history_list.set_model(Gtk.NoSelection.new(self.history_model))
         
         # Create factory for list items
@@ -146,12 +50,12 @@ class GitStatusDialog(Adw.Window):
         factory.connect("bind", self._on_history_item_bind)
         self.history_list.set_factory(factory)
         
-        scrolled.set_child(self.history_list)
-
-        # Add the history page to the view stack
-        history_page = self.view_stack.add_named(history_box, "history")
-        history_page.set_title("History")
-        history_page.set_icon_name("document-open-recent-symbolic")
+        # Add detailed status widget
+        self.detailed_status = self.status_component.create_detailed_status_widget()
+        self.status_content_box.prepend(self.detailed_status)
+        
+        self._load_data()
+    
     
     def _on_history_item_setup(self, factory, list_item):
         """Set up history list item."""
@@ -298,11 +202,13 @@ class GitStatusDialog(Adw.Window):
         
         return "\n".join(lines)
     
+    @Gtk.Template.Callback()
     def _on_refresh_clicked(self, button):
         """Handle refresh button click."""
         self.status_component.refresh_status()
         self._load_data()
     
+    @Gtk.Template.Callback()
     def _on_commit_clicked(self, button):
         """Handle commit button click."""
         # Create commit dialog

@@ -7,8 +7,8 @@ import smtplib
 import subprocess
 import time
 from datetime import datetime, timezone, timedelta
-from email.mime.text import MimeText
-from email.mime.multipart import MimeMultipart
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from enum import Enum
 from typing import Dict, List, Optional, Any, Callable
 from dataclasses import dataclass, asdict
@@ -368,7 +368,7 @@ class IncidentResponder:
     def _send_email_alert(self, incident: SecurityIncident):
         """Send email alert."""
         try:
-            msg = MimeMultipart()
+            msg = MIMEMultipart()
             msg['From'] = self._email_config['username']
             msg['To'] = ', '.join(self._email_config['recipients'])
             msg['Subject'] = f"SECURITY ALERT: {incident.title}"
@@ -393,7 +393,7 @@ Affected Resources:
 Please investigate immediately.
 """
             
-            msg.attach(MimeText(body, 'plain'))
+            msg.attach(MIMEText(body, 'plain'))
             
             server = smtplib.SMTP(self._email_config['smtp_server'], self._email_config['smtp_port'])
             server.starttls()

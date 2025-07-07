@@ -28,7 +28,6 @@
         <attribute name="action">win.generate-password</attribute>
       </item>
     </section>
-    <!-- Git menu items disabled for v0.8.6
     <section>
        <item>
         <attribute name="label" translatable="yes">Git _Pull</attribute>
@@ -47,7 +46,6 @@
         <attribute name="action">app.git-setup</attribute>
       </item>
     </section>
-    -->
      <section>
       <item>
         <attribute name="label" translatable="yes">_Quit</attribute>

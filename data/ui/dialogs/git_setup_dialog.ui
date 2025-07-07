@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <requires lib="libadwaita" version="1.0"/>
+  <template class="GitSetupDialog" parent="AdwWindow">
+    <property name="title">Git Repository Setup</property>
+    <property name="default-width">600</property>
+    <property name="default-height">500</property>
+    <property name="modal">True</property>
+    
+    <property name="content">
+      <object class="GtkBox" id="main_box">
+        <property name="orientation">vertical</property>
+        
+        <!-- Header Bar -->
+        <child>
+          <object class="AdwHeaderBar" id="header_bar">
+            <property name="title-widget">
+              <object class="AdwWindowTitle">
+                <property name="title">Git Setup</property>
+              </object>
+            </property>
+          </object>
+        </child>
+        
+        <!-- Content -->
+        <child>
+          <object class="GtkScrolledWindow">
+            <property name="hscrollbar-policy">never</property>
+            <property name="vexpand">true</property>
+            <child>
+              <object class="GtkBox" id="content_box">
+                <property name="orientation">vertical</property>
+                <property name="spacing">18</property>
+                <property name="margin-top">18</property>
+                <property name="margin-bottom">18</property>
+                <property name="margin-start">18</property>
+                <property name="margin-end">18</property>
+                
+                <!-- Welcome Banner -->
+                <child>
+                  <object class="AdwBanner" id="welcome_banner">
+                    <property name="title">Setup Git synchronization to securely backup and sync your passwords across devices</property>
+                    <property name="button-label">Learn More</property>
+                  </object>
+                </child>
+                
+                <!-- Current Status Group -->
+                <child>
+                  <object class="AdwPreferencesGroup" id="status_group">
+                    <property name="title">Current Status</property>
+                    <property name="description">Check if Git is already configured</property>
+                    
+                    <child>
+                      <object class="AdwActionRow" id="status_row">
+                        <property name="title">Repository Status</property>
+                        <property name="subtitle">Not configured</property>
+                        <child type="suffix">
+                          <object class="GtkImage" id="status_icon">
+                            <property name="icon-name">dialog-warning-symbolic</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    
+                    <child>
+                      <object class="AdwActionRow" id="git_status_row">
+                        <property name="title">Git Installation</property>
+                        <property name="subtitle">Checking...</property>
+                        <child type="suffix">
+                          <object class="GtkSpinner" id="git_check_spinner">
+                            <property name="spinning">true</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+            
+                <!-- Quick Setup Group -->
+                <child>
+                  <object class="AdwPreferencesGroup" id="quick_setup_group">
+                    <property name="title">Quick Setup</property>
+                    <property name="description">Choose a popular Git hosting service for easy setup</property>
+                    
+                    <child>
+                      <object class="AdwComboRow" id="platform_combo">
+                        <property name="title">Git Hosting Service</property>
+                        <signal name="notify::selected" handler="_on_platform_changed" swapped="no"/>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                
+                <!-- Repository Setup Group -->
+                <child>
+                  <object class="AdwPreferencesGroup" id="repo_group">
+                    <property name="title">Repository Configuration</property>
+                    <property name="description">Configure your Git repository and remote connection</property>
+                    
+                    <!-- Repository URL -->
+                    <child>
+                      <object class="AdwEntryRow" id="remote_url_row">
+                        <property name="title">Repository URL</property>
+                        <property name="text">https://</property>
+                        <signal name="changed" handler="_on_url_changed" swapped="no"/>
+                      </object>
+                    </child>
+                    
+                    <!-- Repository Name (auto-filled) -->
+                    <child>
+                      <object class="AdwEntryRow" id="repo_name_entry">
+                        <property name="title">Repository Name</property>
+                        <property name="text">passwords</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+            
+                <!-- Authentication Group -->
+                <child>
+                  <object class="AdwPreferencesGroup" id="platform_group">
+                    <property name="title">Authentication</property>
+                    <property name="description">Enter your credentials for secure access</property>
+                    <property name="visible">False</property>
+                    
+                    <!-- Username -->
+                    <child>
+                      <object class="AdwEntryRow" id="username_row">
+                        <property name="title">Username</property>
+                      </object>
+                    </child>
+                    
+                    <!-- Token -->
+                    <child>
+                      <object class="AdwPasswordEntryRow" id="token_row">
+                        <property name="title">Personal Access Token</property>
+                        <child type="suffix">
+                          <object class="GtkButton" id="token_help_button">
+                            <property name="icon-name">help-contents-symbolic</property>
+                            <property name="tooltip-text">How to create access tokens</property>
+                            <property name="valign">center</property>
+                            <style><class name="flat"/></style>
+                            <signal name="clicked" handler="_on_token_help_clicked" swapped="no"/>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                
+                <!-- Repository Options Group -->
+                <child>
+                  <object class="AdwPreferencesGroup" id="repo_options_group">
+                    <property name="title">Repository Options</property>
+                    <property name="description">Configure how your repository will be set up</property>
+                    <property name="visible">False</property>
+                    
+                    <child>
+                      <object class="AdwSwitchRow" id="private_repo_switch">
+                        <property name="title">Private Repository</property>
+                        <property name="active">True</property>
+                      </object>
+                    </child>
+                    
+                    <child>
+                      <object class="AdwSwitchRow" id="auto_sync_switch">
+                        <property name="title">Automatic Sync</property>
+                        <property name="active">True</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                
+                <!-- Progress Group -->
+                <child>
+                  <object class="AdwPreferencesGroup" id="progress_group">
+                    <property name="title">Setup Progress</property>
+                    <property name="visible">False</property>
+                    
+                    <child>
+                      <object class="AdwActionRow" id="progress_row">
+                        <property name="title">Setting up repository...</property>
+                        <child type="suffix">
+                          <object class="GtkSpinner" id="progress_spinner">
+                            <property name="spinning">False</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                
+                <!-- Action Buttons -->
+                <child>
+                  <object class="GtkBox" id="button_box">
+                    <property name="orientation">horizontal</property>
+                    <property name="spacing">12</property>
+                    <property name="halign">end</property>
+                    <property name="margin-top">18</property>
+                    
+                    <child>
+                      <object class="GtkButton" id="cancel_button">
+                        <property name="label">Cancel</property>
+                        <signal name="clicked" handler="_on_cancel_clicked" swapped="no"/>
+                      </object>
+                    </child>
+                    
+                    <child>
+                      <object class="GtkButton" id="test_button">
+                        <property name="label">Test Connection</property>
+                        <property name="sensitive">False</property>
+                        <signal name="clicked" handler="_on_test_connection" swapped="no"/>
+                      </object>
+                    </child>
+                    
+                    <child>
+                      <object class="GtkButton" id="setup_button">
+                        <property name="label">Setup Repository</property>
+                        <property name="sensitive">False</property>
+                        <signal name="clicked" handler="_on_setup_repository" swapped="no"/>
+                        <style>
+                          <class name="suggested-action"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </property>
+  </template>
+</interface>

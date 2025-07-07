@@ -71,7 +71,10 @@ class SecretsWindow(Adw.ApplicationWindow):
     sidebar_page = Gtk.Template.Child()
     sidebar_header = Gtk.Template.Child()
     search_toggle_button = Gtk.Template.Child()
-    add_split_button = Gtk.Template.Child()
+    add_password_button = Gtk.Template.Child()
+    add_folder_button = Gtk.Template.Child()
+    git_pull_button = Gtk.Template.Child()
+    git_push_button = Gtk.Template.Child()
     sidebar_menu_button = Gtk.Template.Child()
     search_clamp = Gtk.Template.Child()
     search_entry = Gtk.Template.Child()
@@ -164,25 +167,40 @@ class SecretsWindow(Adw.ApplicationWindow):
         self.remove_button.connect("clicked", self.on_remove_button_clicked)
         self.search_toggle_button.connect("toggled", self.on_search_toggle_clicked)
 
-        # Connect split button main action to add password
-        self.add_split_button.connect("clicked", self.on_add_password_button_clicked)
+        # Connect add buttons
+        self.add_password_button.connect("clicked", self.on_add_password_button_clicked)
+        self.add_folder_button.connect("clicked", self.on_add_folder_button_clicked)
 
-        # Setup actions for the add menu
-        self._setup_add_actions()
+        # Connect git buttons
+        self.git_pull_button.connect("clicked", self.on_git_pull_clicked)
+        self.git_push_button.connect("clicked", self.on_git_push_clicked)
 
-        # Git status monitoring disabled for v0.8.6
-        # self._setup_git_status_monitoring()
+        # Setup git functionality
+        self._setup_git_functionality()
 
-    def _setup_add_actions(self):
-        """Setup actions for the add menu."""
-        # Add folder action (only action needed in dropdown)
-        add_folder_action = Gio.SimpleAction.new("add_folder", None)
-        add_folder_action.connect("activate", self._on_add_folder_action)
-        self.add_action(add_folder_action)
-
-    def _on_add_folder_action(self, action, parameter):
-        """Handle add folder action from menu."""
-        self.on_add_folder_button_clicked(None)
+    def _setup_git_functionality(self):
+        """Setup git functionality and status checking."""
+        # Import git-related components
+        try:
+            from .managers import GitManager
+            from .services import GitService
+            
+            # Initialize git manager
+            self.git_manager = GitManager(
+                self.password_store.store_dir,
+                self.config_manager,
+                self.toast_manager
+            )
+            
+            # Check initial git status
+            self._update_git_button_states()
+            
+        except ImportError:
+            # Git functionality not available
+            self.git_pull_button.set_sensitive(False)
+            self.git_push_button.set_sensitive(False)
+            self.git_pull_button.set_tooltip_text("Git functionality not available")
+            self.git_push_button.set_tooltip_text("Git functionality not available")
 
         # Folder signals are handled by the DynamicFolderController
 
@@ -266,7 +284,8 @@ class SecretsWindow(Adw.ApplicationWindow):
             on_toggle_password=self.details_controller.toggle_password_visibility,
             on_generate_password=self._on_generate_password,
             on_show_help=self._on_show_help_overlay,
-            on_import_export=self._on_import_export
+            on_import_export=self._on_import_export,
+            on_compliance_dashboard=self._on_compliance_dashboard
         )
 
         # Setup validation is now handled by the setup wizard before this window is shown
@@ -336,26 +355,57 @@ class SecretsWindow(Adw.ApplicationWindow):
         # self.command_invoker.register_command("git_pull", git_pull_cmd)
         # self.command_invoker.register_command("git_push", git_push_cmd)
 
-    # Git click handlers disabled for v0.8.6
-    # def on_git_pull_clicked(self, widget):
-    #     """Handle git pull using command pattern."""
-    #     # Check if Git is properly set up
-    #     status = self.git_manager.get_status()
-    #     if not status.is_repo or not status.has_remote:
-    #         self._show_git_setup_dialog()
-    #         return
+    def on_git_pull_clicked(self, widget):
+        """Handle git pull button click."""
+        if not hasattr(self, 'git_manager'):
+            self._show_git_setup_dialog()
+            return
+            
+        # Check if Git is properly set up
+        try:
+            status = self.git_manager.get_status()
+            if not status.is_repo or not status.has_remote:
+                self._show_git_setup_dialog()
+                return
 
-    #     self.command_invoker.execute_command("git_pull")
+            # Execute git pull
+            self.toast_manager.show_info("Pulling changes from remote repository...")
+            success, message = self.git_manager.pull()
+            
+            if success:
+                self.toast_manager.show_success("Successfully pulled changes from remote")
+                # Refresh password list to show any changes
+                self.folder_controller.load_passwords()
+            else:
+                self.toast_manager.show_error(f"Git pull failed: {message}")
+                
+        except Exception as e:
+            self.toast_manager.show_error(f"Error during git pull: {str(e)}")
 
-    # def on_git_push_clicked(self, widget):
-    #     """Handle git push using command pattern."""
-    #     # Check if Git is properly set up
-    #     status = self.git_manager.get_status()
-    #     if not status.is_repo or not status.has_remote:
-    #         self._show_git_setup_dialog()
-    #         return
+    def on_git_push_clicked(self, widget):
+        """Handle git push button click."""
+        if not hasattr(self, 'git_manager'):
+            self._show_git_setup_dialog()
+            return
+            
+        # Check if Git is properly set up
+        try:
+            status = self.git_manager.get_status()
+            if not status.is_repo or not status.has_remote:
+                self._show_git_setup_dialog()
+                return
 
-    #     self.command_invoker.execute_command("git_push")
+            # Execute git push
+            self.toast_manager.show_info("Pushing changes to remote repository...")
+            success, message = self.git_manager.push()
+            
+            if success:
+                self.toast_manager.show_success("Successfully pushed changes to remote")
+            else:
+                self.toast_manager.show_error(f"Git push failed: {message}")
+                
+        except Exception as e:
+            self.toast_manager.show_error(f"Error during git push: {str(e)}")
 
     def on_add_folder_button_clicked(self, widget):
         """Handle add folder button click."""
@@ -695,10 +745,21 @@ class SecretsWindow(Adw.ApplicationWindow):
         )
         import_export_dialog.present()
 
+    def _on_compliance_dashboard(self, action=None, param=None):
+        """Show compliance dashboard dialog."""
+        from .ui.dialogs import ComplianceDashboardDialog
+
+        compliance_dashboard_dialog = ComplianceDashboardDialog(
+            parent_window=self,
+            config_manager=self.config_manager
+        )
+        compliance_dashboard_dialog.present()
+
     def _refresh_password_list_after_import(self):
         """Refresh the password list after import operations."""
         if hasattr(self, 'folder_controller'):
             self.folder_controller.load_passwords()
+
 
     def _on_application_locked(self):
         """Called when the application is locked."""
@@ -726,24 +787,56 @@ class SecretsWindow(Adw.ApplicationWindow):
             self.security_manager.stop_security_monitoring()
         return super().close_request()
 
-    def _setup_git_status_monitoring(self):
-        """Set up Git status monitoring and UI updates."""
-        # Set up Git status indicator in header
-        self._setup_git_status_indicator()
+    def _update_git_button_states(self):
+        """Update git button states based on git setup status."""
+        try:
+            if hasattr(self, 'git_manager'):
+                status = self.git_manager.get_status()
+                
+                # Enable buttons only if git repo is set up with remote
+                git_enabled = status.is_repo and status.has_remote
+                
+                self.git_pull_button.set_sensitive(git_enabled)
+                self.git_push_button.set_sensitive(git_enabled)
+                
+                if git_enabled:
+                    self.git_pull_button.set_tooltip_text("Pull changes from remote repository")
+                    self.git_push_button.set_tooltip_text("Push changes to remote repository")
+                else:
+                    self.git_pull_button.set_tooltip_text("Git repository not configured")
+                    self.git_push_button.set_tooltip_text("Git repository not configured")
+            else:
+                # Git manager not available
+                self.git_pull_button.set_sensitive(False)
+                self.git_push_button.set_sensitive(False)
+                self.git_pull_button.set_tooltip_text("Click to setup Git repository")
+                self.git_push_button.set_tooltip_text("Click to setup Git repository")
+                
+        except Exception as e:
+            print(f"Error updating git button states: {e}")
+            self.git_pull_button.set_sensitive(False)
+            self.git_push_button.set_sensitive(False)
+            self.git_pull_button.set_tooltip_text("Git error - click to setup")
+            self.git_push_button.set_tooltip_text("Git error - click to setup")
 
-        # Add status update callback
-        self.git_status_component.add_update_callback(self._on_git_status_updated)
+    def _show_git_setup_dialog(self):
+        """Show the Git setup dialog."""
+        from .ui.dialogs.git_setup_dialog import GitSetupDialog
+        
+        dialog = GitSetupDialog(
+            store_dir=self.password_store.store_dir,
+            config_manager=self.config_manager,
+            toast_manager=self.toast_manager,
+            transient_for=self
+        )
+        dialog.connect("setup-completed", self._on_git_setup_completed)
+        dialog.present()
 
-        # Initial status check
-        self._update_git_button_visibility()
-
-        # Set up periodic status updates (every 30 seconds)
-        GLib.timeout_add_seconds(30, self._periodic_git_status_update)
-
-        # Auto-pull on startup if configured
-        config = self.config_manager.get_config()
-        if config.git.auto_pull_on_startup:
-            GLib.idle_add(self.git_manager.auto_pull_on_startup)
+    def _on_git_setup_completed(self, dialog):
+        """Handle Git setup completion."""
+        # Reinitialize git manager
+        self._setup_git_functionality()
+        self.toast_manager.show_success("Git repository setup completed")
 
     def _on_git_status_updated(self, status):
         """Handle Git status updates."""
