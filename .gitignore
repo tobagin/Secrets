@@ -36,3 +36,4 @@ Thumbs.db
 
 # Secrets - if any specific untracked files are planned
 # e.g., local_config.ini
+/.claude
