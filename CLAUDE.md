@@ -111,7 +111,7 @@ make quality-check     # All quality checks
 - Always pass sensitive data via stdin, not command arguments
 - Validate all user input before using in subprocess commands
 - Use existing security helpers (ClipboardManager, PasswordCache) rather than implementing new ones
-- Check SECURITY.md for detailed security architecture and known issues
+- Check docs/SECURITY.md for detailed security architecture and known issues
 
 ### Testing Security Features
 - Test auto-lock functionality with different timeouts
