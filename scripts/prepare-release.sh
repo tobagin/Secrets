@@ -28,13 +28,13 @@ if [ -f "scripts/update-flatpak-deps.py" ]; then
     python3 scripts/update-flatpak-deps.py
 
     # Check if any dependencies were updated
-    if ! git diff-index --quiet HEAD -- io.github.tobagin.secrets.yml; then
+    if ! git diff-index --quiet HEAD -- packaging/flatpak/io.github.tobagin.secrets.yml; then
         echo -e "${GREEN}✅ Flatpak dependencies updated${NC}"
         echo "Committing dependency updates..."
-        git add io.github.tobagin.secrets.yml
+        git add packaging/flatpak/io.github.tobagin.secrets.yml
         git commit -m "chore: Update Flatpak dependencies to latest versions
 
-$(git diff HEAD~1 io.github.tobagin.secrets.yml | grep -E '^[+-].*url:|^[+-].*sha256:' | head -10)"
+$(git diff HEAD~1 packaging/flatpak/io.github.tobagin.secrets.yml | grep -E '^[+-].*url:|^[+-].*sha256:' | head -10)"
     else
         echo "✅ All Flatpak dependencies are up to date"
     fi

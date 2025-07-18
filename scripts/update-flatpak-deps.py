@@ -125,7 +125,7 @@ def main():
     print()
     
     # Find the Flatpak manifest
-    manifest_path = Path("io.github.tobagin.secrets.yml")
+    manifest_path = Path("packaging/flatpak/io.github.tobagin.secrets.yml")
     if not manifest_path.exists():
         print_status("Flatpak manifest not found!", "error")
         sys.exit(1)

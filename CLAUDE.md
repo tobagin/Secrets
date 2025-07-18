@@ -29,7 +29,7 @@ python3 -m secrets.main
 meson compile -C build
 
 # Build Flatpak locally
-flatpak-builder --user --install --force-clean build io.github.tobagin.secrets.yml
+flatpak-builder --user --install --force-clean build packaging/flatpak/io.github.tobagin.secrets.yml
 
 # Run Flatpak version
 flatpak run io.github.tobagin.secrets
@@ -96,7 +96,7 @@ make quality-check     # All quality checks
 - Translations are in `po/` directory using gettext
 - Security-sensitive operations use memory protection (`mlock`)
 - Git operations are async to prevent UI blocking
-- Flatpak manifest (`io.github.tobagin.secrets.yml`) defines the runtime environment
+- Flatpak manifest (`packaging/flatpak/io.github.tobagin.secrets.yml`) defines the runtime environment
 
 ## Security Considerations
 

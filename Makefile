@@ -109,7 +109,7 @@ dev-install:
 # Flatpak
 flatpak-build:
 	@echo "Building Flatpak..."
-	flatpak-builder --user --install --force-clean build io.github.tobagin.secrets.yml
+	flatpak-builder --user --install --force-clean build packaging/flatpak/io.github.tobagin.secrets.yml
 
 flatpak-run:
 	@echo "Running Flatpak version..."

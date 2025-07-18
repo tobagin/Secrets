@@ -14,7 +14,7 @@ py_mod = python.find_installation(pure: false)
 
 # Create a proper entry point script for development
 configure_file(
-  input: 'secrets-dev.in',
+  input: 'packaging/secrets-dev.in',
   output: 'secrets-dev',
   configuration: {
     'PYTHON': py_mod.full_path(),
@@ -25,7 +25,7 @@ configure_file(
 
 # Create the main executable script for installation
 configure_file(
-  input: 'secrets.in',
+  input: 'packaging/secrets.in',
   output: 'secrets-app',
   configuration: {
     'PYTHON': py_mod.full_path(),
