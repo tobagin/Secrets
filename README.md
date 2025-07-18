@@ -377,7 +377,6 @@ data/
 ├── icons/                   # Application icons
 └── screenshots/             # Application screenshots
 po/                          # Translation files
-scripts/                     # Development and build scripts
 ```
 
 ## 🗺️ Roadmap

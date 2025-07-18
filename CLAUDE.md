@@ -14,13 +14,11 @@ Secrets is a GTK4/Libadwaita password manager providing a graphical interface fo
 meson setup build
 meson compile -C build
 
-# Run in development mode (recommended)
-./scripts/run-dev.sh
+# Run in development mode
+meson devenv -C build python3 -m secrets.main
 
 # Alternative: Direct Python execution
-./scripts/run-dev.sh --direct
-# or
-python3 -m secrets.main
+PYTHONPATH=src python3 -m secrets.main
 ```
 
 ### Building and Testing
@@ -48,11 +46,9 @@ bandit -r src/                 # Security analysis with bandit
 
 ### Release Management
 ```bash
-# Prepare a new release (updates versions, builds, validates)
-./scripts/prepare-release.sh [VERSION]
-
-# Update Flatpak dependencies
-python3 scripts/update-flatpak-deps.py
+# Update Flatpak dependencies manually
+# Check PyPI for latest versions and update packaging/flatpak/io.github.tobagin.secrets.yml
+# Test with: ./build.sh --force-clean
 ```
 
 ## Architecture
