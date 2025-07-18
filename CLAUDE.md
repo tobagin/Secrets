@@ -35,20 +35,15 @@ flatpak-builder --user --install --force-clean build packaging/flatpak/io.github
 flatpak run io.github.tobagin.secrets
 
 # Run unit tests
-make test
-# or
-./scripts/run-tests.sh
-
-# Run specific test categories
-make test-unit           # Unit tests only
-make test-coverage       # Tests with coverage report
+python -m pytest tests/
+# or with coverage
+python -m pytest tests/ --cov=src/secrets --cov-report=html
 
 # Code quality checks
-make lint               # Linting with ruff
-make format            # Code formatting with black
-make type-check        # Type checking with mypy
-make security-check    # Security analysis with bandit
-make quality-check     # All quality checks
+ruff check src/ tests/          # Linting with ruff
+black src/ tests/              # Code formatting with black
+mypy src/secrets               # Type checking with mypy
+bandit -r src/                 # Security analysis with bandit
 ```
 
 ### Release Management
@@ -57,7 +52,7 @@ make quality-check     # All quality checks
 ./scripts/prepare-release.sh [VERSION]
 
 # Update Flatpak dependencies
-./scripts/update-deps.sh
+python3 scripts/update-flatpak-deps.py
 ```
 
 ## Architecture
