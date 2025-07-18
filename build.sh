@@ -1,11 +1,11 @@
 #!/bin/bash
-# Convenience script for building the Sonar webhook inspector application
+# Convenience script for building the Secrets password manager application
 
 set -e
 
 # Configuration
-APP_ID="io.github.tobagin.sonar"
-PROJECT_NAME="Sonar"
+APP_ID="io.github.tobagin.secrets"
+PROJECT_NAME="Secrets"
 BUILD_DIR=".flatpak-builder"
 REPO_DIR="repo"
 
@@ -45,7 +45,7 @@ show_help() {
     cat << EOF
 Usage: $0 [OPTIONS]
 
-Build the Sonar webhook inspector application using Flatpak.
+Build the Secrets password manager application using Flatpak.
 
 OPTIONS:
     --dev               Build from local sources (development mode)
@@ -60,8 +60,8 @@ EXAMPLES:
     $0 --dev --verbose          Development build with verbose output
 
 NOTES:
-    - By default, builds from production manifest (packaging/${APP_ID}.yml)
-    - Use --dev flag to build from local sources (packaging/${APP_ID}-local.yml)
+    - By default, builds from production manifest (packaging/flatpak/${APP_ID}.yml)
+    - Use --dev flag to build from local sources (packaging/flatpak/${APP_ID}.dev.yml)
     - Use --install to install after build completes
     - Use --force-clean to ensure a fresh build environment
 
@@ -102,10 +102,10 @@ check_dependencies() {
 # Function to select manifest
 select_manifest() {
     if [ "$DEV_MODE" = true ]; then
-        MANIFEST="packaging/${APP_ID}-local.yml"
+        MANIFEST="packaging/flatpak/${APP_ID}.dev.yml"
         print_info "Using development manifest: $MANIFEST"
     else
-        MANIFEST="packaging/${APP_ID}.yml"
+        MANIFEST="packaging/flatpak/${APP_ID}.yml"
         print_info "Using production manifest: $MANIFEST"
     fi
     
@@ -165,15 +165,21 @@ install_app() {
         print_info "Installing $PROJECT_NAME..."
         
         # Add local repo if not already added
-        if ! flatpak remote-list | grep -q "echo-local"; then
-            flatpak remote-add --user --no-gpg-verify echo-local "$REPO_DIR"
+        if ! flatpak remote-list | grep -q "secrets-local"; then
+            flatpak remote-add --user --no-gpg-verify secrets-local "$REPO_DIR"
+        fi
+        
+        # Determine the correct app ID based on mode
+        local install_app_id="$APP_ID"
+        if [ "$DEV_MODE" = true ]; then
+            install_app_id="${APP_ID}.dev"
         fi
         
         # Install/update the application (force reinstall if already installed)
-        if flatpak install -y --user --reinstall echo-local "$APP_ID"; then
+        if flatpak install -y --user --reinstall secrets-local "$install_app_id"; then
             print_success "Installation completed successfully"
             print_info "You can now run the application with:"
-            print_info "  flatpak run $APP_ID"
+            print_info "  flatpak run $install_app_id"
         else
             print_error "Installation failed"
             exit 1
@@ -183,9 +189,14 @@ install_app() {
 
 # Function to show build summary
 show_summary() {
+    local display_app_id="$APP_ID"
+    if [ "$DEV_MODE" = true ]; then
+        display_app_id="${APP_ID}.dev"
+    fi
+    
     print_success "Build Summary:"
     echo "  Application: $PROJECT_NAME"
-    echo "  App ID: $APP_ID"
+    echo "  App ID: $display_app_id"
     echo "  Manifest: $MANIFEST"
     echo "  Build Mode: $([ "$DEV_MODE" = true ] && echo "Development" || echo "Production")"
     echo "  Installed: $([ "$INSTALL" = true ] && echo "Yes" || echo "No")"
@@ -193,10 +204,10 @@ show_summary() {
     if [ "$INSTALL" = true ]; then
         echo ""
         print_info "To run the application:"
-        print_info "  flatpak run $APP_ID"
+        print_info "  flatpak run $display_app_id"
         echo ""
         print_info "To uninstall:"
-        print_info "  flatpak uninstall $APP_ID"
+        print_info "  flatpak uninstall $display_app_id"
     fi
 }
 
