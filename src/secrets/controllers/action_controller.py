@@ -32,7 +32,8 @@ class ActionController:
                  on_generate_password: Optional[Callable] = None,
                  on_show_help: Optional[Callable] = None,
                  on_import_export: Optional[Callable] = None,
-                 on_compliance_dashboard: Optional[Callable] = None):
+                 on_compliance_dashboard: Optional[Callable] = None,
+                 on_add_folder: Optional[Callable] = None):
         
         self.window = window
         self.toast_manager = toast_manager
@@ -52,7 +53,8 @@ class ActionController:
             'generate_password': on_generate_password,
             'show_help': on_show_help,
             'import_export': on_import_export,
-            'compliance_dashboard': on_compliance_dashboard
+            'compliance_dashboard': on_compliance_dashboard,
+            'add_folder': on_add_folder
         }
         
         # Setup window actions
@@ -73,7 +75,9 @@ class ActionController:
             ("generate-password", self._on_generate_password),
             ("show-help-overlay", self._on_show_help_overlay),
             ("import-export", self._on_import_export),
-            ("compliance-dashboard", self._on_compliance_dashboard)
+            ("compliance-dashboard", self._on_compliance_dashboard),
+            ("add-password", self._on_add_password),
+            ("add-folder", self._on_add_folder)
         ]
         
         for action_name, callback in actions:
@@ -143,6 +147,14 @@ class ActionController:
     def _on_compliance_dashboard(self, action, param):
         """Handle compliance dashboard action."""
         self._execute_callback('compliance_dashboard')
+    
+    def _on_add_password(self, action, param):
+        """Handle add password action."""
+        self._execute_callback('add_password')
+    
+    def _on_add_folder(self, action, param):
+        """Handle add folder action."""
+        self._execute_callback('add_folder')
     
     def update_callback(self, callback_name: str, callback: Callable):
         """Update a callback function."""

@@ -98,9 +98,11 @@ template $SecretsWindow : Adw.ApplicationWindow {
 
         Adw.StatusPage welcome_status_page {
           visible: false;
+          vexpand: true;
+          valign: center;
           icon-name: "io.github.tobagin.secrets-password-symbolic";
-          title: _("Welcome to Secrets");
-          description: _("Your password manager is ready to secure your passwords. Get started by creating your first password or folder, or import from your previous password manager.");
+          title: _("Welcome to Secrets Manager");
+          description: _("App is ready to secure your passwords. Get started by creating your first password or folder, or import from your previous password manager.");
 
           child: Gtk.Box {
             orientation: vertical;

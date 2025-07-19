@@ -216,6 +216,8 @@ class SecretsWindow(Adw.ApplicationWindow):
         self.action_controller = ActionController(
             self,
             self.toast_manager,
+            on_add_password=lambda: self.on_add_password_button_clicked(None),
+            on_add_folder=lambda: self.on_add_folder_button_clicked(None),
             on_focus_search=self._on_focus_search,
             on_clear_search=self._on_clear_search,
             on_refresh=self._on_refresh,
