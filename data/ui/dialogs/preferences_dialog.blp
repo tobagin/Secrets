@@ -1,0 +1,565 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $PreferencesDialog : Adw.PreferencesDialog {
+  title: _("Preferences");
+
+  // General preferences page
+  Adw.PreferencesPage general_page {
+    title: _("General");
+    icon-name: "preferences-system-symbolic";
+
+    // Appearance group
+    Adw.PreferencesGroup appearance_group {
+      title: _("Appearance");
+
+      // Theme selection
+      Adw.ComboRow theme_row {
+        title: _("Theme");
+        subtitle: _("Choose the application theme");
+        model: StringList {
+          strings [
+            _("Auto (Follow System)"),
+            _("Light"),
+            _("Dark")
+          ]
+        };
+      }
+    }
+
+    // Window group
+    Adw.PreferencesGroup window_group {
+      title: _("Window");
+
+      // Remember window size
+      Adw.SwitchRow remember_window_row {
+        title: _("Remember Window Size");
+        subtitle: _("Restore window size and position on startup");
+      }
+    }
+  }
+
+  // Security preferences page
+  Adw.PreferencesPage security_page {
+    title: _("Security");
+    icon-name: "security-high-symbolic";
+
+    // Password display group
+    Adw.PreferencesGroup password_group {
+      title: _("Password Display");
+
+      // Auto-hide passwords
+      Adw.SwitchRow auto_hide_row {
+        title: _("Auto-hide Passwords");
+        subtitle: _("Automatically hide passwords after a timeout");
+      }
+
+      // Auto-hide timeout
+      Adw.SpinRow auto_hide_timeout_row {
+        title: _("Auto-hide Timeout");
+        subtitle: _("Seconds before passwords are automatically hidden");
+        adjustment: Adjustment {
+          value: 30;
+          lower: 5;
+          upper: 300;
+          step-increment: 5;
+        };
+      }
+    }
+
+    // Clipboard group
+    Adw.PreferencesGroup clipboard_group {
+      title: _("Clipboard");
+
+      // Clear clipboard timeout
+      Adw.SpinRow clipboard_timeout_row {
+        title: _("Clear Clipboard Timeout");
+        subtitle: _("Seconds before clipboard is automatically cleared");
+        adjustment: Adjustment {
+          value: 45;
+          lower: 10;
+          upper: 300;
+          step-increment: 5;
+        };
+      }
+    }
+
+    // Confirmation group
+    Adw.PreferencesGroup confirmation_group {
+      title: _("Confirmations");
+
+      // Require confirmation for delete
+      Adw.SwitchRow confirm_delete_row {
+        title: _("Confirm Deletions");
+        subtitle: _("Show confirmation dialog before deleting passwords");
+      }
+
+      // Require password name for delete
+      Adw.SwitchRow require_password_name_row {
+        title: _("Require Password Name for Deletion");
+        subtitle: _("Require typing the password name before deletion");
+      }
+    }
+
+    // Session security group
+    Adw.PreferencesGroup session_group {
+      title: _("Session Security");
+
+      // Lock on idle
+      Adw.SwitchRow lock_on_idle_row {
+        title: _("Lock on Idle");
+        subtitle: _("Automatically lock the application when idle");
+      }
+
+      // Idle timeout
+      Adw.SpinRow idle_timeout_row {
+        title: _("Idle Timeout");
+        subtitle: _("Minutes of inactivity before locking");
+        adjustment: Adjustment {
+          value: 15;
+          lower: 1;
+          upper: 120;
+          step-increment: 1;
+        };
+      }
+
+      // Lock on screen lock
+      Adw.SwitchRow lock_on_screen_lock_row {
+        title: _("Lock on Screen Lock");
+        subtitle: _("Lock application when system screen locks");
+      }
+
+      // Master password timeout
+      Adw.SpinRow master_password_timeout_row {
+        title: _("Master Password Timeout");
+        subtitle: _("Minutes before requiring master password re-entry (0 = never)");
+        adjustment: Adjustment {
+          value: 60;
+          lower: 0;
+          upper: 480;
+          step-increment: 15;
+        };
+      }
+    }
+
+    // Advanced security group
+    Adw.PreferencesGroup advanced_group {
+      title: _("Advanced Security");
+
+      // Clear memory on lock
+      Adw.SwitchRow clear_memory_row {
+        title: _("Clear Memory on Lock");
+        subtitle: _("Clear sensitive data from memory when locked");
+      }
+
+      // Require master password for export
+      Adw.SwitchRow require_master_for_export_row {
+        title: _("Require Master Password for Export");
+        subtitle: _("Require master password when exporting data");
+      }
+
+      // Failed unlock attempts
+      Adw.SpinRow max_failed_attempts_row {
+        title: _("Max Failed Unlock Attempts");
+        subtitle: _("Maximum failed unlock attempts before lockout");
+        adjustment: Adjustment {
+          value: 3;
+          lower: 1;
+          upper: 10;
+          step-increment: 1;
+        };
+      }
+
+      // Lockout duration
+      Adw.SpinRow lockout_duration_row {
+        title: _("Lockout Duration");
+        subtitle: _("Minutes to lock out after too many failed attempts");
+        adjustment: Adjustment {
+          value: 5;
+          lower: 1;
+          upper: 60;
+          step-increment: 1;
+        };
+      }
+    }
+
+    // Master Password Policy group
+    Adw.PreferencesGroup password_policy_group {
+      title: _("Master Password Policy");
+      description: _("Security requirements for the master password");
+
+      // Password complexity
+      Adw.SwitchRow password_complexity_row {
+        title: _("Enforce Password Complexity");
+        subtitle: _("Require strong passwords with mixed characters");
+      }
+
+      // Minimum password length
+      Adw.SpinRow password_min_length_row {
+        title: _("Minimum Password Length");
+        subtitle: _("Minimum characters required for passwords");
+        adjustment: Adjustment {
+          value: 12;
+          lower: 8;
+          upper: 32;
+          step-increment: 1;
+        };
+      }
+
+      // Password history
+      Adw.SpinRow password_history_row {
+        title: _("Password History");
+        subtitle: _("Number of previous passwords to remember");
+        adjustment: Adjustment {
+          value: 4;
+          lower: 0;
+          upper: 12;
+          step-increment: 1;
+        };
+      }
+
+      // Password expiry
+      Adw.SpinRow password_expiry_row {
+        title: _("Password Expiry (Days)");
+        subtitle: _("Days before password change reminder (0 = never)");
+        adjustment: Adjustment {
+          value: 90;
+          lower: 0;
+          upper: 365;
+          step-increment: 30;
+        };
+      }
+    }
+
+    // Audit & Monitoring group
+    Adw.PreferencesGroup audit_group {
+      title: _("Audit & Monitoring");
+      description: _("Security event logging and monitoring");
+
+      // Enable audit logging
+      Adw.SwitchRow audit_enabled_row {
+        title: _("Enable Audit Logging");
+        subtitle: _("Log security events and access attempts");
+      }
+
+      // Log all access
+      Adw.SwitchRow log_all_access_row {
+        title: _("Log All Password Access");
+        subtitle: _("Create detailed logs of all password access");
+      }
+
+      // Audit retention
+      Adw.SpinRow audit_retention_row {
+        title: _("Audit Log Retention (Days)");
+        subtitle: _("How long to keep audit logs");
+        adjustment: Adjustment {
+          value: 90;
+          lower: 30;
+          upper: 2190;
+          step-increment: 30;
+        };
+      }
+    }
+  }
+
+  // Search preferences page
+  Adw.PreferencesPage search_page {
+    title: _("Search");
+    icon-name: "system-search-symbolic";
+
+    // Search options group
+    Adw.PreferencesGroup search_options_group {
+      title: _("Search Options");
+
+      // Case sensitive search
+      Adw.SwitchRow case_sensitive_row {
+        title: _("Case Sensitive");
+        subtitle: _("Make searches case sensitive");
+      }
+
+      // Search in content
+      Adw.SwitchRow search_content_row {
+        title: _("Search in Content");
+        subtitle: _("Include password content in search");
+      }
+
+      // Search in filenames
+      Adw.SwitchRow search_filenames_row {
+        title: _("Search in Filenames");
+        subtitle: _("Include filenames in search");
+      }
+
+      // Max search results
+      Adw.SpinRow max_results_row {
+        title: _("Maximum Results");
+        subtitle: _("Maximum number of search results to display");
+        adjustment: Adjustment {
+          value: 100;
+          lower: 10;
+          upper: 1000;
+          step-increment: 10;
+        };
+      }
+    }
+  }
+
+  // Git preferences page
+  Adw.PreferencesPage git_page {
+    title: _("Git");
+    icon-name: "software-update-available-symbolic";
+
+    // Git automation group
+    Adw.PreferencesGroup git_automation_group {
+      title: _("Automation");
+
+      // Auto-pull on startup
+      Adw.SwitchRow auto_pull_row {
+        title: _("Auto-pull on Startup");
+        subtitle: _("Automatically pull changes when the application starts");
+      }
+
+      // Auto-push on changes
+      Adw.SwitchRow auto_push_row {
+        title: _("Auto-push on Changes");
+        subtitle: _("Automatically push changes after modifications");
+      }
+    }
+
+    // Git status group
+    Adw.PreferencesGroup git_status_group {
+      title: _("Status");
+
+      // Show git status
+      Adw.SwitchRow show_git_status_row {
+        title: _("Show Git Status");
+        subtitle: _("Display git repository status information");
+      }
+
+      // Git timeout
+      Adw.SpinRow git_timeout_row {
+        title: _("Git Timeout");
+        subtitle: _("Timeout for git operations in seconds");
+        adjustment: Adjustment {
+          value: 30;
+          lower: 5;
+          upper: 120;
+          step-increment: 5;
+        };
+      }
+    }
+
+    // Repository management group
+    Adw.PreferencesGroup git_repo_group {
+      title: _("Repository Management");
+
+      // Repository setup button
+      Adw.ActionRow repo_setup_row {
+        title: _("Repository Setup");
+        subtitle: _("Configure Git repository and remote connections");
+
+        [suffix]
+        Button repo_setup_button {
+          label: _("Setup");
+          valign: center;
+        }
+      }
+
+      // Repository status button
+      Adw.ActionRow repo_status_row {
+        title: _("Repository Status");
+        subtitle: _("View Git repository status and history");
+
+        [suffix]
+        Button repo_status_button {
+          label: _("View Status");
+          valign: center;
+        }
+      }
+    }
+
+    // Advanced Git settings group
+    Adw.PreferencesGroup git_advanced_group {
+      title: _("Advanced Settings");
+
+      // Auto-commit on changes
+      Adw.SwitchRow auto_commit_row {
+        title: _("Auto-commit Changes");
+        subtitle: _("Automatically commit changes before push/pull operations");
+      }
+
+      // Show Git notifications
+      Adw.SwitchRow git_notifications_row {
+        title: _("Show Git Notifications");
+        subtitle: _("Display notifications for Git operations");
+      }
+
+      // Check remote on startup
+      Adw.SwitchRow check_remote_row {
+        title: _("Check Remote on Startup");
+        subtitle: _("Check for remote changes when the application starts");
+      }
+
+      // Remote name
+      Adw.EntryRow remote_name_row {
+        title: _("Remote Name");
+        text: "origin";
+      }
+
+      // Default branch
+      Adw.EntryRow default_branch_row {
+        title: _("Default Branch");
+        text: "main";
+      }
+
+      // Commit message template
+      Adw.EntryRow commit_template_row {
+        title: _("Commit Message Template");
+        text: "Update passwords";
+      }
+    }
+  }
+
+  // Logging preferences page
+  Adw.PreferencesPage logging_page {
+    title: _("Logging");
+    icon-name: "dialog-information-symbolic";
+
+    // Logging configuration group
+    Adw.PreferencesGroup logging_config_group {
+      title: _("Logging Configuration");
+      description: _("Control application logging behavior");
+
+      // Log level selection
+      Adw.ComboRow log_level_row {
+        title: _("Log Level");
+        subtitle: _("Set the minimum level for log messages");
+        model: StringList {
+          strings [
+            "DEBUG",
+            "INFO",
+            "WARNING",
+            "ERROR",
+            "CRITICAL"
+          ]
+        };
+      }
+
+      // Enable file logging
+      Adw.SwitchRow file_logging_row {
+        title: _("Enable File Logging");
+        subtitle: _("Save log messages to files");
+      }
+
+      // Enable console logging
+      Adw.SwitchRow console_logging_row {
+        title: _("Enable Console Logging");
+        subtitle: _("Display log messages in console");
+      }
+
+      // Enable structured logging
+      Adw.SwitchRow structured_logging_row {
+        title: _("Enable Structured Logging");
+        subtitle: _("Use JSON format for log messages");
+      }
+    }
+
+    // Log rotation group
+    Adw.PreferencesGroup log_rotation_group {
+      title: _("Log Rotation");
+      description: _("Configure log file rotation and retention");
+
+      // Max log file size
+      Adw.SpinRow max_log_size_row {
+        title: _("Max Log File Size (MB)");
+        subtitle: _("Maximum size before log rotation");
+        adjustment: Adjustment {
+          value: 10;
+          lower: 1;
+          upper: 100;
+          step-increment: 1;
+        };
+      }
+
+      // Log backup count
+      Adw.SpinRow backup_count_row {
+        title: _("Backup Count");
+        subtitle: _("Number of backup log files to keep");
+        adjustment: Adjustment {
+          value: 5;
+          lower: 1;
+          upper: 20;
+          step-increment: 1;
+        };
+      }
+
+      // Log retention days
+      Adw.SpinRow log_retention_row {
+        title: _("Log Retention (Days)");
+        subtitle: _("How long to keep log files");
+        adjustment: Adjustment {
+          value: 30;
+          lower: 1;
+          upper: 365;
+          step-increment: 1;
+        };
+      }
+
+      // Enable compression
+      Adw.SwitchRow compression_row {
+        title: _("Enable Log Compression");
+        subtitle: _("Compress rotated log files to save space");
+      }
+    }
+
+    // Log file location group
+    Adw.PreferencesGroup log_location_group {
+      title: _("Log File Location");
+      description: _("Configure where log files are stored");
+
+      // Use custom log directory
+      Adw.SwitchRow custom_log_dir_row {
+        title: _("Use Custom Log Directory");
+        subtitle: _("Store logs in a custom location instead of default");
+      }
+
+      // Custom log directory path
+      Adw.ActionRow log_directory_row {
+        title: _("Log Directory Path");
+        subtitle: _("Location to store log files (leave empty for default)");
+
+        [suffix]
+        Entry log_directory_entry {
+          placeholder-text: _("e.g., /var/log/secrets or ~/logs");
+          hexpand: true;
+          valign: center;
+        }
+
+        [suffix]
+        Button browse_log_dir_button {
+          icon-name: "document-open-symbolic";
+          tooltip-text: _("Browse for directory");
+          valign: center;
+        }
+      }
+
+      // Directory permissions
+      Adw.EntryRow log_permissions_row {
+        title: _("Directory Permissions");
+        text: "755";
+        input-hints: no_spellcheck;
+      }
+
+      // Current log directory display
+      Adw.ActionRow current_log_dir_row {
+        title: _("Current Log Directory");
+        subtitle: _("Location where logs are currently stored");
+
+        [suffix]
+        Button open_log_dir_button {
+          label: _("Open");
+          valign: center;
+        }
+      }
+    }
+  }
+}

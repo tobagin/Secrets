@@ -4,7 +4,10 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 
 from gi.repository import Gtk, Adw, Gio, Gdk
-from .app_info import APP_ID, VERSION
+from .app_info import APP_ID
+from .version import get_version
+from .config import ConfigManager
+from .logging_system import initialize_logging, shutdown_logging, get_logger, LogCategory
 
 # SecretsWindow is imported locally in methods where needed to avoid circular imports
 
@@ -12,9 +15,16 @@ class SecretsApplication(Adw.Application):
     def __init__(self, **kwargs):
         super().__init__(application_id=APP_ID,
                          flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE)
+        
+        # Initialize configuration and logging early
+        self.config_manager = ConfigManager(APP_ID)
+        self.logging_system = initialize_logging(self.config_manager, APP_ID)
+        self.logger = get_logger(LogCategory.APPLICATION, "SecretsApplication")
 
     def do_startup(self):
         Adw.Application.do_startup(self)
+        
+        self.logger.info("Application startup initiated")
 
         # Load CSS styles
         self._load_css()
@@ -63,7 +73,10 @@ class SecretsApplication(Adw.Application):
                 display, css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
             )
         except Exception as e:
-            print(f"Failed to load CSS: {e}")
+            logger.error(f"Failed to load CSS: {e}", extra={
+                'css_file': str(css_file),
+                'error_type': type(e).__name__
+            })
 
     def _make_action(self, name, callback_fn):
         action = Gio.SimpleAction.new(name, None)
@@ -142,20 +155,19 @@ class SecretsApplication(Adw.Application):
         """Show the main application window."""
         from .window import SecretsWindow
 
-        win = SecretsWindow(application=self)
+        win = SecretsWindow(application=self, config_manager=self.config_manager)
         win.present()
 
     def _on_setup_complete(self, setup_wizard):
         """Called when setup is successfully completed."""
-        print("DEBUG: _on_setup_complete called in application")
 
         # Main window is already shown, just trigger the setup completion
         main_window = setup_wizard.parent_window
         if hasattr(main_window, '_verify_setup_and_load'):
-            print("DEBUG: Calling _verify_setup_and_load on main window")
             main_window._verify_setup_and_load()
         else:
-            print("DEBUG: Main window does not have _verify_setup_and_load method")
+            # Fallback if main window doesn't have the method
+            pass
 
     def _on_wizard_closed(self, setup_wizard):
         """Called when setup wizard is closed."""
@@ -179,6 +191,8 @@ class SecretsApplication(Adw.Application):
         about_dialog.present()
 
     def on_quit_action(self, action, param):
+        self.logger.info("Application quit requested")
+        shutdown_logging()
         self.quit()
 
     def on_preferences_action(self, action, param):
@@ -193,7 +207,10 @@ class SecretsApplication(Adw.Application):
             )
             preferences_dialog.present()
         else:
-            print("Preferences action triggered. No active SecretsWindow found.")
+            logger.warning("Preferences action triggered but no active SecretsWindow found", extra={
+                'action': 'preferences',
+                'window_type': type(active_window).__name__ if active_window else None
+            })
 
     def _call_window_method(self, method_name):
         from .window import SecretsWindow # Local import
@@ -202,11 +219,18 @@ class SecretsApplication(Adw.Application):
             method_to_call = getattr(active_window, method_name)
             method_to_call(None) # Call with None as widget argument
         elif active_window:
-            print(f"Active window does not support {method_name} or is not SecretsWindow.")
+            logger.warning(f"Active window does not support {method_name}", extra={
+                'method_name': method_name,
+                'window_type': type(active_window).__name__,
+                'action': 'window_method_call'
+            })
             if hasattr(active_window, 'toast_overlay'):
                  active_window.toast_overlay.add_toast(Adw.Toast.new(f"{method_name} action failed on window."))
         else:
-            print(f"No active window to perform {method_name}.")
+            logger.warning(f"No active window to perform {method_name}", extra={
+                'method_name': method_name,
+                'action': 'window_method_call'
+            })
 
 
     # Git action handlers disabled for v0.8.6

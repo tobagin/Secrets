@@ -9,6 +9,14 @@ import os
 import shutil
 from typing import Tuple, Optional, Dict
 
+# Import logging for error handling
+try:
+    from ..logging_system import get_logger, LogCategory
+    logger = get_logger(LogCategory.SECURITY, "GPGSetupHelper")
+except ImportError:
+    import logging
+    logger = logging.getLogger(__name__)
+
 
 class GPGSetupHelper:
     """Helper class for GPG setup operations."""
@@ -294,7 +302,7 @@ Expire-Date: 0
         try:
             os.chmod(gnupg_home, 0o700)
         except Exception as e:
-            print(f"Warning: Could not set permissions on {gnupg_home}: {e}")
+            logger.warning("Failed to set GPG home permissions", extra={'gnupg_home': gnupg_home, 'error': str(e)})
 
         # Configure gpg-agent.conf for GUI pinentry
         config_lines = []
@@ -364,7 +372,7 @@ Expire-Date: 0
                 GPGSetupHelper.restart_gpg_agent()
 
         except Exception as e:
-            print(f"Warning: Could not configure GPG agent: {e}")
+            logger.warning("Failed to configure GPG agent", extra={'error': str(e)})
 
     @staticmethod
     def restart_gpg_agent():
@@ -409,7 +417,7 @@ Expire-Date: 0
         except Exception as e:
             # Only print warning for unexpected errors
             if "timeout" not in str(e).lower():
-                print(f"Warning: Could not restart GPG agent: {e}")
+                logger.warning("Failed to restart GPG agent", extra={'error': str(e)})
 
     @staticmethod
     def ensure_gui_pinentry():
@@ -438,7 +446,7 @@ Expire-Date: 0
             GPGSetupHelper._gui_pinentry_configured = True
 
         except Exception as e:
-            print(f"Warning: Could not ensure GUI pinentry: {e}")
+            logger.warning("Failed to ensure GUI pinentry", extra={'error': str(e)})
 
     @staticmethod
     def start_gpg_agent() -> Tuple[bool, str]:

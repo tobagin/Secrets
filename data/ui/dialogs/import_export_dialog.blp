@@ -1,0 +1,237 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $ImportExportDialog : Adw.Window {
+  title: "Import/Export";
+  default-width: 600;
+  default-height: 500;
+  modal: true;
+
+  Gtk.Box {
+    orientation: vertical;
+
+    // Header Bar
+    Adw.HeaderBar {
+      title-widget: Adw.WindowTitle {
+        title: "Import/Export";
+      };
+    }
+
+    // Main Content
+    Gtk.ScrolledWindow {
+      vexpand: true;
+      hscrollbar-policy: never;
+
+      Gtk.Box {
+        orientation: vertical;
+        spacing: 12;
+        margin-top: 12;
+        margin-bottom: 12;
+        margin-start: 12;
+        margin-end: 12;
+
+        // Export section
+        Adw.PreferencesGroup {
+          title: "Export";
+          description: "Export your passwords to various formats";
+
+          Adw.ActionRow {
+            title: "Export to JSON";
+            subtitle: "Export all passwords in JSON format";
+
+            [suffix]
+            Gtk.Button export_json_button {
+              icon-name: "io.github.tobagin.secrets-export-symbolic";
+              valign: center;
+              tooltip-text: "Export to JSON";
+            }
+          }
+
+          Adw.ActionRow {
+            title: "Export to CSV";
+            subtitle: "Export passwords in CSV format (compatible with many password managers)";
+
+            [suffix]
+            Gtk.Button export_csv_button {
+              icon-name: "io.github.tobagin.secrets-export-symbolic";
+              valign: center;
+              tooltip-text: "Export to CSV";
+            }
+          }
+        }
+
+        // Import section
+        Adw.PreferencesGroup {
+          title: "Import from Password Managers";
+          description: "Import passwords from popular password managers";
+
+          Adw.ActionRow {
+            title: "1Password";
+            subtitle: "Import from 1Password CSV export";
+
+            [suffix]
+            Gtk.Button import_1password_button {
+              icon-name: "io.github.tobagin.secrets-import-symbolic";
+              valign: center;
+              tooltip-text: "Import from 1Password";
+            }
+          }
+
+          Adw.ActionRow {
+            title: "LastPass";
+            subtitle: "Import from LastPass CSV export";
+
+            [suffix]
+            Gtk.Button import_lastpass_button {
+              icon-name: "io.github.tobagin.secrets-import-symbolic";
+              valign: center;
+              tooltip-text: "Import from LastPass";
+            }
+          }
+
+          Adw.ActionRow {
+            title: "Bitwarden";
+            subtitle: "Import from Bitwarden JSON export";
+
+            [suffix]
+            Gtk.Button import_bitwarden_button {
+              icon-name: "io.github.tobagin.secrets-import-symbolic";
+              valign: center;
+              tooltip-text: "Import from Bitwarden";
+            }
+          }
+
+          Adw.ActionRow {
+            title: "Dashlane";
+            subtitle: "Import from Dashlane CSV export";
+
+            [suffix]
+            Gtk.Button import_dashlane_button {
+              icon-name: "io.github.tobagin.secrets-import-symbolic";
+              valign: center;
+              tooltip-text: "Import from Dashlane";
+            }
+          }
+
+          Adw.ActionRow {
+            title: "KeePass";
+            subtitle: "Import from KeePass/KeePassX CSV export";
+
+            [suffix]
+            Gtk.Button import_keepass_button {
+              icon-name: "io.github.tobagin.secrets-import-symbolic";
+              valign: center;
+              tooltip-text: "Import from KeePass";
+            }
+          }
+
+          Adw.ActionRow {
+            title: "Proton Pass";
+            subtitle: "Import from Proton Pass JSON export";
+
+            [suffix]
+            Gtk.Button import_protonpass_button {
+              icon-name: "io.github.tobagin.secrets-import-symbolic";
+              valign: center;
+              tooltip-text: "Import from Proton Pass";
+            }
+          }
+        }
+
+        // Import from Browsers section
+        Adw.PreferencesGroup {
+          title: "Import from Browsers";
+          description: "Import saved passwords from web browsers";
+
+          Adw.ActionRow {
+            title: "Chrome/Chromium";
+            subtitle: "Import from Chrome/Chromium CSV export";
+
+            [suffix]
+            Gtk.Button import_chrome_button {
+              icon-name: "io.github.tobagin.secrets-import-symbolic";
+              valign: center;
+              tooltip-text: "Import from Chrome";
+            }
+          }
+
+          Adw.ActionRow {
+            title: "Firefox";
+            subtitle: "Import from Firefox CSV export";
+
+            [suffix]
+            Gtk.Button import_firefox_button {
+              icon-name: "io.github.tobagin.secrets-import-symbolic";
+              valign: center;
+              tooltip-text: "Import from Firefox";
+            }
+          }
+
+          Adw.ActionRow {
+            title: "Safari";
+            subtitle: "Import from Safari CSV export";
+
+            [suffix]
+            Gtk.Button import_safari_button {
+              icon-name: "io.github.tobagin.secrets-import-symbolic";
+              valign: center;
+              tooltip-text: "Import from Safari";
+            }
+          }
+
+          Adw.ActionRow {
+            title: "Microsoft Edge";
+            subtitle: "Import from Edge CSV export";
+
+            [suffix]
+            Gtk.Button import_edge_button {
+              icon-name: "io.github.tobagin.secrets-import-symbolic";
+              valign: center;
+              tooltip-text: "Import from Edge";
+            }
+          }
+        }
+
+        // Generic Import section
+        Adw.PreferencesGroup {
+          title: "Generic Import";
+          description: "Import from standard formats";
+
+          Adw.ActionRow {
+            title: "Import from JSON";
+            subtitle: "Import passwords from JSON format";
+
+            [suffix]
+            Gtk.Button import_json_button {
+              icon-name: "io.github.tobagin.secrets-import-symbolic";
+              valign: center;
+              tooltip-text: "Import from JSON";
+            }
+          }
+
+          Adw.ActionRow {
+            title: "Import from CSV";
+            subtitle: "Import passwords from CSV format";
+
+            [suffix]
+            Gtk.Button import_csv_button {
+              icon-name: "io.github.tobagin.secrets-import-symbolic";
+              valign: center;
+              tooltip-text: "Import from CSV";
+            }
+          }
+        }
+
+        // Warning section
+        Adw.PreferencesGroup {
+          title: "Security Warning";
+
+          Adw.ActionRow {
+            title: "⚠️ Important Security Notice";
+            subtitle: "Exported files contain unencrypted passwords. Store them securely and delete after use.";
+          }
+        }
+      }
+    }
+  }
+}

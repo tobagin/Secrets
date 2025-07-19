@@ -1,0 +1,47 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $HeaderBar : Adw.HeaderBar {
+  title-widget: Adw.WindowTitle {
+    title: "Secrets";
+    subtitle: "Password Manager";
+  };
+
+  [start]
+  Box {
+    orientation: horizontal;
+    spacing: 6;
+
+    Button add_password_button {
+      icon-name: "list-add-symbolic";
+      tooltip-text: _("Add New Password");
+      styles ["suggested-action"]
+    }
+
+    Separator {
+      orientation: vertical;
+      margin-start: 6;
+      margin-end: 6;
+    }
+
+    // Git buttons disabled for v0.8.6
+    /*
+    Button git_pull_button {
+      icon-name: "vcs-pull-symbolic";
+      tooltip-text: _("Pull changes");
+      styles ["flat"]
+    }
+
+    Button git_push_button {
+      icon-name: "vcs-push-symbolic";
+      tooltip-text: _("Push changes");
+      styles ["flat"]
+    }
+    */
+  }
+
+  [end]
+  MenuButton main_menu_button {
+    icon-name: "open-menu-symbolic";
+  }
+}

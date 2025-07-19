@@ -1,0 +1,96 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $FolderDialog : Adw.Window {
+  modal: true;
+  title: _("Create New Folder");
+  default-width: 450;
+  default-height: 550;
+  resizable: true;
+
+  styles ["dialog"]
+
+  content: Box {
+    orientation: vertical;
+    spacing: 0;
+
+    Adw.HeaderBar header_bar {
+      title-widget: Adw.WindowTitle window_title {
+        title: _("Create New Folder");
+      };
+    }
+
+    Adw.Clamp {
+      maximum-size: 400;
+      margin-top: 24;
+      margin-bottom: 24;
+      margin-start: 12;
+      margin-end: 12;
+      vexpand: true;
+
+      child: Adw.PreferencesPage {
+        Adw.PreferencesGroup {
+          title: _("Folder Details");
+          description: _("Create a new folder to organize your passwords");
+
+          Adw.EntryRow path_entry {
+            title: _("Folder Path");
+            activate => $on_path_activated();
+          }
+
+          Adw.ActionRow {
+            title: _("Examples: websites, email/work, social");
+            styles ["dim-label"]
+          }
+        }
+
+        // Color Selection
+        Adw.PreferencesGroup {
+          title: _("Appearance");
+          description: _("Choose color and icon for this folder");
+
+          Adw.ActionRow color_row {
+            title: _("Color");
+            subtitle: _("Choose a color for this folder");
+
+            [prefix]
+            Adw.Avatar color_avatar {
+              size: 32;
+              show-initials: false;
+            }
+
+            [suffix]
+            Button color_select_button {
+              icon-name: "color-select-symbolic";
+              tooltip-text: _("Select Color");
+              valign: center;
+              styles ["flat"]
+            }
+          }
+
+          Adw.ComboRow icon_row {
+            title: _("Icon");
+            subtitle: _("Choose an icon for this folder");
+
+            [prefix]
+            Adw.Avatar icon_avatar {
+              size: 32;
+              icon-name: "folder-symbolic";
+              show-initials: false;
+            }
+          }
+        }
+      };
+    }
+
+    // Bottom HeaderBar with action button
+    Adw.HeaderBar {
+      show-end-title-buttons: false;
+      title-widget: Button primary_button {
+        label: _("Create");
+        sensitive: false;
+        styles ["suggested-action"]
+      };
+    }
+  };
+}

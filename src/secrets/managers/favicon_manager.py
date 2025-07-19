@@ -10,8 +10,12 @@ import urllib.parse
 import urllib.error
 import http.cookiejar
 import io
+import logging
 from gi.repository import Gtk, GdkPixbuf, Gio, GLib
 from typing import Optional, Callable
+
+# Get logger for favicon management
+logger = logging.getLogger(__name__)
 
 # Try to import PIL for ICO conversion
 try:
@@ -19,7 +23,10 @@ try:
     PIL_AVAILABLE = True
 except ImportError:
     PIL_AVAILABLE = False
-    print("PIL not available, ICO files may not load properly")
+    logger.warning("PIL not available, ICO files may not load properly", extra={
+        'dependency': 'PIL',
+        'impact': 'ico_conversion_disabled'
+    })
 
 
 class FaviconManager:
@@ -44,7 +51,10 @@ class FaviconManager:
         try:
             os.makedirs(self.cache_dir, exist_ok=True)
         except OSError as e:
-            print(f"Warning: Could not create favicon cache directory: {e}")
+            logger.warning(f"Could not create favicon cache directory: {e}", extra={
+                'cache_dir': self.cache_dir,
+                'error_type': type(e).__name__
+            })
     
     def get_favicon_path(self, url: str) -> Optional[str]:
         """
@@ -93,18 +103,34 @@ class FaviconManager:
         # Check if already cached
         cached_path = self.get_favicon_path(url)
         if cached_path:
-            print(f"✓ Using cached favicon for {domain}: {cached_path}")
+            logger.debug("Using cached favicon", extra={
+                'tag': 'favicon',
+                'domain': domain,
+                'cached_path': cached_path,
+                'action': 'cache_hit'
+            })
             GLib.idle_add(callback, cached_path)
             return
         
         # Download in a separate thread
-        print(f"🔄 Starting favicon download for {domain} (not cached)")
+        logger.debug("Starting favicon download for domain", extra={
+            'tag': 'favicon',
+            'domain': domain,
+            'action': 'download_start',
+            'cache_status': 'not_cached'
+        })
         def download_worker():
             try:
                 favicon_path = self._download_favicon(domain)
                 GLib.idle_add(callback, favicon_path)
             except Exception as e:
-                print(f"Error downloading favicon for {domain}: {e}")
+                logger.debug("Error downloading favicon", extra={
+                    'tag': 'favicon',
+                    'domain': domain,
+                    'action': 'download_error',
+                    'error': str(e),
+                    'error_type': type(e).__name__
+                })
                 GLib.idle_add(callback, None)
         
         # Use GLib thread pool for async download
@@ -123,11 +149,23 @@ class FaviconManager:
         if cached_path:
             try:
                 pixbuf = GdkPixbuf.Pixbuf.new_from_file(cached_path)
-                print(f"✓ Using cached favicon pixbuf for {self._extract_domain(url)}: {cached_path}")
+                logger.debug("Using cached favicon pixbuf", extra={
+                    'tag': 'favicon',
+                    'domain': self._extract_domain(url),
+                    'cached_path': cached_path,
+                    'action': 'pixbuf_cache_hit'
+                })
                 GLib.idle_add(callback, pixbuf)
                 return
             except Exception as e:
-                print(f"✗ Cached favicon corrupted for {self._extract_domain(url)}: {e}")
+                logger.debug("Cached favicon corrupted", extra={
+                    'tag': 'favicon',
+                    'domain': self._extract_domain(url),
+                    'cached_path': cached_path,
+                    'action': 'cache_corruption',
+                    'error': str(e),
+                    'error_type': type(e).__name__
+                })
                 # Remove corrupted cache file
                 try:
                     os.remove(cached_path)
@@ -135,14 +173,25 @@ class FaviconManager:
                     pass
 
         # If not cached, download it
-        print(f"🔄 Starting favicon pixbuf download for {self._extract_domain(url)} (not cached)")
+        logger.debug("Starting favicon pixbuf download", extra={
+            'tag': 'favicon',
+            'domain': self._extract_domain(url),
+            'action': 'pixbuf_download_start',
+            'cache_status': 'not_cached'
+        })
         def on_favicon_path(path):
             if path:
                 try:
                     pixbuf = self._load_pixbuf_from_file(path)
                     GLib.idle_add(callback, pixbuf)
                 except Exception as e:
-                    print(f"Error loading favicon pixbuf from {path}: {e}")
+                    logger.debug("Error loading favicon pixbuf", extra={
+                        'tag': 'favicon',
+                        'path': path,
+                        'action': 'pixbuf_load_error',
+                        'error': str(e),
+                        'error_type': type(e).__name__
+                    })
                     GLib.idle_add(callback, None)
             else:
                 GLib.idle_add(callback, None)
@@ -157,7 +206,12 @@ class FaviconManager:
             # Convert HTTP to HTTPS for security
             if url.startswith('http://'):
                 url = 'https://' + url[7:]
-                print(f"Converted HTTP to HTTPS for favicon: {url}")
+                logger.debug("Converted HTTP to HTTPS for favicon", extra={
+                    'tag': 'favicon',
+                    'original_url': original_url,
+                    'converted_url': url,
+                    'action': 'protocol_conversion'
+                })
             # Add protocol if missing
             elif not url.startswith(('http://', 'https://')):
                 url = 'https://' + url
@@ -177,10 +231,21 @@ class FaviconManager:
             if domain.startswith('www.'):
                 domain = domain[4:]
 
-            print(f"Extracted domain '{domain}' from URL '{original_url}'")
+            logger.debug("Extracted domain from URL", extra={
+                'tag': 'favicon',
+                'original_url': original_url,
+                'extracted_domain': domain,
+                'action': 'domain_extraction'
+            })
             return domain if domain else None
         except Exception as e:
-            print(f"Error extracting domain from '{url}': {e}")
+            logger.debug("Error extracting domain from URL", extra={
+                'tag': 'favicon',
+                'url': url,
+                'action': 'domain_extraction_error',
+                'error': str(e),
+                'error_type': type(e).__name__
+            })
             return None
     
     def _get_cache_filename(self, domain: str) -> str:
@@ -243,7 +308,14 @@ class FaviconManager:
         
         for i, favicon_url in enumerate(favicon_urls, 1):
             try:
-                print(f"Trying favicon URL {i}/{len(favicon_urls)}: {favicon_url}")
+                logger.debug("Trying favicon URL", extra={
+                    'tag': 'favicon',
+                    'domain': domain,
+                    'favicon_url': favicon_url,
+                    'attempt': i,
+                    'total_attempts': len(favicon_urls),
+                    'action': 'download_attempt'
+                })
                 # Set a reasonable timeout and browser-like user agent
                 # Extract domain for referrer
                 parsed_url = urllib.parse.urlparse(favicon_url)
@@ -273,9 +345,19 @@ class FaviconManager:
                     urllib.request.HTTPSHandler(context=None)  # Use default SSL context
                 )
 
-                print(f"🌐 Attempting to download: {favicon_url}")
+                logger.debug("Attempting to download favicon", extra={
+                    'tag': 'favicon',
+                    'url': favicon_url,
+                    'action': 'download_request'
+                })
                 with opener.open(request, timeout=5) as response:
-                    print(f"📡 Response status: {response.status}, Content-Type: {response.headers.get('Content-Type', 'unknown')}")
+                    logger.debug("Received favicon response", extra={
+                        'tag': 'favicon',
+                        'url': favicon_url,
+                        'status': response.status,
+                        'content_type': response.headers.get('Content-Type', 'unknown'),
+                        'action': 'download_response'
+                    })
                     if response.status == 200:
                         # Save to cache
                         with open(cache_path, 'wb') as f:
@@ -284,10 +366,22 @@ class FaviconManager:
                         # Verify it's a valid image
                         if self._is_valid_image(cache_path):
                             # Success! Return immediately without trying other URLs
-                            print(f"✓ Successfully downloaded favicon from: {favicon_url} (stopped after {i}/{len(favicon_urls)} attempts)")
+                            logger.debug("Successfully downloaded favicon", extra={
+                                'tag': 'favicon',
+                                'url': favicon_url,
+                                'cache_path': cache_path,
+                                'attempts_used': i,
+                                'total_attempts': len(favicon_urls),
+                                'action': 'download_success'
+                            })
                             return cache_path
                         else:
-                            print(f"❌ Downloaded file is not a valid image: {favicon_url}")
+                            logger.debug("Downloaded file is not a valid image", extra={
+                                'tag': 'favicon',
+                                'url': favicon_url,
+                                'cache_path': cache_path,
+                                'action': 'download_invalid_image'
+                            })
                             # Remove invalid file and continue to next URL
                             try:
                                 os.remove(cache_path)
@@ -296,19 +390,41 @@ class FaviconManager:
 
             except urllib.error.HTTPError as e:
                 # HTTP error (404, 403, etc.)
-                print(f"✗ Failed to download from {favicon_url}: HTTP Error {e.code}: {e.reason}")
+                logger.debug("Failed to download favicon - HTTP error", extra={
+                    'tag': 'favicon',
+                    'url': favicon_url,
+                    'http_code': e.code,
+                    'http_reason': e.reason,
+                    'action': 'download_http_error'
+                })
                 continue
             except urllib.error.URLError as e:
                 # Network error (timeout, connection refused, etc.)
-                print(f"✗ Failed to download from {favicon_url}: Network Error: {e.reason}")
+                logger.debug("Failed to download favicon - Network error", extra={
+                    'tag': 'favicon',
+                    'url': favicon_url,
+                    'reason': str(e.reason),
+                    'action': 'download_network_error'
+                })
                 continue
             except Exception as e:
                 # Other errors
-                print(f"✗ Failed to download from {favicon_url}: {type(e).__name__}: {e}")
+                logger.debug("Failed to download favicon - Other error", extra={
+                    'tag': 'favicon',
+                    'url': favicon_url,
+                    'error': str(e),
+                    'error_type': type(e).__name__,
+                    'action': 'download_other_error'
+                })
                 continue
 
         # No favicon found after trying all URLs
-        print(f"✗ No valid favicon found for domain: {domain} (tried {len(favicon_urls)} URLs)")
+        logger.debug("No valid favicon found for domain", extra={
+            'tag': 'favicon',
+            'domain': domain,
+            'urls_tried': len(favicon_urls),
+            'action': 'download_all_failed'
+        })
         return None
 
     def _should_try_www_variant(self, domain: str) -> bool:
@@ -359,10 +475,19 @@ class FaviconManager:
         try:
             # Check file size first
             file_size = os.path.getsize(file_path)
-            print(f"🔍 Validating image: {file_path} (size: {file_size} bytes)")
+            logger.debug("Validating image file", extra={
+                'tag': 'favicon',
+                'file_path': file_path,
+                'file_size': file_size,
+                'action': 'validation_start'
+            })
 
             if file_size == 0:
-                print(f"❌ File is empty: {file_path}")
+                logger.debug("File is empty", extra={
+                    'tag': 'favicon',
+                    'file_path': file_path,
+                    'action': 'validation_empty_file'
+                })
                 return False
 
             # For ICO files, try a different approach since GdkPixbuf might not support them well
@@ -371,19 +496,39 @@ class FaviconManager:
                 with open(file_path, 'rb') as f:
                     header = f.read(6)
                     if len(header) >= 6 and header[:4] == b'\x00\x00\x01\x00':
-                        print(f"✅ Valid ICO file detected")
+                        logger.debug("Valid ICO file detected", extra={
+                            'tag': 'favicon',
+                            'file_path': file_path,
+                            'action': 'validation_ico_valid'
+                        })
                         return True
 
             # Try to load with GdkPixbuf to verify it's a valid image
             pixbuf = GdkPixbuf.Pixbuf.new_from_file(file_path)
             if pixbuf is not None:
-                print(f"✅ Valid image: {pixbuf.get_width()}x{pixbuf.get_height()}")
+                logger.debug("Valid image validated", extra={
+                    'tag': 'favicon',
+                    'file_path': file_path,
+                    'width': pixbuf.get_width(),
+                    'height': pixbuf.get_height(),
+                    'action': 'validation_success'
+                })
                 return True
             else:
-                print(f"❌ GdkPixbuf returned None for: {file_path}")
+                logger.debug("GdkPixbuf returned None for file", extra={
+                    'tag': 'favicon',
+                    'file_path': file_path,
+                    'action': 'validation_pixbuf_none'
+                })
                 return False
         except Exception as e:
-            print(f"❌ Image validation failed for {file_path}: {e}")
+            logger.debug("Image validation failed", extra={
+                'tag': 'favicon',
+                'file_path': file_path,
+                'error': str(e),
+                'error_type': type(e).__name__,
+                'action': 'validation_error'
+            })
             return False
 
     def _load_pixbuf_from_file(self, file_path: str):
@@ -393,11 +538,21 @@ class FaviconManager:
             try:
                 return GdkPixbuf.Pixbuf.new_from_file(file_path)
             except Exception as e:
-                print(f"Direct pixbuf loading failed: {e}")
+                logger.debug("Direct pixbuf loading failed", extra={
+                    'tag': 'favicon',
+                    'file_path': file_path,
+                    'error': str(e),
+                    'error_type': type(e).__name__,
+                    'action': 'pixbuf_direct_load_failed'
+                })
 
             # If it's an ICO file and direct loading failed, try to convert it using PIL
             if file_path.lower().endswith('.ico') and PIL_AVAILABLE:
-                print(f"🔄 Attempting ICO to PNG conversion using PIL for: {file_path}")
+                logger.debug("Attempting ICO to PNG conversion using PIL", extra={
+                    'tag': 'favicon',
+                    'file_path': file_path,
+                    'action': 'conversion_ico_to_png_start'
+                })
                 try:
                     # Open ICO file with PIL
                     with Image.open(file_path) as img:
@@ -419,29 +574,63 @@ class FaviconManager:
 
                         # Load pixbuf from PNG stream
                         pixbuf = GdkPixbuf.Pixbuf.new_from_stream(stream)
-                        print(f"✅ Successfully converted ICO to PNG: {pixbuf.get_width()}x{pixbuf.get_height()}")
+                        logger.debug("Successfully converted ICO to PNG", extra={
+                            'tag': 'favicon',
+                            'file_path': file_path,
+                            'width': pixbuf.get_width(),
+                            'height': pixbuf.get_height(),
+                            'action': 'conversion_ico_to_png_success'
+                        })
                         return pixbuf
 
                 except Exception as e:
-                    print(f"PIL ICO conversion failed: {e}")
+                    logger.debug("PIL ICO conversion failed", extra={
+                        'tag': 'favicon',
+                        'file_path': file_path,
+                        'error': str(e),
+                        'error_type': type(e).__name__,
+                        'action': 'conversion_ico_to_png_failed'
+                    })
 
             # If PIL is not available or conversion failed, try GdkPixbuf scaling methods
             if file_path.lower().endswith('.ico'):
-                print(f"🔄 Attempting ICO conversion with GdkPixbuf for: {file_path}")
+                logger.debug("Attempting ICO conversion with GdkPixbuf", extra={
+                    'tag': 'favicon',
+                    'file_path': file_path,
+                    'action': 'conversion_ico_gdkpixbuf_start'
+                })
                 # Try to load at a specific size (32x32 is common for favicons)
                 try:
                     return GdkPixbuf.Pixbuf.new_from_file_at_scale(file_path, 32, 32, True)
                 except Exception as e2:
-                    print(f"ICO scaling failed: {e2}")
+                    logger.debug("ICO scaling failed", extra={
+                        'tag': 'favicon',
+                        'file_path': file_path,
+                        'error': str(e2),
+                        'error_type': type(e2).__name__,
+                        'action': 'conversion_ico_scaling_failed'
+                    })
                     # Try loading at original size
                     try:
                         return GdkPixbuf.Pixbuf.new_from_file_at_size(file_path, 32, 32)
                     except Exception as e3:
-                        print(f"ICO size loading failed: {e3}")
+                        logger.debug("ICO size loading failed", extra={
+                            'tag': 'favicon',
+                            'file_path': file_path,
+                            'error': str(e3),
+                            'error_type': type(e3).__name__,
+                            'action': 'conversion_ico_size_loading_failed'
+                        })
 
             return None
         except Exception as e:
-            print(f"Error loading pixbuf from {file_path}: {e}")
+            logger.debug("Error loading pixbuf from file", extra={
+                'tag': 'favicon',
+                'file_path': file_path,
+                'error': str(e),
+                'error_type': type(e).__name__,
+                'action': 'pixbuf_load_error'
+            })
             return None
     
     def create_favicon_image(self, favicon_path: str, size: int = 32) -> Optional[Gtk.Image]:
@@ -467,7 +656,14 @@ class FaviconManager:
                 return image
                 
         except Exception as e:
-            print(f"Error creating image from favicon {favicon_path}: {e}")
+            logger.debug("Error creating image from favicon", extra={
+                'tag': 'favicon',
+                'favicon_path': favicon_path,
+                'size': size,
+                'error': str(e),
+                'error_type': type(e).__name__,
+                'action': 'image_creation_error'
+            })
         
         return None
     
@@ -479,7 +675,13 @@ class FaviconManager:
                 if os.path.isfile(file_path):
                     os.remove(file_path)
         except OSError as e:
-            print(f"Error clearing favicon cache: {e}")
+            logger.debug("Error clearing favicon cache", extra={
+                'tag': 'favicon',
+                'cache_dir': self.cache_dir,
+                'error': str(e),
+                'error_type': type(e).__name__,
+                'action': 'cache_clear_error'
+            })
 
 
 # Global favicon manager instance

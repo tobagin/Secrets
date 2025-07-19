@@ -1,0 +1,81 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $DependenciesPage : Adw.NavigationPage {
+  title: "Check Dependencies";
+  
+  child: Adw.ToolbarView {
+    [top]
+    Adw.HeaderBar {
+      title-widget: Adw.WindowTitle {
+        title: "Setup Requirements";
+        subtitle: "setup requirements key message here";
+      };
+    }
+    
+    content: Adw.PreferencesGroup dependencies_listbox {
+      margin-top: 18;
+      margin-bottom: 18;
+      margin-start: 18;
+      margin-end: 18;
+      
+      Adw.ActionRow gpg_key_status_row {
+        icon-name: "dialog-warning-symbolic";
+        title: "GPG Key";
+        subtitle: "Encryption key for securing passwords";
+        
+        styles [
+          "warning"
+        ]
+        
+        [suffix]
+        Gtk.Button gpg_key_create_button {
+          icon-name: "list-add-symbolic";
+          visible: true;
+          valign: center;
+          sensitive: false;
+        }
+      }
+      
+      Adw.ActionRow store_dir_status_row {
+        icon-name: "dialog-warning-symbolic";
+        title: "Password Store Directory";
+        subtitle: "~/.password-store directory";
+        
+        styles [
+          "warning"
+        ]
+        
+        [suffix]
+        Gtk.Button dir_create_button {
+          icon-name: "folder-new-symbolic";
+          visible: true;
+          valign: center;
+          sensitive: false;
+        }
+      }
+    };
+    
+    [bottom]
+    Adw.HeaderBar bottom_bar {
+      show-back-button: false;
+      show-end-title-buttons: false;
+      
+      styles [
+        "flat"
+      ]
+      
+      [title]
+      Gtk.Button continue_button {
+        label: "Continue";
+        visible: true;
+        valign: center;
+        sensitive: false;
+        
+        styles [
+          "suggested-action"
+        ]
+      }
+    }
+  };
+}

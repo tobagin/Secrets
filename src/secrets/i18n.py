@@ -10,6 +10,14 @@ from typing import Optional
 
 from .app_info import GETTEXT_DOMAIN
 
+# Import logging for warnings
+try:
+    from .logging_system import get_logger, LogCategory
+    logger = get_logger(LogCategory.APPLICATION, "i18n")
+except ImportError:
+    import logging
+    logger = logging.getLogger(__name__)
+
 # Global translation function
 _: Optional[callable] = None
 
@@ -55,7 +63,7 @@ def setup_i18n(localedir: Optional[str] = None) -> None:
         gettext.textdomain(GETTEXT_DOMAIN)
 
     except Exception as e:
-        print(f"Warning: Could not set up translations: {e}")
+        logger.warning("Failed to set up translations", extra={'error': str(e)})
         # Fallback to identity function
         _ = lambda x: x
 

@@ -1,0 +1,53 @@
+using Gtk 4.0;
+using Adw 1;
+
+menu main_menu {
+  section {
+    item {
+      label: _("_Preferences");
+      action: "app.preferences";
+    }
+    item {
+      label: _("_Keyboard Shortcuts");
+      action: "win.show-help-overlay";
+    }
+    item {
+      label: _("_About Secrets");
+      action: "app.about";
+    }
+  }
+  section {
+    item {
+      label: _("_Import/Export");
+      action: "win.import-export";
+    }
+    item {
+      label: _("_Generate Password");
+      action: "win.generate-password";
+    }
+  }
+  section {
+    item {
+      label: _("Git _Pull");
+      action: "app.git-pull";
+    }
+    item {
+      label: _("Git _Push");
+      action: "app.git-push";
+    }
+    item {
+      label: _("Git _Status");
+      action: "app.git-status";
+    }
+    item {
+      label: _("Git _Setup");
+      action: "app.git-setup";
+    }
+  }
+  section {
+    item {
+      label: _("_Quit");
+      action: "app.quit";
+    }
+  }
+}

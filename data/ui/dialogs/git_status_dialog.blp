@@ -1,0 +1,113 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $GitStatusDialog : Adw.Window {
+  title: "Git Repository Status";
+  default-width: 700;
+  default-height: 600;
+  modal: true;
+
+  content: Gtk.Box main_box {
+    orientation: vertical;
+
+    // Header Bar
+    Adw.HeaderBar header_bar {
+      // Refresh Button
+      [start]
+      Gtk.Button refresh_button {
+        icon-name: "view-refresh-symbolic";
+        tooltip-text: "Refresh status";
+        clicked => $_on_refresh_clicked();
+      }
+
+      // View Switcher
+      title-widget: Adw.ViewSwitcher view_switcher {
+        policy: wide;
+      };
+    }
+
+    // View Stack
+    Adw.ViewStack view_stack {
+      // Status Page
+      Adw.ViewStackPage {
+        name: "status";
+        title: "Status";
+        icon-name: "dialog-information-symbolic";
+        child: Gtk.ScrolledWindow status_scrolled {
+          hscrollbar-policy: never;
+          vscrollbar-policy: automatic;
+
+          Gtk.Box status_content_box {
+            orientation: vertical;
+            spacing: 12;
+            margin-top: 12;
+            margin-bottom: 12;
+            margin-start: 12;
+            margin-end: 12;
+
+            // Detailed status widget will be added programmatically
+
+            // Repository Summary Group
+            Adw.PreferencesGroup summary_group {
+              title: "Repository Summary";
+
+              Gtk.Frame {
+                Gtk.TextView summary_text {
+                  editable: false;
+                  cursor-visible: false;
+                  wrap-mode: word;
+                  margin-top: 6;
+                  margin-bottom: 6;
+                  margin-start: 6;
+                  margin-end: 6;
+                  
+                  styles [
+                    "card"
+                  ]
+                }
+              }
+            }
+          }
+        };
+      }
+
+      // History Page
+      Adw.ViewStackPage {
+        name: "history";
+        title: "History";
+        icon-name: "document-open-recent-symbolic";
+        child: Gtk.Box history_box {
+          orientation: vertical;
+
+          // Toolbar
+          Adw.HeaderBar history_toolbar {
+            styles [
+              "flat"
+            ]
+
+            [start]
+            Gtk.Button commit_button {
+              label: "Commit Changes";
+              icon-name: "document-save-symbolic";
+              clicked => $_on_commit_clicked();
+              
+              styles [
+                "suggested-action"
+              ]
+            }
+          }
+
+          // History List
+          Gtk.ScrolledWindow history_scrolled {
+            hscrollbar-policy: never;
+            vscrollbar-policy: automatic;
+
+            Gtk.ListView history_list {
+              // Model and factory will be set programmatically
+            }
+          }
+        };
+      }
+    }
+  };
+}

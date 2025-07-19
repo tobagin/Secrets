@@ -15,6 +15,7 @@ INSTALL=false
 FORCE_CLEAN=false
 DEV_MODE=false
 VERBOSE=false
+SKIP_VERSION_SYNC=false
 
 # Colors for output
 RED='\033[0;31m'
@@ -51,6 +52,7 @@ OPTIONS:
     --dev               Build from local sources (development mode)
     --install           Install the application after successful build
     --force-clean       Force a clean build, removing old build directory
+    --skip-version-sync Skip automatic version synchronization
     --verbose           Enable verbose output
     -h, --help          Show this help message
 
@@ -124,6 +126,75 @@ clean_build() {
     fi
 }
 
+# Function to sync version information
+sync_version() {
+    if [ "$SKIP_VERSION_SYNC" = true ]; then
+        print_info "Skipping version synchronization (--skip-version-sync specified)"
+        return 0
+    fi
+    
+    print_info "Synchronizing version information..."
+    
+    # Check if we have the sync script
+    if [ -f "scripts/sync_version.py" ]; then
+        if python3 scripts/sync_version.py > /dev/null 2>&1; then
+            print_success "Version synchronization completed"
+        else
+            print_warning "Version synchronization failed, continuing with build"
+        fi
+    else
+        print_warning "Version sync script not found, skipping synchronization"
+    fi
+    
+    # Comprehensive version validation - MANDATORY for production builds
+    if [ -f "scripts/comprehensive_version_check.py" ]; then
+        print_info "Running pre-build version validation..."
+        validation_output=$(python3 scripts/comprehensive_version_check.py 2>&1)
+        validation_exit_code=$?
+        
+        if [ $validation_exit_code -eq 0 ]; then
+            print_success "Pre-build version validation passed"
+        else
+            print_error "Pre-build version validation failed!"
+            echo "Details:"
+            echo "$validation_output"
+            echo
+            print_info "Version validation is mandatory for production builds."
+            read -p "Attempt automatic fix? (Y/n): " -n 1 -r
+            echo
+            if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+                print_info "Attempting automatic fix..."
+                if python3 scripts/comprehensive_version_check.py --auto-fix; then
+                    print_info "Auto-fix completed, re-running validation..."
+                    # Re-run validation after fix
+                    if python3 scripts/comprehensive_version_check.py > /dev/null 2>&1; then
+                        print_success "Version validation passed after auto-fix"
+                    else
+                        print_error "Auto-fix failed, validation still failing"
+                        print_error "Build cannot continue with version inconsistencies"
+                        exit 1
+                    fi
+                else
+                    print_error "Auto-fix failed"
+                    print_error "Build cannot continue with version inconsistencies"
+                    exit 1
+                fi
+            else
+                print_error "Build cannot continue without version validation"
+                echo "Please fix version inconsistencies manually and try again."
+                exit 1
+            fi
+        fi
+    elif [ -f "scripts/validate_version.py" ]; then
+        # Fallback to simple validation
+        if python3 scripts/validate_version.py > /dev/null 2>&1; then
+            print_success "Basic version validation passed"
+        else
+            print_warning "Basic version validation failed"
+        fi
+    fi
+}
+
 # Function to build application
 build_app() {
     print_info "Building $PROJECT_NAME..."
@@ -153,10 +224,74 @@ build_app() {
     
     if flatpak-builder "${builder_args[@]}" "$BUILD_DIR" "$MANIFEST"; then
         print_success "Build completed successfully"
+        
+        # Run post-build validation
+        post_build_validation
     else
         print_error "Build failed"
         exit 1
     fi
+}
+
+# Function to run post-build validation
+post_build_validation() {
+    print_info "Running post-build validation..."
+    
+    # Re-run comprehensive version check to ensure build didn't change anything
+    if [ -f "scripts/comprehensive_version_check.py" ]; then
+        if python3 scripts/comprehensive_version_check.py > /dev/null 2>&1; then
+            print_success "Post-build version validation passed"
+        else
+            print_error "Post-build version validation failed!"
+            print_error "Build process may have introduced version inconsistencies"
+            echo "Running detailed validation check..."
+            python3 scripts/comprehensive_version_check.py
+            exit 1
+        fi
+    fi
+    
+    # Validate Flatpak manifest version matches meson.build
+    if [ -f "scripts/validate_flatpak_version.py" ]; then
+        print_info "Validating Flatpak package version..."
+        if python3 scripts/validate_flatpak_version.py "$MANIFEST" > /dev/null 2>&1; then
+            print_success "Flatpak package version validation passed"
+        else
+            print_warning "Flatpak package version validation failed"
+            python3 scripts/validate_flatpak_version.py "$MANIFEST"
+        fi
+    fi
+    
+    # Check if built files contain expected version
+    print_info "Validating built package integrity..."
+    
+    # Extract the expected version from meson.build
+    if [ -f "meson.build" ]; then
+        expected_version=$(python3 -c "
+import re
+with open('meson.build', 'r') as f:
+    content = f.read()
+    match = re.search(r\"version\s*:\s*['\\\"]([^'\\\"]+)['\\\"],\", content)
+    if match:
+        print(match.group(1))
+    else:
+        print('UNKNOWN')
+" 2>/dev/null)
+        
+        if [ "$expected_version" != "UNKNOWN" ] && [ -n "$expected_version" ]; then
+            print_info "Expected version: $expected_version"
+            
+            # Check if the build directory contains files with the expected version
+            if find "$BUILD_DIR" -name "*.py" -exec grep -l "__version__.*$expected_version" {} \; > /dev/null 2>&1; then
+                print_success "Built files contain expected version: $expected_version"
+            else
+                print_warning "Could not verify version in built files"
+            fi
+        else
+            print_warning "Could not extract version from meson.build"
+        fi
+    fi
+    
+    print_success "Post-build validation completed"
 }
 
 # Function to install application
@@ -201,6 +336,30 @@ show_summary() {
     echo "  Build Mode: $([ "$DEV_MODE" = true ] && echo "Development" || echo "Production")"
     echo "  Installed: $([ "$INSTALL" = true ] && echo "Yes" || echo "No")"
     
+    # Show version information
+    if [ -f "meson.build" ]; then
+        local version=$(python3 -c "
+import re
+with open('meson.build', 'r') as f:
+    content = f.read()
+    match = re.search(r\"version\s*:\s*['\\\"]([^'\\\"]+)['\\\"],\", content)
+    if match:
+        print(match.group(1))
+    else:
+        print('UNKNOWN')
+" 2>/dev/null)
+        echo "  Version: $version"
+        
+        # Version validation status
+        if [ -f "scripts/comprehensive_version_check.py" ]; then
+            if python3 scripts/comprehensive_version_check.py > /dev/null 2>&1; then
+                echo "  Version Validation: ✓ PASSED"
+            else
+                echo "  Version Validation: ✗ FAILED"
+            fi
+        fi
+    fi
+    
     if [ "$INSTALL" = true ]; then
         echo ""
         print_info "To run the application:"
@@ -224,6 +383,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --force-clean)
             FORCE_CLEAN=true
+            shift
+            ;;
+        --skip-version-sync)
+            SKIP_VERSION_SYNC=true
             shift
             ;;
         --verbose)
@@ -254,6 +417,7 @@ main() {
     
     check_dependencies
     select_manifest
+    sync_version
     clean_build
     build_app
     install_app

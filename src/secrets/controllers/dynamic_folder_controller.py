@@ -8,17 +8,22 @@ from gi.repository import Gtk, Adw, GLib, Gdk, GdkPixbuf
 from ..models import PasswordEntry
 from ..ui.widgets import FolderExpanderRow
 from ..managers import get_favicon_manager
+from ..logging_system import get_logger, LogCategory
 
 
 class DynamicFolderController:
     """Controller for managing dynamically created folder structure in the sidebar."""
     
-    def __init__(self, password_store, toast_manager, folders_listbox, search_entry, on_selection_changed=None):
+    def __init__(self, password_store, toast_manager, folders_listbox, search_entry, on_selection_changed=None, parent_window=None):
+        # Initialize logger for this controller
+        self.logger = get_logger(LogCategory.UI, "DynamicFolderController")
+        
         self.password_store = password_store
         self.toast_manager = toast_manager
         self.folders_listbox = folders_listbox
         self.search_entry = search_entry
         self.on_selection_changed = on_selection_changed
+        self.parent_window = parent_window
         
         # Store references to created widgets
         self.folder_rows = {}  # folder_path -> AdwExpanderRow
@@ -31,6 +36,8 @@ class DynamicFolderController:
     
     def load_passwords(self):
         """Load and display passwords in the dynamic folder structure."""
+        print(f"DEBUG: load_passwords called, store_dir={self.password_store.store_dir}")
+        
         # Save current expansion state before clearing
         expansion_state = self._save_expansion_state()
 
@@ -39,8 +46,10 @@ class DynamicFolderController:
 
         # Get password list from store
         raw_password_list = self.password_store.list_passwords()
+        print(f"DEBUG: Found {len(raw_password_list)} passwords: {raw_password_list[:3]}")
 
         if not raw_password_list:
+            print("DEBUG: No passwords found, handling empty list")
             self._handle_empty_password_list()
             return
 
@@ -68,9 +77,16 @@ class DynamicFolderController:
             # Update the avatar with new color/icon and cached favicon
             password_row.set_avatar_color_and_icon(password_color, password_icon, url, favicon_data)
 
-            print(f"Refreshed password display for: {password_path} with color: {password_color}, icon: {password_icon}")
+            self.logger.info("Password display refreshed", extra={
+                'password_path': password_path,
+                'color': password_color,
+                'icon': password_icon,
+                'user_action': True
+            })
         else:
-            print(f"Password row not found for path: {password_path}")
+            self.logger.warning("Password row not found for refresh", extra={
+                'password_path': password_path
+            })
             # Fallback to full reload if we can't find the specific row
             self.load_passwords()
 
@@ -124,10 +140,11 @@ class DynamicFolderController:
     
     def _build_dynamic_folder_structure(self, raw_password_list):
         """Build dynamic folder structure from password list and include empty folders."""
-        # Group passwords by folder and separate root passwords
+        # Group passwords by their immediate parent folder
         folder_structure = {}
         root_passwords = []
 
+        # Process passwords and group them by their immediate parent folder
         for password_path in sorted(raw_password_list):
             parts = password_path.split(os.sep)
 
@@ -138,42 +155,44 @@ class DynamicFolderController:
                     'path': password_path
                 })
             else:
-                # Password in folder
-                folder_name = parts[0]
+                # Password in a folder - get immediate parent folder path
+                folder_path = os.sep.join(parts[:-1])
                 password_name = parts[-1]
 
-                if folder_name not in folder_structure:
-                    folder_structure[folder_name] = []
+                if folder_path not in folder_structure:
+                    folder_structure[folder_path] = []
 
-                folder_structure[folder_name].append({
+                folder_structure[folder_path].append({
                     'name': password_name,
                     'path': password_path
                 })
 
-        # Add empty folders that don't contain passwords
+        # Add all existing folders (both empty and with passwords)
         all_folders = self.password_store.list_folders()
         for folder_path in all_folders:
-            # Only show top-level folders for now (can be enhanced later for nested folders)
-            if os.sep not in folder_path:  # Top-level folder
-                if folder_path not in folder_structure:
-                    folder_structure[folder_path] = []  # Empty folder
+            if folder_path not in folder_structure:
+                folder_structure[folder_path] = []  # Empty folder
 
-        # Create folder widgets first
-        for folder_name, passwords in folder_structure.items():
-            self._create_folder_widget(folder_name, passwords)
+        # Create folder widgets for all folders (sorted to ensure proper ordering)
+        for folder_path in sorted(folder_structure.keys()):
+            passwords = folder_structure[folder_path]
+            self._create_folder_widget(folder_path, passwords)
 
         # Create individual password rows for root passwords (after all folders)
         for password_data in root_passwords:
             self._create_root_password_widget(password_data)
     
-    def _create_folder_widget(self, folder_name, passwords):
+    def _create_folder_widget(self, folder_path, passwords):
         """Create a FolderExpanderRow for a folder with its passwords."""
-        # Store reference
-        folder_path = folder_name if folder_name != "Root" else ""
+        # For subfolders, show the full path; for top-level folders, show just the name
+        if '/' in folder_path:
+            folder_display_name = folder_path  # Show full path like "websites/social"
+        else:
+            folder_display_name = folder_path  # Show just the name like "websites"
 
         # Create folder expander row using the custom widget
         folder_row = FolderExpanderRow(folder_path=folder_path)
-        folder_row.set_title(folder_name)
+        folder_row.set_title(folder_display_name)
         folder_row.set_subtitle(f"{len(passwords)} password{'s' if len(passwords) != 1 else ''}")
 
         # Set avatar color and icon from metadata
@@ -187,26 +206,31 @@ class DynamicFolderController:
         # Connect folder signals
         folder_row.connect("activate", self._on_folder_activated, folder_path)
         folder_row.connect("add-password-to-folder", self._on_add_password_to_folder_clicked, folder_path)
-        folder_row.connect("edit-folder", self._on_folder_edit_clicked, folder_path, folder_name)
-        folder_row.connect("remove-folder", self._on_folder_delete_clicked, folder_path, folder_name)
+        folder_row.connect("add-subfolder", self._on_add_subfolder_clicked, folder_path)
+        folder_row.connect("edit-folder", self._on_folder_edit_clicked, folder_path, folder_display_name)
+        folder_row.connect("remove-folder", self._on_folder_delete_clicked, folder_path, folder_display_name)
 
         # Create password rows within the folder
         for password_data in passwords:
             password_row = self._create_password_widget(password_data, folder_row)
 
+        # Disable expansion for empty folders (no passwords)
+        if len(passwords) == 0:
+            folder_row.set_enable_expansion(False)
+
         # Add folder to listbox
         self.folders_listbox.append(folder_row)
     
     def _create_password_widget(self, password_data, parent_folder):
-        """Create a PasswordRow for a password."""
-        from ..ui.widgets.password_row import PasswordRow
+        """Create a PasswordEntryRow for a password."""
+        from ..ui.widgets.password_entry_row import PasswordEntryRow
 
-        password_row = PasswordRow()
-        password_row.set_title(password_data['name'])
-        password_row.set_subtitle(password_data['path'])
+        # Create a PasswordEntry object for the row
+        password_entry = PasswordEntry(path=password_data['path'], is_folder=False)
+        password_row = PasswordEntryRow(password_entry)
 
         # Set the password entry path for metadata saving
-        password_row._password_entry = password_data['path']
+        password_row._password_entry = password_data['path']  # Keep for compatibility with favicon saving
 
         # Set avatar color and icon from metadata
         password_metadata = self.password_store.get_password_metadata(password_data['path'])
@@ -217,11 +241,19 @@ class DynamicFolderController:
         # Get URL for favicon support
         url = self._extract_url_from_password(password_data['path'])
 
-        # Debug output
+        # Log favicon status
         if favicon_data:
-            print(f"✓ Using cached favicon data for {password_data['name']} ({len(favicon_data)} chars)")
+            self.logger.debug("Using cached favicon data", extra={
+                'password_name': password_data['name'],
+                'favicon_size': len(favicon_data),
+                'tags': ['favicon', 'cache_hit']
+            })
         elif url:
-            print(f"🔄 No cached favicon for {password_data['name']}, will download from: {url}")
+            self.logger.debug("No cached favicon, will download", extra={
+                'password_name': password_data['name'],
+                'url': url,
+                'tags': ['favicon', 'cache_miss']
+            })
 
         # Set avatar with color, icon, URL, and cached favicon
         password_row.set_avatar_color_and_icon(password_color, password_icon, url, favicon_data)
@@ -232,6 +264,13 @@ class DynamicFolderController:
 
         # Connect signals
         password_row.connect("activated", self._on_password_activated, password_path)
+        password_row.connect("copy-username", self._on_copy_username_clicked, password_path)
+        password_row.connect("copy-password", self._on_copy_password_clicked, password_path)
+        password_row.connect("copy-totp", self._on_copy_totp_clicked, password_path)
+        password_row.connect("visit-url", self._on_visit_url_clicked)
+        password_row.connect("edit-password", self._on_edit_password_clicked)
+        password_row.connect("view-details", self._on_view_details_clicked)
+        password_row.connect("remove-password", self._on_remove_password_clicked)
 
         # Add password row to folder
         parent_folder.add_row(password_row)
@@ -239,12 +278,12 @@ class DynamicFolderController:
         return password_row
 
     def _create_root_password_widget(self, password_data):
-        """Create a PasswordRow for a root-level password (not in a folder)."""
-        from ..ui.widgets.password_row import PasswordRow
+        """Create a PasswordEntryRow for a root-level password (not in a folder)."""
+        from ..ui.widgets.password_entry_row import PasswordEntryRow
 
-        password_row = PasswordRow()
-        password_row.set_title(password_data['name'])
-        password_row.set_subtitle(password_data['path'])
+        # Create a PasswordEntry object for the row
+        password_entry = PasswordEntry(path=password_data['path'], is_folder=False)
+        password_row = PasswordEntryRow(password_entry)
 
         # Set the password entry path for metadata saving
         password_row._password_entry = password_data['path']
@@ -258,11 +297,19 @@ class DynamicFolderController:
         # Get URL for favicon support
         url = self._extract_url_from_password(password_data['path'])
 
-        # Debug output
+        # Log favicon status
         if favicon_data:
-            print(f"✓ Using cached favicon data for {password_data['name']} ({len(favicon_data)} chars)")
+            self.logger.debug("Using cached favicon data", extra={
+                'password_name': password_data['name'],
+                'favicon_size': len(favicon_data),
+                'tags': ['favicon', 'cache_hit']
+            })
         elif url:
-            print(f"🔄 No cached favicon for {password_data['name']}, will download from: {url}")
+            self.logger.debug("No cached favicon, will download", extra={
+                'password_name': password_data['name'],
+                'url': url,
+                'tags': ['favicon', 'cache_miss']
+            })
 
         # Set avatar with color, icon, URL, and cached favicon
         password_row.set_avatar_color_and_icon(password_color, password_icon, url, favicon_data)
@@ -273,6 +320,13 @@ class DynamicFolderController:
 
         # Connect signals
         password_row.connect("activated", self._on_password_activated, password_path)
+        password_row.connect("copy-username", self._on_copy_username_clicked, password_path)
+        password_row.connect("copy-password", self._on_copy_password_clicked, password_path)
+        password_row.connect("copy-totp", self._on_copy_totp_clicked, password_path)
+        password_row.connect("visit-url", self._on_visit_url_clicked)
+        password_row.connect("edit-password", self._on_edit_password_clicked)
+        password_row.connect("view-details", self._on_view_details_clicked)
+        password_row.connect("remove-password", self._on_remove_password_clicked)
 
         # Add password row directly to listbox (not to a folder)
         self.folders_listbox.append(password_row)
@@ -298,11 +352,19 @@ class DynamicFolderController:
 
                 # Check for direct URL (full URLs)
                 if line.startswith(('http://', 'https://')):
-                    print(f"Found direct URL for {password_path}: {line}")
+                    self.logger.debug("Found direct URL", extra={
+                        'password_path': password_path,
+                        'url': line,
+                        'tags': ['url_extraction', 'direct_url']
+                    })
                     # Convert HTTP to HTTPS for security
                     if line.startswith('http://'):
                         secure_url = 'https://' + line[7:]
-                        print(f"Converted HTTP to HTTPS: {secure_url}")
+                        self.logger.debug("Converted HTTP to HTTPS", extra={
+                            'original_url': line,
+                            'secure_url': secure_url,
+                            'tags': ['url_extraction', 'security', 'http_to_https']
+                        })
                         return secure_url
                     return line
 
@@ -310,20 +372,32 @@ class DynamicFolderController:
                 if line.lower().startswith('url:'):
                     url = line[4:].strip()
                     if url:
-                        print(f"Found URL field for {password_path}: {url}")
+                        self.logger.debug("Found URL field", extra={
+                            'password_path': password_path,
+                            'url': url,
+                            'tags': ['url_extraction', 'url_field']
+                        })
                         return self._normalize_url(url)
 
                 # Check for website field
                 if line.lower().startswith('website:'):
                     url = line[8:].strip()
                     if url:
-                        print(f"Found website field for {password_path}: {url}")
+                        self.logger.debug("Found website field", extra={
+                            'password_path': password_path,
+                            'url': url,
+                            'tags': ['url_extraction', 'website_field']
+                        })
                         return self._normalize_url(url)
 
                 # Check for domain-like patterns (contains dots and looks like a domain)
                 # This handles legacy URLs saved without "url:" prefix
                 if self._looks_like_domain(line):
-                    print(f"Found domain-like pattern for {password_path}: {line}")
+                    self.logger.debug("Found domain-like pattern", extra={
+                        'password_path': password_path,
+                        'domain': line,
+                        'tags': ['url_extraction', 'domain_pattern']
+                    })
                     return self._normalize_url(line)
 
             return None
@@ -374,8 +448,13 @@ class DynamicFolderController:
 
         # Convert HTTP to HTTPS for security
         if url.startswith('http://'):
+            original_url = url
             url = 'https://' + url[7:]
-            print(f"Converted HTTP to HTTPS: {url}")
+            self.logger.debug("Normalized HTTP to HTTPS", extra={
+                'original_url': original_url,
+                'normalized_url': url,
+                'tags': ['url_normalization', 'security', 'http_to_https']
+            })
             return url
 
         # If it already has HTTPS, return as-is
@@ -407,6 +486,14 @@ class DynamicFolderController:
 
         # Use GLib.idle_add to defer the call and trigger the main window's add password dialog
         GLib.idle_add(self._handle_add_password_to_folder_request, folder_path)
+
+    def _on_add_subfolder_clicked(self, folder_row, folder_path):
+        """Handle add subfolder button click."""
+        # Import here to avoid circular imports
+        from gi.repository import GLib
+
+        # Use GLib.idle_add to defer the call and trigger the main window's add subfolder dialog
+        GLib.idle_add(self._handle_add_subfolder_request, folder_path)
 
     def _on_folder_edit_clicked(self, folder_row, folder_path, folder_name):
         """Handle folder edit button click."""
@@ -447,6 +534,16 @@ class DynamicFolderController:
             self.toast_manager.show_info(f"Add password to folder '{folder_path}' - functionality coming soon")
         return False  # Don't repeat the idle call
 
+    def _handle_add_subfolder_request(self, folder_path):
+        """Handle add subfolder request."""
+        # Emit a signal that the main window can catch
+        if hasattr(self, 'add_subfolder_requested'):
+            self.add_subfolder_requested(folder_path)
+        else:
+            # Fallback: show a toast message
+            self.toast_manager.show_info(f"Add subfolder to '{folder_path}' - functionality coming soon")
+        return False  # Don't repeat the idle call
+
     def _handle_folder_delete_request(self, folder_path, folder_name):
         """Handle the actual folder deletion request."""
         # Check if folder is empty
@@ -457,12 +554,32 @@ class DynamicFolderController:
             return False
 
         if not is_empty:
-            self.toast_manager.show_warning(f"Cannot delete folder '{folder_name}': folder contains passwords. Remove all passwords first.")
+            self._show_non_empty_folder_dialog(folder_path, folder_name)
             return False
 
         # Show confirmation dialog for empty folder
         self._show_delete_folder_confirmation(folder_path, folder_name)
         return False  # Don't repeat the idle call
+
+    def _show_non_empty_folder_dialog(self, folder_path, folder_name):
+        """Show AlertDialog for non-empty folder deletion attempt."""
+        from gi.repository import Adw
+        
+        # Create AlertDialog for non-empty folder
+        dialog = Adw.AlertDialog()
+        dialog.set_heading(f"Cannot Delete Folder '{folder_name}'")
+        dialog.set_body(f"The folder '{folder_name}' contains passwords and cannot be deleted.\n\nTo delete this folder, first remove all passwords from it.")
+        
+        # Add responses
+        dialog.add_response("cancel", "_OK")
+        dialog.set_default_response("cancel")
+        
+        # Present dialog with parent window
+        if self.parent_window:
+            dialog.present(self.parent_window)
+        else:
+            # Fallback: show dialog without parent
+            dialog.present()
 
     def _show_delete_folder_confirmation(self, folder_path, folder_name):
         """Show confirmation dialog for folder deletion."""
@@ -615,3 +732,82 @@ class DynamicFolderController:
         if self.search_entry:
             self.search_entry.set_text("")
         self._show_all_items()
+    
+    def _on_copy_username_clicked(self, password_row, password_path):
+        """Handle copy username signal from password row."""
+        # Forward to callback if available
+        if hasattr(self, 'copy_username_callback') and self.copy_username_callback:
+            self.copy_username_callback(password_path)
+        else:
+            # Fallback
+            self.toast_manager.show_info(f"Copy username for {password_path}")
+    
+    def _on_copy_password_clicked(self, password_row, password_path):
+        """Handle copy password signal from password row."""
+        # Forward to callback if available
+        if hasattr(self, 'copy_password_callback') and self.copy_password_callback:
+            self.copy_password_callback(password_path)
+        else:
+            # Fallback
+            self.toast_manager.show_info(f"Copy password for {password_path}")
+    
+    def _on_copy_totp_clicked(self, password_row, password_path):
+        """Handle copy TOTP signal from password row."""
+        # Forward to callback if available
+        if hasattr(self, 'copy_totp_callback') and self.copy_totp_callback:
+            self.copy_totp_callback(password_path)
+        else:
+            # Fallback
+            self.toast_manager.show_info(f"Copy TOTP for {password_path}")
+    
+    def _on_visit_url_clicked(self, password_row, url):
+        """Handle visit URL signal from password row."""
+        # Forward to callback if available
+        if hasattr(self, 'visit_url_callback') and self.visit_url_callback:
+            self.visit_url_callback(url)
+        else:
+            # Fallback - open URL directly
+            try:
+                import webbrowser
+                webbrowser.open(url)
+                self.toast_manager.show_success(f"Opening URL: {url}")
+            except Exception as e:
+                self.toast_manager.show_error(f"Failed to open URL: {e}")
+    
+    def _on_edit_password_clicked(self, password_row, password_path):
+        """Handle edit password signal from password row."""
+        # Forward to callback if available
+        if hasattr(self, 'edit_password_callback') and self.edit_password_callback:
+            self.edit_password_callback(password_path)
+        else:
+            # Fallback
+            self.toast_manager.show_info(f"Edit password for {password_path}")
+    
+    def _on_view_details_clicked(self, password_row, password_path):
+        """Handle view details signal from password row."""
+        # Forward to callback if available
+        if hasattr(self, 'view_details_callback') and self.view_details_callback:
+            self.view_details_callback(password_path)
+        else:
+            # Fallback
+            self.toast_manager.show_info(f"View details for {password_path}")
+    
+    def _on_remove_password_clicked(self, password_row, password_path):
+        """Handle remove password signal from password row."""
+        # Forward to callback if available
+        if hasattr(self, 'remove_password_callback') and self.remove_password_callback:
+            self.remove_password_callback(password_path)
+        else:
+            # Fallback
+            self.toast_manager.show_info(f"Remove password for {password_path}")
+    
+    def set_action_callbacks(self, copy_username=None, copy_password=None, copy_totp=None, 
+                            visit_url=None, edit_password=None, view_details=None, remove_password=None):
+        """Set callback functions for password actions."""
+        self.copy_username_callback = copy_username
+        self.copy_password_callback = copy_password
+        self.copy_totp_callback = copy_totp
+        self.visit_url_callback = visit_url
+        self.edit_password_callback = edit_password
+        self.view_details_callback = view_details
+        self.remove_password_callback = remove_password

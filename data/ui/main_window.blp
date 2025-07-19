@@ -1,0 +1,151 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $SecretsWindow : Adw.ApplicationWindow {
+  default-width: 800;
+  default-height: 600;
+  title: _("Secrets");
+  
+  content: Adw.ToastOverlay toast_overlay {
+    child: Gtk.Box main_toolbar {
+      orientation: vertical;
+      spacing: 16;
+
+      Adw.HeaderBar main_header {
+        title-widget: Adw.WindowTitle window_title {
+          title: _("Secrets Manager");
+          subtitle: _("A GUI for pass password manager");
+        };
+
+        [start]
+        ToggleButton search_toggle_button {
+          icon-name: "system-search-symbolic";
+          tooltip-text: _("Toggle Search");
+          styles ["flat"]
+        }
+
+        Button add_password_button {
+          icon-name: "io.github.tobagin.secrets-add-password-symbolic";
+          tooltip-text: _("Add Password");
+          styles ["flat"]
+        }
+
+        Button add_folder_button {
+          icon-name: "folder-new-symbolic";
+          tooltip-text: _("Add Folder");
+          styles ["flat"]
+        }
+
+        Separator {
+          orientation: vertical;
+          margin-start: 6;
+          margin-end: 6;
+        }
+
+        Button git_pull_button {
+          icon-name: "io.github.tobagin.secrets-cloud-download-symbolic";
+          tooltip-text: _("Pull changes from remote repository");
+          sensitive: false;
+          styles ["flat"]
+        }
+
+        Button git_push_button {
+          icon-name: "io.github.tobagin.secrets-cloud-upload-symbolic";
+          tooltip-text: _("Push changes to remote repository");
+          sensitive: false;
+          styles ["flat"]
+        }
+
+        [end]
+        MenuButton main_menu_button {
+          icon-name: "open-menu-symbolic";
+          tooltip-text: _("Main Menu");
+          menu-model: main_menu;
+          styles ["flat"]
+        }
+      }
+
+      Gtk.Box main_content {
+        orientation: vertical;
+        spacing: 0;
+
+        Adw.Clamp search_clamp {
+          visible: false;
+          margin-start: 12;
+          margin-end: 12;
+          margin-bottom: 6;
+          margin-top: 6;
+          
+          child: SearchEntry search_entry {
+            placeholder-text: _("Search passwords...");
+          };
+        }
+
+        ScrolledWindow password_list_scrolled {
+          vexpand: true;
+          hscrollbar-policy: never;
+          vscrollbar-policy: automatic;
+          margin-start: 12;
+          margin-end: 12;
+          margin-bottom: 12;
+          
+          child: ListBox password_list_box {
+            selection-mode: none;
+            styles ["boxed-list"]
+          };
+        }
+      }
+    };
+  };
+}
+
+menu main_menu {
+  section {
+    item {
+      label: _("_Preferences");
+      action: "app.preferences";
+    }
+    item {
+      label: _("_Keyboard Shortcuts");
+      action: "app.shortcuts";
+    }
+    item {
+      label: _("_About");
+      action: "app.about";
+    }
+  }
+  section {
+    item {
+      label: _("_Import/Export");
+      action: "win.import-export";
+    }
+    item {
+      label: _("_Generate Password");
+      action: "win.generate-password";
+    }
+  }
+  section {
+    item {
+      label: _("Git _Pull");
+      action: "win.git-pull";
+    }
+    item {
+      label: _("Git _Push");
+      action: "win.git-push";
+    }
+    item {
+      label: _("Git _Status");
+      action: "win.git-status";
+    }
+    item {
+      label: _("Git _Setup");
+      action: "app.git-setup";
+    }
+  }
+  section {
+    item {
+      label: _("_Quit");
+      action: "app.quit";
+    }
+  }
+}

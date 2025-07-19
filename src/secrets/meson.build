@@ -19,7 +19,11 @@ python_sources = [
   'main.py',
   'shortcuts_window.py',
   'i18n.py',
-  'security_manager.py'
+  'security_manager.py',
+  'logging_system.py',
+  'log_parser.py',
+  'version.py',
+  'build_info.py'
 ]
 
 # UI module files
@@ -30,26 +34,26 @@ ui_sources = [
   'ui/components/password_list.py',
   'ui/components/password_details.py',
   'ui/components/password_generator_popover.py',
+  'ui/components/password_generator_widget.py',
   'ui/components/git_status_component.py',
   'ui/dialogs/__init__.py',
   'ui/dialogs/about_dialog.py',
-  'ui/dialogs/add_folder_dialog.py',
-  'ui/dialogs/edit_folder_dialog.py',
-  'ui/dialogs/add_password_dialog.py',
-  'ui/dialogs/edit_password_dialog.py',
+  'ui/dialogs/folder_dialog.py',
+  'ui/dialogs/password_dialog_utils.py',
+  'ui/dialogs/password_dialog.py',
   'ui/dialogs/preferences_dialog.py',
   'ui/dialogs/password_generator_dialog.py',
   'ui/dialogs/import_export_dialog.py',
   'ui/dialogs/git_setup_dialog.py',
   'ui/dialogs/git_status_dialog.py',
   'ui/dialogs/lock_dialog.py',
+  'ui/dialogs/password_details_dialog.py',
   'ui/dialogs/compliance_dashboard_dialog.py',
   'ui/widgets/__init__.py',
   'ui/widgets/color_paintable.py',
   'ui/widgets/password_row.py',
+  'ui/widgets/password_entry_row.py',
   'ui/widgets/folder_expander_row.py',
-  'ui/widgets/color_picker.py',
-  'ui/widgets/icon_picker.py'
 ]
 
 # Controller files
@@ -60,6 +64,7 @@ controller_sources = [
   'controllers/password_list_controller.py',
   'controllers/setup_controller.py',
   'controllers/window_state_manager.py',
+  'controllers/window_controller.py',
   'controllers/dynamic_folder_controller.py'
 ]
 
@@ -82,14 +87,17 @@ utils_sources = [
   'utils/path_validator.py',
   'utils/environment_setup.py',
   'utils/metadata_handler.py',
-  'utils/url_extractor.py'
+  'utils/url_extractor.py',
+  'utils/avatar_manager.py',
+  'utils/password_strength.py'
 ]
 
 # Services files
 services_sources = [
   'services/__init__.py',
   'services/password_service.py',
-  'services/git_service.py'
+  'services/git_service.py',
+  'services/password_content_parser.py'
 ]
 
 # Managers files
@@ -141,15 +149,20 @@ install_data(security_sources, install_dir : py_install_dir / 'secrets', preserv
 install_data(compliance_sources, install_dir : py_install_dir / 'secrets', preserve_path: true)
 
 # Compile GResources for Python: generate .gresource file, not C code
+# Get the blueprint targets from the global variable if available
+blueprint_targets = get_variable('all_blueprint_targets', [])
+
 gresource = custom_target('secrets.gresource',
   input: 'secrets.gresource.xml',
   output: 'secrets.gresource',
   command: [
     find_program('glib-compile-resources'),
     '--target=@OUTPUT@',
+    '--sourcedir', meson.project_build_root() / 'data',
     '--sourcedir', meson.project_source_root() / 'data',
     '@INPUT@'
   ],
+  depends: blueprint_targets,
   install: true,
   install_dir: py_install_dir / 'secrets',
   build_by_default: true  # Ensure it's built for development

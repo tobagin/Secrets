@@ -2,6 +2,7 @@ import os
 import subprocess
 import glob # For listing files
 import re # Added
+import logging
 from .utils.gpg_utils import GPGSetupHelper
 
 # GTK imports are conditional to avoid hanging in headless environments
@@ -18,6 +19,7 @@ except (ImportError, ValueError):
 class PasswordStore:
     def __init__(self, store_dir=None):
         self.store_dir_override = store_dir # Store the override if provided
+        self.logger = logging.getLogger(f"{__name__}.PasswordStore")
         self.store_dir = self._determine_store_dir(self.store_dir_override)
         self.gpg_health_status = None  # Will be set by validate_gpg_setup()
         # Don't raise error here immediately; let UI handle prompting.
@@ -318,7 +320,10 @@ class PasswordStore:
                     #   The main window will show a toast indicating manual init is needed.
                 except OSError as e:
                     # Handle error (e.g., show another dialog)
-                    print(f"Error creating directory {self.store_dir}: {e}")
+                    self.logger.error(f"Error creating directory {self.store_dir}: {e}", extra={
+                        'store_dir': self.store_dir,
+                        'error_type': type(e).__name__
+                    })
                     # Show error dialog for directory creation failure
                     err_dialog = Adw.Dialog(
                         heading="Directory Creation Failed",
@@ -332,7 +337,9 @@ class PasswordStore:
             # Return the current state of is_initialized
             return self.is_initialized
         else:
-            print(f"Password store directory not found: {self.store_dir}. Cannot prompt without parent window.")
+            self.logger.warning(f"Password store directory not found: {self.store_dir}. Cannot prompt without parent window.", extra={
+                'store_dir': self.store_dir
+            })
             return False
 
     def _prompt_for_gpg_id(self, parent_window):
@@ -1192,34 +1199,38 @@ class PasswordStore:
 
 if __name__ == '__main__':
     # Example Usage (for testing this module directly)
+    import logging
+    logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+    logger = logging.getLogger(__name__)
+    
     try:
         # Test with default store
         store = PasswordStore()
-        print(f"Using password store: {store.store_dir}")
+        logger.info(f"Using password store: {store.store_dir}")
 
         passwords = store.list_passwords()
-        print("\nAvailable passwords:")
+        logger.info("Available passwords:")
         if passwords:
             for p in passwords:
-                print(f"  - {p}")
+                logger.info(f"  - {p}")
 
             # Test copying the first password
-            print(f"\nAttempting to copy '{passwords[0]}'...")
+            logger.info(f"Attempting to copy '{passwords[0]}'...")
             success, message = store.copy_password(passwords[0])
-            print(f"Copy status: {success}, Message: {message}")
+            logger.info(f"Copy status: {success}, Message: {message}")
         else:
-            print("No passwords found.")
+            logger.info("No passwords found.")
 
         # Test Git commands (these will likely require a configured remote)
-        # print("\nAttempting git pull...")
+        # logger.info("Attempting git pull...")
         # success, message = store.git_pull()
-        # print(f"Pull status: {success}, Message: {message}")
+        # logger.info(f"Pull status: {success}, Message: {message}")
 
-        # print("\nAttempting git push...")
+        # logger.info("Attempting git push...")
         # success, message = store.git_push()
-        # print(f"Push status: {success}, Message: {message}")
+        # logger.info(f"Push status: {success}, Message: {message}")
 
     except FileNotFoundError as e:
-        print(f"Error: {e}")
+        logger.error(f"Error: {e}")
     except Exception as e:
-        print(f"An unexpected error occurred during testing: {e}")
+        logger.error(f"An unexpected error occurred during testing: {e}")

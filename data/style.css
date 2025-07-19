@@ -3,3 +3,15 @@
     padding-right: 6px;
     min-height: 0;
 }
+
+progressbar.thin {
+    min-height: 4px;
+}
+
+progressbar.thin > trough {
+    min-height: 4px;
+}
+
+progressbar.thin > trough > progress {
+    min-height: 4px;
+}

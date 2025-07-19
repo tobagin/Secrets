@@ -12,7 +12,7 @@ from ...app_info import APP_ID
 _secure_random = random.SystemRandom()
 
 
-@Gtk.Template(resource_path=f'/{APP_ID.replace(".", "/")}/ui/components/password_generator_popover.ui')
+@Gtk.Template(resource_path='/io/github/tobagin/secrets/ui/components/password_generator_popover.ui')
 class PasswordGeneratorPopover(Gtk.Popover):
     """Popover for generating secure passwords."""
 
@@ -121,7 +121,6 @@ class PasswordGeneratorPopover(Gtk.Popover):
                     toast = Adw.Toast.new("Password copied to clipboard")
                     parent.toast_overlay.add_toast(toast)
         except Exception as e:
-            print(f"Error copying password to clipboard: {e}")
             # Try to show error toast if possible
             parent = self.get_parent()
             while parent and not hasattr(parent, 'toast_overlay'):

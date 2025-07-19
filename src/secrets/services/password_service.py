@@ -6,6 +6,7 @@ import os
 from ..models import PasswordEntry
 from ..password_store import PasswordStore
 from ..performance import password_cache, performance_monitor, memoize_with_ttl
+from ..logging_system import get_logger, LogCategory
 
 
 class PasswordService:
@@ -13,6 +14,7 @@ class PasswordService:
     
     def __init__(self, password_store: PasswordStore):
         self.password_store = password_store
+        self.logger = get_logger(LogCategory.PASSWORD_STORE, "PasswordService")
     
     def get_all_entries(self) -> List[PasswordEntry]:
         """Get all password entries as PasswordEntry objects."""
@@ -103,9 +105,15 @@ class PasswordService:
     
     def create_entry(self, path: str, content: str) -> Tuple[bool, str]:
         """Create a new password entry."""
+        self.logger.info("Creating password entry", extra={'path': path})
         result = self.password_store.insert_password(path, content, multiline=True, force=False)
         if result[0]:  # Success
             password_cache.invalidate(path)
+            self.logger.info("Password entry created successfully", extra={'path': path})
+        else:
+            self.logger.error("Failed to create password entry", extra={
+                'path': path, 'error': result[1]
+            })
         return result
 
     def update_entry(self, path: str, content: str) -> Tuple[bool, str]:
@@ -117,9 +125,15 @@ class PasswordService:
 
     def delete_entry(self, path: str) -> Tuple[bool, str]:
         """Delete a password entry."""
+        self.logger.info("Deleting password entry", extra={'path': path})
         result = self.password_store.delete_password(path)
         if result[0]:  # Success
             password_cache.invalidate(path)
+            self.logger.info("Password entry deleted successfully", extra={'path': path})
+        else:
+            self.logger.error("Failed to delete password entry", extra={
+                'path': path, 'error': result[1]
+            })
         return result
 
     def move_entry(self, old_path: str, new_path: str, preserve_empty_folders: bool = True) -> Tuple[bool, str]:

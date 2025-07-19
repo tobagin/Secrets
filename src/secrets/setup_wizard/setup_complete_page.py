@@ -11,7 +11,7 @@ from gi.repository import Gtk, Adw, GObject
 from ..app_info import APP_ID
 
 
-@Gtk.Template(resource_path=f'/{APP_ID.replace(".", "/")}/ui/setup/setup_complete_page.ui')
+@Gtk.Template(resource_path="/io/github/tobagin/secrets/ui/setup/setup_complete_page.ui")
 class SetupCompletePage(Adw.NavigationPage):
     """Page shown when setup is complete."""
     

@@ -14,6 +14,8 @@ class PasswordEntry:
     username: Optional[str] = None
     url: Optional[str] = None
     notes: Optional[str] = None
+    totp: Optional[str] = None
+    recovery_codes: Optional[list] = None
     is_folder: bool = False
     
     @property
@@ -35,6 +37,8 @@ class PasswordEntry:
             'username': self.username,
             'url': self.url,
             'notes': self.notes,
+            'totp': self.totp,
+            'recovery_codes': self.recovery_codes,
             'is_folder': self.is_folder
         }
     

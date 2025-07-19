@@ -78,9 +78,23 @@ class ColorPaintable(GObject.Object, Gdk.Paintable):
                 self._render_icon(snapshot, width, height)
 
     def _render_favicon_only(self, snapshot, width, height):
-        """Render only the favicon pixbuf without any background."""
+        """Render the favicon pixbuf with automatic background for dark icons."""
         if not self._favicon_pixbuf:
             return
+
+        # Check if favicon is dark and needs a white background
+        needs_white_background = self._favicon_needs_white_background()
+
+        # If dark favicon detected, render white background
+        if needs_white_background:
+            rect = Graphene.Rect()
+            rect.init(0, 0, width, height)
+            white_rgba = Gdk.RGBA()
+            white_rgba.red = 1.0
+            white_rgba.green = 1.0
+            white_rgba.blue = 1.0
+            white_rgba.alpha = 1.0
+            snapshot.append_color(white_rgba, rect)
 
         # Get original favicon dimensions
         favicon_width = self._favicon_pixbuf.get_width()
@@ -106,6 +120,79 @@ class ColorPaintable(GObject.Object, Gdk.Paintable):
 
         # Render the favicon texture
         snapshot.append_texture(texture, rect)
+
+    def _favicon_needs_white_background(self):
+        """Check if favicon is dark and needs a white background for visibility."""
+        if not self._favicon_pixbuf:
+            return False
+
+        # Get pixbuf properties
+        width = self._favicon_pixbuf.get_width()
+        height = self._favicon_pixbuf.get_height()
+        n_channels = self._favicon_pixbuf.get_n_channels()
+        has_alpha = self._favicon_pixbuf.get_has_alpha()
+        
+        # Get pixel data
+        pixels = self._favicon_pixbuf.get_pixels()
+        
+        # Sample pixels for analysis (sample every 4th pixel for performance)
+        sample_size = min(100, width * height // 16)  # Sample up to 100 pixels
+        step = max(1, (width * height) // sample_size)
+        
+        total_luminance = 0
+        transparent_pixels = 0
+        sampled_pixels = 0
+        
+        for y in range(0, height, max(1, step // width)):
+            for x in range(0, width, max(1, step % width) or 1):
+                if sampled_pixels >= sample_size:
+                    break
+                
+                # Calculate pixel offset
+                offset = (y * width + x) * n_channels
+                
+                if offset + 2 >= len(pixels):
+                    continue
+                
+                # Get RGB values
+                r = pixels[offset] / 255.0
+                g = pixels[offset + 1] / 255.0
+                b = pixels[offset + 2] / 255.0
+                
+                # Check alpha if present
+                if has_alpha and n_channels >= 4:
+                    alpha = pixels[offset + 3] / 255.0
+                    if alpha < 0.1:  # Nearly transparent
+                        transparent_pixels += 1
+                        sampled_pixels += 1
+                        continue
+                
+                # Calculate luminance using standard formula
+                luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b
+                total_luminance += luminance
+                sampled_pixels += 1
+                
+            if sampled_pixels >= sample_size:
+                break
+        
+        if sampled_pixels == 0:
+            return False  # No valid pixels to analyze
+        
+        # Calculate average luminance of non-transparent pixels
+        opaque_pixels = sampled_pixels - transparent_pixels
+        if opaque_pixels == 0:
+            return False  # All pixels are transparent
+        
+        avg_luminance = total_luminance / opaque_pixels
+        
+        # If more than 70% of pixels are transparent, it's likely a simple icon that needs background
+        transparency_ratio = transparent_pixels / sampled_pixels
+        if transparency_ratio > 0.7:
+            return True
+        
+        # If average luminance is below 0.4, consider it dark and needing white background
+        # This threshold works well for GitHub and other dark icons
+        return avg_luminance < 0.4
 
     def _render_favicon(self, snapshot, width, height):
         """Render the favicon pixbuf centered on the background (legacy method)."""
@@ -183,8 +270,7 @@ class ColorPaintable(GObject.Object, Gdk.Paintable):
                 snapshot.restore()
 
         except Exception as e:
-            print(f"Error rendering icon {self._icon_name}: {e}")
-            # Fallback: render a simple circle
+            # Fallback: render a simple circle when icon loading fails
             self._render_fallback_icon(snapshot, width, height)
 
     def _render_fallback_icon(self, snapshot, width, height):

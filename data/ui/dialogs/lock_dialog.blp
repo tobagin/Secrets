@@ -1,0 +1,113 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $LockDialog : Adw.Window {
+  title: _("Secrets - Locked");
+  default-width: 400;
+  default-height: 300;
+  resizable: false;
+  deletable: false;
+  modal: true;
+
+  content: Gtk.Box main_box {
+    orientation: vertical;
+    spacing: 24;
+    margin-top: 48;
+    margin-bottom: 48;
+    margin-start: 48;
+    margin-end: 48;
+    halign: center;
+    valign: center;
+
+    // Lock Icon
+    Gtk.Image lock_icon {
+      icon-name: "changes-prevent-symbolic";
+      pixel-size: 64;
+      
+      styles [
+        "dim-label"
+      ]
+    }
+
+    // Title
+    Gtk.Label title_label {
+      label: _("Application Locked");
+      halign: center;
+      
+      styles [
+        "title-2"
+      ]
+    }
+
+    // Subtitle
+    Gtk.Label subtitle_label {
+      label: _("Enter your master password to unlock");
+      halign: center;
+      
+      styles [
+        "dim-label"
+      ]
+    }
+
+    // Entry Box
+    Gtk.Box entry_box {
+      orientation: vertical;
+      spacing: 12;
+
+      // Password Entry
+      Adw.PasswordEntryRow password_entry {
+        title: _("Master Password");
+        show-apply-button: true;
+        apply => $_on_unlock_clicked();
+        entry-activated => $_on_unlock_clicked();
+      }
+
+      // Error Label
+      Gtk.Label error_label {
+        halign: center;
+        visible: false;
+        
+        styles [
+          "error"
+        ]
+      }
+
+      // Lockout Label
+      Gtk.Label lockout_label {
+        halign: center;
+        visible: false;
+        
+        styles [
+          "warning"
+        ]
+      }
+    }
+
+    // Button Box
+    Gtk.Box button_box {
+      orientation: horizontal;
+      spacing: 12;
+      halign: center;
+
+      // Unlock Button
+      Gtk.Button unlock_button {
+        label: _("Unlock");
+        clicked => $_on_unlock_clicked();
+        
+        styles [
+          "suggested-action"
+        ]
+      }
+
+      // Quit Button
+      Gtk.Button quit_button {
+        label: _("Quit Application");
+        clicked => $_on_quit_clicked();
+        
+        styles [
+          "destructive-action"
+        ]
+      }
+    }
+  };
+}

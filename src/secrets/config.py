@@ -5,6 +5,7 @@ import gi
 gi.require_version("Adw", "1")
 
 import json
+import logging
 from typing import Any, Dict, Optional
 from pathlib import Path
 from dataclasses import dataclass, asdict
@@ -14,6 +15,9 @@ from .i18n import get_translation_function
 
 # Get translation function
 _ = get_translation_function()
+
+# Logger for configuration management
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -36,6 +40,7 @@ class SecurityConfig:
     auto_hide_timeout_seconds: int = 30
     clear_clipboard_timeout: int = 45
     require_confirmation_for_delete: bool = True
+    require_password_name_for_delete: bool = True
     lock_on_idle: bool = False
     idle_timeout_minutes: int = 15
     lock_on_screen_lock: bool = True
@@ -121,6 +126,55 @@ class GitConfig:
 
 
 @dataclass
+class LoggingConfig:
+    """Logging-related configuration with advanced rotation and management."""
+    # Basic logging settings
+    log_level: str = "WARNING"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+    enable_file_logging: bool = True
+    enable_console_logging: bool = True
+    enable_structured_logging: bool = True
+    enable_security_logging: bool = True
+    
+    # File rotation settings
+    max_log_file_size_mb: int = 10
+    backup_count: int = 5
+    rotation_strategy: str = "size"  # "size", "time", "mixed"
+    
+    # Time-based rotation settings
+    rotation_interval: str = "midnight"  # "midnight", "H", "D", "W0", "W1", etc.
+    rotation_interval_count: int = 1  # How many intervals between rotations
+    rotation_at_time: str = "00:00"  # Time to rotate for daily rotation (HH:MM)
+    
+    # Retention and cleanup settings
+    log_retention_days: int = 30
+    max_total_log_size_mb: int = 100
+    enable_compression: bool = True
+    compression_format: str = "gzip"  # "gzip", "bz2", "lzma"
+    
+    # Log file location settings
+    custom_log_directory: str = ""  # Custom log directory (empty = use default)
+    use_custom_log_directory: bool = False  # Enable custom log directory
+    log_directory_permissions: str = "755"  # Directory permissions for custom log dir
+    
+    # Advanced management settings
+    enable_automatic_cleanup: bool = True
+    cleanup_check_interval_hours: int = 24
+    enable_log_archiving: bool = False
+    archive_directory: str = ""  # Custom archive location
+    
+    # Performance settings
+    log_flush_interval_seconds: int = 5
+    enable_async_logging: bool = False
+    max_queue_size: int = 1000
+    
+    # Monitoring settings
+    enable_log_monitoring: bool = True
+    monitor_disk_usage: bool = True
+    disk_usage_warning_threshold_percent: int = 85
+    disk_usage_critical_threshold_percent: int = 95
+
+
+@dataclass
 class AppConfig:
     """Main application configuration."""
     ui: UIConfig
@@ -128,6 +182,7 @@ class AppConfig:
     search: SearchConfig
     git: GitConfig
     compliance: ComplianceConfig
+    logging: LoggingConfig
     last_selected_path: Optional[str] = None
     
     def __post_init__(self):
@@ -142,6 +197,8 @@ class AppConfig:
             self.git = GitConfig(**self.git)
         if isinstance(self.compliance, dict):
             self.compliance = ComplianceConfig(**self.compliance)
+        if isinstance(self.logging, dict):
+            self.logging = LoggingConfig(**self.logging)
 
 
 class ConfigManager:
@@ -169,7 +226,10 @@ class ConfigManager:
                 data.pop('password_store_dir', None)
                 self._config = AppConfig(**data)
             except (json.JSONDecodeError, TypeError, ValueError) as e:
-                print(f"Error loading config: {e}. Using defaults.")
+                logger.warning(f"Error loading config: {e}. Using defaults.", extra={
+                    'config_file': str(self.config_file),
+                    'error_type': type(e).__name__
+                })
                 self._config = self._create_default_config()
         else:
             self._config = self._create_default_config()
@@ -188,7 +248,10 @@ class ConfigManager:
             with open(self.config_file, 'w') as f:
                 json.dump(asdict(config), f, indent=2)
         except Exception as e:
-            print(f"Error saving config: {e}")
+            logger.error(f"Error saving config: {e}", extra={
+                'config_file': str(self.config_file),
+                'error_type': type(e).__name__
+            })
     
     def _create_default_config(self) -> AppConfig:
         """Create default configuration."""
@@ -197,7 +260,8 @@ class ConfigManager:
             security=SecurityConfig(),
             search=SearchConfig(),
             git=GitConfig(),
-            compliance=ComplianceConfig()
+            compliance=ComplianceConfig(),
+            logging=LoggingConfig()
         )
     
     def get_config(self) -> AppConfig:
@@ -245,6 +309,35 @@ class ConfigManager:
             if hasattr(config.git, key):
                 setattr(config.git, key, value)
         self.save_config(config)
+    
+    def update_logging_config(self, **kwargs):
+        """Update logging configuration and apply changes to logging system."""
+        config = self.get_config()
+        for key, value in kwargs.items():
+            if hasattr(config.logging, key):
+                setattr(config.logging, key, value)
+        self.save_config(config)
+        
+        # Apply changes to logging system if it exists
+        self._apply_logging_changes(config.logging)
+    
+    def _apply_logging_changes(self, logging_config):
+        """Apply logging configuration changes to the active logging system."""
+        try:
+            from .logging_system import get_logging_system, set_log_level
+            
+            # Update log level
+            if hasattr(logging_config, 'log_level'):
+                set_log_level(logging_config.log_level)
+            
+            # Update logging system configuration if available
+            logging_system = get_logging_system()
+            if logging_system and hasattr(logging_system, 'update_configuration'):
+                logging_system.update_configuration(logging_config)
+                
+        except ImportError:
+            # Logging system not available, changes will be applied on next restart
+            pass
     
     def reset_to_defaults(self):
         """Reset configuration to defaults."""

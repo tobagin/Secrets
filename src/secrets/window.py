@@ -7,7 +7,7 @@ from gi.repository import Gtk, Adw, Gio, GObject, Gio, Gdk, GLib # Added GLib
 import os
 
 from .password_store import PasswordStore
-from .ui.dialogs import EditPasswordDialog, AddPasswordDialog
+from .ui.dialogs import PasswordDialog, FolderDialog
 from .app_info import APP_ID # Added to construct resource path programmatically
 from .utils import DialogManager, UIConstants, AccessibilityHelper
 
@@ -59,72 +59,34 @@ class PasswordListItem(GObject.Object):
         elif children_model is not None: # Allow passing pre-filled model
             self.children_model = children_model
 
-@Gtk.Template(resource_path=f'/{APP_ID.replace(".", "/")}/ui/main_window.ui')
+@Gtk.Template(resource_path='/io/github/tobagin/secrets/ui/main_window.ui')
 class SecretsWindow(Adw.ApplicationWindow):
     __gtype_name__ = "SecretsWindow"
 
-    # Template widgets
+    # Template widgets (matching main_window.blp)
     toast_overlay = Gtk.Template.Child()
-    split_view = Gtk.Template.Child()
-
-    # Sidebar widgets
-    sidebar_page = Gtk.Template.Child()
-    sidebar_header = Gtk.Template.Child()
+    main_toolbar = Gtk.Template.Child()
+    main_header = Gtk.Template.Child()
+    window_title = Gtk.Template.Child()
     search_toggle_button = Gtk.Template.Child()
     add_password_button = Gtk.Template.Child()
     add_folder_button = Gtk.Template.Child()
     git_pull_button = Gtk.Template.Child()
     git_push_button = Gtk.Template.Child()
-    sidebar_menu_button = Gtk.Template.Child()
+    main_menu_button = Gtk.Template.Child()
+    main_content = Gtk.Template.Child()
     search_clamp = Gtk.Template.Child()
     search_entry = Gtk.Template.Child()
-    folders_scrolled = Gtk.Template.Child()
-    folders_listbox = Gtk.Template.Child()
+    password_list_scrolled = Gtk.Template.Child()
+    password_list_box = Gtk.Template.Child()
 
-
-
-    # Content area widgets
-    content_page = Gtk.Template.Child()
-    content_header = Gtk.Template.Child()
-    # git_status_button = Gtk.Template.Child()  # Disabled for v0.8.6
-    # main_menu_button = Gtk.Template.Child()  # Removed - menu is now in sidebar header
-    details_stack = Gtk.Template.Child()
-    placeholder_page = Gtk.Template.Child()
-
-    # Details page widgets (keeping existing ones for compatibility)
-    details_page_box = Gtk.Template.Child()
-    path_row = Gtk.Template.Child()
-    password_expander_row = Gtk.Template.Child()
-    password_display_label = Gtk.Template.Child()
-    show_hide_password_button = Gtk.Template.Child()
-    copy_password_button_in_row = Gtk.Template.Child()
-    username_row = Gtk.Template.Child()
-    copy_username_button = Gtk.Template.Child()
-    url_row = Gtk.Template.Child()
-    open_url_button = Gtk.Template.Child()
-    totp_row = Gtk.Template.Child()
-    totp_code_label = Gtk.Template.Child()
-    totp_timer_bar = Gtk.Template.Child()
-    copy_totp_button = Gtk.Template.Child()
-    recovery_codes_group = Gtk.Template.Child()
-    recovery_expander = Gtk.Template.Child()
-    recovery_codes_box = Gtk.Template.Child()
-    notes_display_label = Gtk.Template.Child()
-    edit_button = Gtk.Template.Child()
-    remove_button = Gtk.Template.Child()
-
-    # Additional widgets that might be missing
-    sidebar_content = Gtk.Template.Child()
-    content_toolbar = Gtk.Template.Child()
-    sidebar_toolbar = Gtk.Template.Child()
-
-    def __init__(self, **kwargs):
+    def __init__(self, config_manager=None, **kwargs):
         super().__init__(**kwargs)
         # In GTK4, stack page names are set in the UI file with the "name" property
         # No need to set them programmatically as they're already defined in the UI template
 
         # Initialize configuration and error handling
-        self.config_manager = ConfigManager()
+        self.config_manager = config_manager or ConfigManager()
         self.error_handler = ErrorHandler(self.config_manager)
 
         # Initialize application state
@@ -159,15 +121,11 @@ class SecretsWindow(Adw.ApplicationWindow):
         # )
         # self.git_status_component = GitStatusComponent(self.git_manager)
 
-        # Initialize controllers
-        self._initialize_controllers()
+        # Initialize basic controllers only (complex UI controllers disabled for simple layout)
+        self._initialize_basic_controllers()
 
-        # Connect remaining signals for buttons that aren't handled by controllers
-        self.edit_button.connect("clicked", self.on_edit_button_clicked)
-        self.remove_button.connect("clicked", self.on_remove_button_clicked)
+        # Connect basic UI signals
         self.search_toggle_button.connect("toggled", self.on_search_toggle_clicked)
-
-        # Connect add buttons
         self.add_password_button.connect("clicked", self.on_add_password_button_clicked)
         self.add_folder_button.connect("clicked", self.on_add_folder_button_clicked)
 
@@ -204,8 +162,8 @@ class SecretsWindow(Adw.ApplicationWindow):
 
         # Folder signals are handled by the DynamicFolderController
 
-    def _initialize_controllers(self):
-        """Initialize all controller components."""
+    def _initialize_basic_controllers(self):
+        """Initialize basic controller components for simple layout."""
         # Window state manager
         self.window_state_manager = WindowStateManager(self, self.config_manager)
 
@@ -222,7 +180,7 @@ class SecretsWindow(Adw.ApplicationWindow):
         self.folder_controller = DynamicFolderController(
             self.password_store,
             self.toast_manager,
-            self.folders_listbox,
+            self.password_list_box,  # Use simple password list box
             self.search_entry,
             on_selection_changed=self._on_selection_changed
         )
@@ -235,58 +193,6 @@ class SecretsWindow(Adw.ApplicationWindow):
 
         # Connect folder deletion dialog handling
         self.folder_controller.delete_folder_requested = self._on_delete_folder_dialog_requested
-
-        # Password details controller
-        self.details_controller = PasswordDetailsController(
-            self.password_store,
-            self.toast_manager,
-            self.clipboard_manager,
-            self.command_invoker,
-            self.app_state,
-            self.config_manager,
-            # UI elements
-            self.details_stack,
-            self.placeholder_page,
-            self.details_page_box,
-            self.path_row,
-            self.password_expander_row,
-            self.password_display_label,
-            self.show_hide_password_button,
-            self.copy_password_button_in_row,
-            self.username_row,
-            self.copy_username_button,
-            self.url_row,
-            self.open_url_button,
-            self.totp_row,
-            self.totp_code_label,
-            self.totp_timer_bar,
-            self.copy_totp_button,
-            self.recovery_codes_group,
-            self.recovery_expander,
-            self.recovery_codes_box,
-            self.notes_display_label,
-            self.edit_button,
-            self.remove_button
-        )
-
-        # Action controller
-        self.action_controller = ActionController(
-            self,
-            self.toast_manager,
-            on_add_password=self.on_add_password_button_clicked,
-            on_edit_password=self.on_edit_button_clicked,
-            on_delete_password=self.on_remove_button_clicked,
-            on_copy_password=self.details_controller._on_copy_password_clicked,
-            on_copy_username=self.details_controller._on_copy_username_clicked,
-            on_focus_search=self.folder_controller.focus_search,
-            on_clear_search=self.folder_controller.clear_search,
-            on_refresh=self.folder_controller.load_passwords,
-            on_toggle_password=self.details_controller.toggle_password_visibility,
-            on_generate_password=self._on_generate_password,
-            on_show_help=self._on_show_help_overlay,
-            on_import_export=self._on_import_export,
-            on_compliance_dashboard=self._on_compliance_dashboard
-        )
 
         # Setup validation is now handled by the setup wizard before this window is shown
         # Just verify that setup is complete and load passwords
@@ -313,8 +219,8 @@ class SecretsWindow(Adw.ApplicationWindow):
 
     def _on_selection_changed(self, selection_model, *args):
         """Handle selection changes from the folder controller."""
-        selected_item = self.folder_controller.get_selected_item()
-        self.details_controller.update_details(selected_item)
+        # In simple layout, no details view to update
+        pass
 
     def _setup_commands(self):
         """Setup the command system with all available commands."""
@@ -409,7 +315,6 @@ class SecretsWindow(Adw.ApplicationWindow):
 
     def on_add_folder_button_clicked(self, widget):
         """Handle add folder button click."""
-        from .ui.dialogs.add_folder_dialog import AddFolderDialog
 
         # Get suggested parent folder from current selection
         suggested_parent = ""
@@ -421,7 +326,7 @@ class SecretsWindow(Adw.ApplicationWindow):
             else:
                 suggested_parent = selected_item_obj.path
 
-        dialog = AddFolderDialog(
+        dialog = FolderDialog(
             transient_for_window=self,
             suggested_parent_path=suggested_parent
         )
@@ -461,15 +366,16 @@ class SecretsWindow(Adw.ApplicationWindow):
                 current_icon = password_metadata["icon"]
 
                 # Create and show the edit dialog
-                dialog = EditPasswordDialog(
+                dialog = PasswordDialog(
+                    mode="edit",
                     password_path=password_path,
                     password_content=current_content,
-                    transient_for_window=self,
+                    transient_for=self,
                     password_store=self.password_store,
                     current_color=current_color,
                     current_icon=current_icon
                 )
-                dialog.connect("save-requested", self.on_edit_dialog_save_requested)
+                dialog.connect("password-edit-requested", self.on_edit_dialog_save_requested)
                 dialog.present()
             else:
                 # content_or_error is the error message here
@@ -492,7 +398,6 @@ class SecretsWindow(Adw.ApplicationWindow):
                     self.password_store.set_password_metadata(new_path, color, icon)
                     self.toast_manager.show_success(f"Password moved from '{old_path}' to '{new_path}' and updated")
                     self.folder_controller.load_passwords()  # Refresh the entire list
-                    self.details_controller.update_details(None)  # Clear details view
                 else:
                     self.toast_manager.show_error(f"Content updated but move failed: {move_message}")
                     self.folder_controller.load_passwords()
@@ -507,16 +412,6 @@ class SecretsWindow(Adw.ApplicationWindow):
                 self.toast_manager.show_success(message)
                 # Refresh the specific password display with new metadata
                 self.folder_controller.refresh_password_display(new_path)
-                # Refresh the details view to show updated content
-                selected_item = self.folder_controller.get_selected_item()
-                if selected_item:
-                    # Handle both PasswordEntry and PasswordListItem objects
-                    if hasattr(selected_item, 'full_path'):
-                        item_path = selected_item.full_path
-                    else:
-                        item_path = selected_item.path
-                    if item_path == new_path:
-                        self.details_controller.update_details(selected_item)
             else:
                 self.toast_manager.show_error(f"Error saving: {message}")
 
@@ -559,8 +454,6 @@ class SecretsWindow(Adw.ApplicationWindow):
             if success:
                 self.toast_manager.show_success(message)
                 self.folder_controller.load_passwords() # Refresh the list
-                # Clear details view after deletion
-                self.details_controller.update_details(None)
             else:
                 self.toast_manager.show_error(f"Error: {message}")
         dialog.close() # Ensure dialog is closed
@@ -594,12 +487,12 @@ class SecretsWindow(Adw.ApplicationWindow):
                 # If a file is selected, suggest its parent folder
                 suggested_path = os.path.dirname(path) if os.path.dirname(path) else ""
 
-        dialog = AddPasswordDialog(
-            transient_for_window=self,
-            suggested_folder_path=suggested_path,
+        dialog = PasswordDialog(
+            transient_for=self,
+            suggested_folder=suggested_path,
             password_store=self.password_store
         )
-        dialog.connect("add-requested", self.on_add_dialog_add_requested)
+        dialog.connect("password-create-requested", self.on_add_dialog_add_requested)
         dialog.present()
 
     def on_add_folder_dialog_create_requested(self, dialog, folder_path, color, icon):
@@ -624,14 +517,14 @@ class SecretsWindow(Adw.ApplicationWindow):
 
     def _on_edit_folder_requested(self, folder_path, folder_name):
         """Handle edit folder request from folder controller."""
-        from .ui.dialogs.edit_folder_dialog import EditFolderDialog
 
         # Load current color and icon from metadata
         folder_metadata = self.password_store.get_folder_metadata(folder_path)
         current_color = folder_metadata["color"]
         current_icon = folder_metadata["icon"]
 
-        dialog = EditFolderDialog(
+        dialog = FolderDialog(
+            mode="edit",
             folder_path=folder_path,
             current_color=current_color,
             current_icon=current_icon,
@@ -642,14 +535,13 @@ class SecretsWindow(Adw.ApplicationWindow):
 
     def _on_add_password_to_folder_requested(self, folder_path):
         """Handle add password to folder request from folder controller."""
-        from .ui.dialogs.add_password_dialog import AddPasswordDialog
 
-        dialog = AddPasswordDialog(
-            transient_for_window=self,
-            suggested_folder_path=folder_path,
+        dialog = PasswordDialog(
+            transient_for=self,
+            suggested_folder=folder_path,
             password_store=self.password_store
         )
-        dialog.connect("add-requested", self.on_add_dialog_add_requested)
+        dialog.connect("password-create-requested", self.on_add_dialog_add_requested)
         dialog.present()
 
     def on_edit_folder_dialog_save_requested(self, dialog, old_path, new_path, color, icon):
@@ -766,8 +658,7 @@ class SecretsWindow(Adw.ApplicationWindow):
         # Disable UI interactions
         self.set_sensitive(False)
 
-        # Clear sensitive data from UI
-        self.details_controller.clear_sensitive_data()
+        # Clear sensitive data from UI (no details controller in simple layout)
 
         # Clear search
         self.search_entry.set_text("")

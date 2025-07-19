@@ -1,0 +1,191 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $ShortcutsWindow : Adw.Window {
+  title: _("Keyboard Shortcuts");
+  default-width: 600;
+  default-height: 700;
+  modal: true;
+
+  content: Box {
+    orientation: vertical;
+
+    // Header Bar
+    Adw.HeaderBar {
+      title-widget: Adw.WindowTitle {
+        title: _("Keyboard Shortcuts");
+      };
+    }
+
+    // Scrolled Window for shortcuts
+    ScrolledWindow {
+      vexpand: true;
+      hscrollbar-policy: never;
+      vscrollbar-policy: automatic;
+
+      child: Box {
+        orientation: vertical;
+        spacing: 24;
+        margin-top: 12;
+        margin-bottom: 12;
+        margin-start: 12;
+        margin-end: 12;
+
+        // Application group
+        Adw.PreferencesGroup {
+          title: _("Application");
+
+          Adw.ActionRow {
+            title: _("Quit");
+            [suffix]
+            Label {
+              label: "Ctrl+Q";
+              valign: center;
+            }
+          }
+
+          Adw.ActionRow {
+            title: _("Preferences");
+            [suffix]
+            Label {
+              label: "Ctrl+,";
+              valign: center;
+            }
+          }
+
+          Adw.ActionRow {
+            title: _("About");
+            [suffix]
+            Label {
+              label: "Ctrl+?";
+              valign: center;
+            }
+          }
+
+          Adw.ActionRow {
+            title: _("Keyboard Shortcuts");
+            [suffix]
+            Label {
+              label: "Ctrl+? / F1";
+              valign: center;
+            }
+          }
+        }
+
+        // Password Management group
+        Adw.PreferencesGroup {
+          title: _("Password Management");
+
+          Adw.ActionRow {
+            title: _("Add New Password");
+            [suffix]
+            Label {
+              label: "Ctrl+N";
+              valign: center;
+            }
+          }
+
+          Adw.ActionRow {
+            title: _("Edit Selected Password");
+            [suffix]
+            Label {
+              label: "Ctrl+E";
+              valign: center;
+            }
+          }
+
+          Adw.ActionRow {
+            title: _("Delete Selected Password");
+            [suffix]
+            Label {
+              label: "Delete";
+              valign: center;
+            }
+          }
+
+          Adw.ActionRow {
+            title: _("Copy Password");
+            [suffix]
+            Label {
+              label: "Ctrl+C";
+              valign: center;
+            }
+          }
+
+          Adw.ActionRow {
+            title: _("Copy Username");
+            [suffix]
+            Label {
+              label: "Ctrl+Shift+C";
+              valign: center;
+            }
+          }
+        }
+
+        // Navigation group
+        Adw.PreferencesGroup {
+          title: _("Navigation");
+
+          Adw.ActionRow {
+            title: _("Focus Search");
+            [suffix]
+            Label {
+              label: "Ctrl+F";
+              valign: center;
+            }
+          }
+
+          Adw.ActionRow {
+            title: _("Clear Search");
+            [suffix]
+            Label {
+              label: "Escape";
+              valign: center;
+            }
+          }
+
+          Adw.ActionRow {
+            title: _("Refresh Password List");
+            [suffix]
+            Label {
+              label: "F5";
+              valign: center;
+            }
+          }
+        }
+
+        // View group
+        Adw.PreferencesGroup {
+          title: _("View");
+
+          Adw.ActionRow {
+            title: _("Toggle Password Visibility");
+            [suffix]
+            Label {
+              label: "Ctrl+H";
+              valign: center;
+            }
+          }
+
+          Adw.ActionRow {
+            title: _("Generate Password");
+            [suffix]
+            Label {
+              label: "Ctrl+G";
+              valign: center;
+            }
+          }
+
+          Adw.ActionRow {
+            title: _("Import/Export");
+            [suffix]
+            Label {
+              label: "Ctrl+Shift+I";
+              valign: center;
+            }
+          }
+        }
+      };
+    }
+  };
+}

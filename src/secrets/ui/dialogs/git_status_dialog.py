@@ -16,7 +16,7 @@ from ...services.git_service import GitCommit, GitStatus
 from ...ui.components.git_status_component import GitStatusComponent
 
 
-@Gtk.Template(resource_path=f'/{APP_ID.replace(".", "/")}/ui/dialogs/git_status_dialog.ui')
+@Gtk.Template(resource_path="/io/github/tobagin/secrets/ui/dialogs/git_status_dialog.ui")
 class GitStatusDialog(Adw.Window):
     """Dialog for viewing Git repository status and history."""
     
@@ -158,7 +158,8 @@ class GitStatusDialog(Adw.Window):
     
     def _on_data_load_error(self, error: str):
         """Handle data loading error."""
-        print(f"Error loading Git data: {error}")
+        # Error should be handled by the UI showing appropriate status
+        pass
     
     def _format_repository_summary(self, summary: dict) -> str:
         """Format repository summary for display."""

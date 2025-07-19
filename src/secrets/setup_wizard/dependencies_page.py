@@ -12,9 +12,10 @@ from ..app_info import APP_ID
 import os
 import subprocess
 import shutil
+import logging
 
 
-@Gtk.Template(resource_path=f'/{APP_ID.replace(".", "/")}/ui/setup/dependencies_page.ui')
+@Gtk.Template(resource_path="/io/github/tobagin/secrets/ui/setup/dependencies_page.ui")
 class DependenciesPage(Adw.NavigationPage):
     """
     Dependencies check page that verifies system requirements.
@@ -188,18 +189,41 @@ class DependenciesPage(Adw.NavigationPage):
                     # Show error and restore button
                     button.set_sensitive(True)
                     button.set_label("Retry")
-                    print(f"Failed to initialize password store: {message}")
+                    logging.error(
+                        "Failed to initialize password store during setup",
+                        extra={
+                            "component": "setup_wizard",
+                            "operation": "initialize_store",
+                            "error_message": message,
+                            "gpg_key_id": gpg_key_to_use
+                        }
+                    )
             else:
                 # No GPG key ID available - this shouldn't happen with proper dependency logic
                 button.set_sensitive(True)
                 button.set_label("Create")
-                print("No GPG key ID available for initialization")
+                logging.warning(
+                    "No GPG key ID available for password store initialization",
+                    extra={
+                        "component": "setup_wizard",
+                        "operation": "initialize_store",
+                        "created_key_id": self.created_gpg_key_id
+                    }
+                )
 
         except Exception as e:
             # Show error and restore button
             button.set_sensitive(True)
             button.set_label("Create")
-            print(f"Error creating directory: {e}")
+            logging.error(
+                "Error creating password store directory during setup",
+                extra={
+                    "component": "setup_wizard",
+                    "operation": "create_directory",
+                    "store_path": store_dir,
+                    "error": str(e)
+                }
+            )
 
     def _on_create_gpg_key_clicked(self, _button):
         """Handle create GPG key button click."""
@@ -217,7 +241,14 @@ class DependenciesPage(Adw.NavigationPage):
             else:
                 return None
         except Exception as e:
-            print(f"Error getting GPG keys: {e}")
+            logging.error(
+                "Error retrieving available GPG keys during setup",
+                extra={
+                    "component": "setup_wizard",
+                    "operation": "get_gpg_keys",
+                    "error": str(e)
+                }
+            )
             return None
 
     def _recheck_after_directory_creation(self):

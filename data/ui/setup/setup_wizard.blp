@@ -1,0 +1,109 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $SetupWizard : Adw.Dialog {
+  content-width: 600;
+  content-height: 400;
+  
+  child: Adw.ToastOverlay toast_overlay {
+    child: Adw.NavigationView navigation_view {
+      Adw.NavigationPage dependencies_page {
+        title: "Check Dependencies";
+        
+        child: Adw.ToolbarView {
+          [top]
+          Adw.HeaderBar {
+            title-widget: Gtk.Label {
+              label: "Setup Requirements";
+            };
+          }
+          
+          content: Gtk.Box {
+            orientation: vertical;
+            spacing: 12;
+            margin-top: 18;
+            margin-bottom: 18;
+            margin-start: 18;
+            margin-end: 18;
+            
+            Gtk.Label setup_header {
+              label: "Setup Requirements";
+              halign: start;
+              margin-bottom: 6;
+              
+              styles [
+                "title-4"
+              ]
+            }
+            
+            Gtk.Label setup_description {
+              label: "Install or create the missing components below:";
+              halign: start;
+              margin-bottom: 12;
+              
+              styles [
+                "dim-label"
+              ]
+            }
+            
+            Adw.ActionRow pass_status_row {
+              title: "pass (password-store)";
+              subtitle: "The standard Unix password manager";
+              margin-bottom: 6;
+              
+              styles [
+                "card"
+              ]
+            }
+            
+            Adw.ActionRow gpg_status_row {
+              title: "GnuPG (gpg)";
+              subtitle: "GNU Privacy Guard for encryption";
+              margin-bottom: 6;
+              
+              styles [
+                "card"
+              ]
+            }
+            
+            Adw.ActionRow store_dir_status_row {
+              title: "Password Store Directory";
+              subtitle: "~/.password-store directory";
+              margin-bottom: 6;
+              
+              styles [
+                "card"
+              ]
+            }
+            
+            Adw.ActionRow gpg_key_status_row {
+              title: "GPG Key";
+              subtitle: "Encryption key for securing passwords";
+              margin-bottom: 6;
+              
+              styles [
+                "card"
+              ]
+            }
+            
+            Gtk.Box {
+              orientation: horizontal;
+              spacing: 12;
+              halign: center;
+              margin-top: 24;
+              
+              Gtk.Button deps_continue_button {
+                label: "Continue";
+                visible: false;
+                
+                styles [
+                  "suggested-action"
+                ]
+              }
+            }
+          };
+        };
+      }
+    };
+  };
+}

@@ -14,7 +14,7 @@ from ...managers.favicon_manager import get_favicon_manager
 from ...app_info import APP_ID
 
 
-@Gtk.Template(resource_path=f'/{APP_ID.replace(".", "/")}/ui/widgets/password_row.ui')
+@Gtk.Template(resource_path='/io/github/tobagin/secrets/ui/widgets/password_entry_row.ui')
 class PasswordRow(Adw.ActionRow):
     """Custom widget for displaying a password entry in the list."""
     
@@ -85,8 +85,8 @@ class PasswordRow(Adw.ActionRow):
                     self._on_favicon_loaded(pixbuf)
                     return
             except Exception as e:
-                print(f"Error loading cached favicon data: {e}")
-                # Continue to try downloading
+                # Continue to try downloading if cached data fails
+                pass
 
         # If URL is provided and no cached favicon, try to download
         if url and url.strip():
@@ -118,17 +118,13 @@ class PasswordRow(Adw.ActionRow):
                 try:
                     favicon_data = self._pixbuf_to_base64(pixbuf)
                     if favicon_data:
-                        print(f"💾 Saving favicon data to metadata for {self._password_entry} ({len(favicon_data)} chars)")
                         # Get password store and save favicon data
                         from ...password_store import PasswordStore
                         store = PasswordStore()
                         store.set_password_favicon(self._password_entry, favicon_data)
-                    else:
-                        print(f"❌ Failed to convert favicon to base64 for {self._password_entry}")
                 except Exception as e:
-                    print(f"❌ Error converting favicon to base64 for {self._password_entry}: {e}")
-            else:
-                print(f"❌ Cannot save favicon - missing URL or password entry for {getattr(self, '_password_entry', 'unknown')}")
+                    # Silently handle favicon conversion errors
+                    pass
         else:
             # Fallback to color and icon
             self._set_color_icon_paintable()
@@ -147,7 +143,8 @@ class PasswordRow(Adw.ActionRow):
                 # Encode to base64
                 return base64.b64encode(buffer).decode('utf-8')
         except Exception as e:
-            print(f"Error converting pixbuf to base64: {e}")
+            # Silently handle pixbuf conversion errors
+            pass
         return None
 
     def _base64_to_pixbuf(self, base64_data):
@@ -163,7 +160,8 @@ class PasswordRow(Adw.ActionRow):
             pixbuf = GdkPixbuf.Pixbuf.new_from_stream(stream)
             return pixbuf
         except Exception as e:
-            print(f"Error converting base64 to pixbuf: {e}")
+            # Silently handle base64 conversion errors
+            pass
         return None
 
     def set_avatar_favicon(self, favicon_path):
@@ -174,8 +172,7 @@ class PasswordRow(Adw.ActionRow):
             paintable = ColorPaintable(self._color if hasattr(self, '_color') else "#9141ac", favicon_pixbuf=pixbuf)
             self.password_avatar.set_custom_image(paintable)
         except Exception as e:
-            print(f"Error loading favicon {favicon_path}: {e}")
-            # Fallback to color and icon
+            # Fallback to color and icon when favicon loading fails
             self._set_color_icon_paintable()
     
     def _on_action_button_clicked(self, button):

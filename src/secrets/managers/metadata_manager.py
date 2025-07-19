@@ -4,6 +4,7 @@ Metadata Manager for storing and retrieving color/icon metadata for folders and 
 
 import os
 import json
+import logging
 from typing import Dict, Optional, Any
 from gi.repository import GLib
 
@@ -21,6 +22,7 @@ class MetadataManager:
         self.store_dir = store_dir
         self.metadata_file = os.path.join(store_dir, ".secrets_metadata.json")
         self._metadata = {}
+        self.logger = logging.getLogger(__name__)
         self._load_metadata()
     
     def _load_metadata(self):
@@ -36,7 +38,10 @@ class MetadataManager:
                     "passwords": {}
                 }
         except (json.JSONDecodeError, OSError) as e:
-            print(f"Warning: Could not load metadata file: {e}")
+            self.logger.warning(
+                "Could not load metadata file",
+                extra={"error": str(e), "metadata_file": self.metadata_file}
+            )
             self._metadata = {
                 "version": "1.0",
                 "folders": {},
@@ -67,7 +72,10 @@ class MetadataManager:
                     pass
                     
         except OSError as e:
-            print(f"Error saving metadata: {e}")
+            self.logger.error(
+                "Error saving metadata",
+                extra={"error": str(e), "metadata_file": self.metadata_file}
+            )
             # Try to restore backup
             backup_file = self.metadata_file + ".backup"
             if os.path.exists(backup_file):
@@ -140,7 +148,10 @@ class MetadataManager:
             password_path: The password path (relative to store root)
             favicon_data: The base64-encoded favicon data
         """
-        print(f"📝 MetadataManager: Setting favicon data for {password_path} ({len(favicon_data)} chars)")
+        self.logger.debug(
+            "Setting favicon data for password",
+            extra={"password_path": password_path, "favicon_size": len(favicon_data)}
+        )
 
         if "passwords" not in self._metadata:
             self._metadata["passwords"] = {}
@@ -150,7 +161,10 @@ class MetadataManager:
 
         self._metadata["passwords"][password_path]["favicon_data"] = favicon_data
         self._save_metadata()
-        print(f"✅ MetadataManager: Favicon data saved for {password_path}")
+        self.logger.debug(
+            "Favicon data saved for password",
+            extra={"password_path": password_path}
+        )
 
     def get_password_metadata(self, password_path: str) -> Dict[str, str]:
         """
@@ -168,7 +182,10 @@ class MetadataManager:
         # Get favicon data (base64 encoded)
         favicon_data = password_meta.get("favicon_data")
         if favicon_data:
-            print(f"📁 Found cached favicon data for {password_path} ({len(favicon_data)} chars)")
+            self.logger.debug(
+                "Found cached favicon data for password",
+                extra={"password_path": password_path, "favicon_size": len(favicon_data)}
+            )
 
         return {
             "color": password_meta.get("color", "#9141ac"),  # Default purple
@@ -286,5 +303,8 @@ class MetadataManager:
             return True
             
         except (json.JSONDecodeError, TypeError) as e:
-            print(f"Error importing metadata: {e}")
+            self.logger.error(
+                "Error importing metadata",
+                extra={"error": str(e)}
+            )
             return False

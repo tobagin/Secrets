@@ -1,0 +1,62 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $SetupCompletePage : Adw.NavigationPage {
+  title: "Setup Complete";
+  
+  child: Adw.ToolbarView {
+    [top]
+    Adw.HeaderBar {
+      title-widget: Adw.WindowTitle {
+        title: "Setup Complete";
+        subtitle: "Ready to use";
+      };
+    }
+
+    content: Gtk.Box {
+      orientation: vertical;
+      spacing: 24;
+      margin-top: 48;
+      margin-bottom: 48;
+      margin-start: 48;
+      margin-end: 48;
+      halign: center;
+      valign: center;
+
+      Gtk.Image {
+        icon-name: "emblem-ok-symbolic";
+        pixel-size: 64;
+        
+        styles [
+          "success"
+        ]
+      }
+
+      Gtk.Label {
+        label: "Setup Complete!";
+        halign: center;
+        
+        styles [
+          "title-2"
+        ]
+      }
+
+      Gtk.Label {
+        label: "Your password manager is now ready to use.";
+        halign: center;
+        
+        styles [
+          "dim-label"
+        ]
+      }
+
+      Gtk.Button finish_button {
+        label: "Start Using Secrets";
+        
+        styles [
+          "suggested-action"
+        ]
+      }
+    };
+  };
+}

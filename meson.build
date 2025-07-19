@@ -6,8 +6,18 @@ python = import('python')
 
 project_id = 'io.github.tobagin.secrets'
 
-subdir('src/secrets')
+# Generate version files from meson.build as single source of truth
+generate_version = find_program('scripts/generate_version.py')
+sync_version = find_program('scripts/sync_version.py')
+
+# Generate version files at configuration time
+run_command(generate_version, meson.project_source_root(), check: true)
+
+# Synchronize version across all project files
+run_command(sync_version, check: false)  # Don't fail build if sync has warnings
+
 subdir('data')
+subdir('src/secrets')
 subdir('po')
 
 py_mod = python.find_installation(pure: false)

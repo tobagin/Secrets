@@ -7,14 +7,22 @@ gi.require_version("Adw", "1")
 
 import time
 import threading
+import logging
 from typing import Optional, Callable
 from gi.repository import GLib, Gtk, Adw
 
 from .config import ConfigManager
 from .i18n import get_translation_function
+from .security.audit_logger import (
+    get_audit_logger, AuditEventType, AuditLevel,
+    audit_auth_success, audit_auth_failure, audit_security_event
+)
 
 # Get translation function
 _ = get_translation_function()
+
+# Setup logging
+logger = logging.getLogger(__name__)
 
 
 class IdleDetector:
@@ -59,7 +67,15 @@ class IdleDetector:
             try:
                 callback()
             except Exception as e:
-                print(f"Error in activity callback: {e}")
+                logger.error(
+                    "Error in activity callback",
+                    extra={
+                        "category": "security",
+                        "error": str(e),
+                        "callback_count": len(self._activity_callbacks)
+                    },
+                    exc_info=True
+                )
                 
     def _monitor_activity(self):
         """Monitor activity in background thread."""
@@ -73,7 +89,15 @@ class IdleDetector:
                     
                 time.sleep(1.0)  # Check every second
             except Exception as e:
-                print(f"Error monitoring activity: {e}")
+                logger.error(
+                    "Error monitoring user activity",
+                    extra={
+                        "category": "security",
+                        "component": "idle_detector",
+                        "error": str(e)
+                    },
+                    exc_info=True
+                )
                 time.sleep(5.0)  # Wait longer on error
                 
     def _get_system_idle_time(self) -> Optional[float]:
@@ -169,7 +193,29 @@ class SecurityManager:
             return
             
         self._is_locked = True
-        print(f"Application locked: {reason}")
+        
+        # Log security event
+        logger.warning(
+            "Application locked",
+            extra={
+                "category": "security",
+                "event_type": "application_lock",
+                "reason": reason,
+                "failed_attempts": self._failed_unlock_attempts
+            }
+        )
+        
+        # Audit log the lock event
+        get_audit_logger().log_event(
+            AuditEventType.AUTH_LOCKED,
+            f"Application locked: {reason}",
+            level=AuditLevel.HIGH,
+            details={
+                "lock_reason": reason,
+                "failed_attempts": self._failed_unlock_attempts,
+                "lockout_active": self.is_in_lockout()
+            }
+        )
         
         # Clear sensitive data if configured
         config = self.config_manager.get_config()
@@ -181,7 +227,16 @@ class SecurityManager:
             try:
                 GLib.idle_add(callback)
             except Exception as e:
-                print(f"Error in lock callback: {e}")
+                logger.error(
+                    "Error in lock callback",
+                    extra={
+                        "category": "security",
+                        "event_type": "callback_error",
+                        "callback_type": "lock",
+                        "error": str(e)
+                    },
+                    exc_info=True
+                )
                 
         # Show lock screen
         GLib.idle_add(self._show_lock_screen)
@@ -208,9 +263,29 @@ class SecurityManager:
                 try:
                     GLib.idle_add(callback)
                 except Exception as e:
-                    print(f"Error in unlock callback: {e}")
+                    logger.error(
+                        "Error in unlock callback",
+                        extra={
+                            "category": "security",
+                            "event_type": "callback_error",
+                            "callback_type": "unlock",
+                            "error": str(e)
+                        },
+                        exc_info=True
+                    )
                     
-            print("Application unlocked successfully")
+            # Log successful unlock
+            logger.info(
+                "Application unlocked successfully",
+                extra={
+                    "category": "security",
+                    "event_type": "application_unlock",
+                    "session_duration": time.time() - (self._master_password_last_entered or 0)
+                }
+            )
+            
+            # Audit log the unlock event
+            audit_auth_success(method="application_unlock")
             return True
         else:
             self._failed_unlock_attempts += 1
@@ -220,7 +295,32 @@ class SecurityManager:
                 # Start lockout period
                 lockout_duration = config.security.lockout_duration_minutes * 60
                 self._lockout_until = time.time() + lockout_duration
-                print(f"Too many failed attempts. Locked out for {config.security.lockout_duration_minutes} minutes.")
+                # Log critical security event for lockout
+                logger.critical(
+                    "Application locked due to excessive failed unlock attempts",
+                    extra={
+                        "category": "security",
+                        "event_type": "security_lockout",
+                        "failed_attempts": self._failed_unlock_attempts,
+                        "max_attempts": config.security.max_failed_unlock_attempts,
+                        "lockout_duration_minutes": config.security.lockout_duration_minutes,
+                        "lockout_until": self._lockout_until
+                    }
+                )
+                
+                # Audit log the security lockout
+                get_audit_logger().log_event(
+                    AuditEventType.SECURITY_VIOLATION,
+                    f"Security lockout activated: {self._failed_unlock_attempts} failed unlock attempts",
+                    level=AuditLevel.CRITICAL,
+                    details={
+                        "violation_type": "excessive_failed_attempts",
+                        "failed_attempts": self._failed_unlock_attempts,
+                        "max_attempts": config.security.max_failed_unlock_attempts,
+                        "lockout_duration_minutes": config.security.lockout_duration_minutes,
+                        "lockout_until_timestamp": self._lockout_until
+                    }
+                )
                 
             return False
             

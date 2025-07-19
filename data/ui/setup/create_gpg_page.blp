@@ -1,0 +1,56 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $CreateGpgPage : Adw.NavigationPage {
+  title: "Create GPG Key";
+  
+  child: Adw.ToolbarView {
+    [top]
+    Adw.HeaderBar {
+      title-widget: Adw.WindowTitle {
+        title: "Create GPG Key";
+        subtitle: "encryption setup";
+      };
+    }
+
+    content: Gtk.Box {
+      orientation: vertical;
+      spacing: 12;
+      margin-top: 18;
+      margin-bottom: 18;
+      margin-start: 18;
+      margin-end: 18;
+
+      Gtk.Label {
+        label: "Create GPG Key";
+        halign: start;
+        
+        styles [
+          "title-4"
+        ]
+      }
+
+      Adw.PreferencesGroup {
+        Adw.EntryRow name_entry {
+          title: "Full Name";
+        }
+
+        Adw.EntryRow email_entry {
+          title: "Email Address";
+        }
+
+        Adw.PasswordEntryRow passphrase_entry {
+          title: "Passphrase";
+        }
+      }
+
+      Gtk.Button create_button {
+        label: "Create GPG Key";
+        
+        styles [
+          "suggested-action"
+        ]
+      }
+    };
+  };
+}

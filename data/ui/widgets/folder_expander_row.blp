@@ -1,0 +1,48 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $FolderExpanderRow : Adw.ExpanderRow {
+  title-lines: 1;
+  subtitle-lines: 1;
+  
+  [prefix]
+  Adw.Avatar folder_avatar {
+    size: 32;
+    icon-name: "folder-symbolic";
+  }
+
+  [suffix]
+  Box folder_actions_box {
+    orientation: horizontal;
+    spacing: 6;
+    
+    Button add_password_to_folder_button {
+      icon-name: "io.github.tobagin.secrets-add-password-symbolic";
+      tooltip-text: _("Add Password to Folder");
+      valign: center;
+      styles ["flat"]
+    }
+    
+    Button add_subfolder_button {
+      icon-name: "folder-new-symbolic";
+      tooltip-text: _("Add Subfolder");
+      valign: center;
+      styles ["flat"]
+    }
+    
+    Button edit_folder_button {
+      icon-name: "document-edit-symbolic";
+      tooltip-text: _("Edit Folder");
+      valign: center;
+      styles ["flat"]
+    }
+    
+    Button remove_folder_button {
+      icon-name: "io.github.tobagin.secrets-remove-folder-symbolic";
+      tooltip-text: _("Remove Folder");
+      valign: center;
+      styles ["flat", "destructive-action"]
+    }
+  }
+  
+}

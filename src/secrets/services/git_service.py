@@ -11,6 +11,7 @@ from datetime import datetime
 
 from ..config import ConfigManager
 from ..utils.gpg_utils import GPGSetupHelper
+from ..logging_system import get_logger, LogCategory
 
 
 @dataclass
@@ -47,6 +48,7 @@ class GitService:
         self.store_dir = store_dir
         self.config_manager = config_manager
         self._git_available = None
+        self.logger = get_logger(LogCategory.GIT, "GitService")
     
     def is_git_available(self) -> bool:
         """Check if Git is available on the system."""
@@ -132,7 +134,12 @@ class GitService:
                     status.last_commit_date = parts[3]
         
         except Exception as e:
-            print(f"Error getting Git status: {e}")
+            self.logger.error("Failed to get Git repository status", extra={
+                'store_dir': self.store_dir,
+                'git_available': self.is_git_available(),
+                'error': str(e),
+                'operation': 'get_git_status'
+            }, exc_info=True)
         
         return status
     
@@ -199,7 +206,12 @@ class GitService:
                             message=parts[4]
                         ))
         except Exception as e:
-            print(f"Error getting commit history: {e}")
+            self.logger.error("Failed to get Git commit history", extra={
+                'store_dir': self.store_dir,
+                'limit': limit,
+                'error': str(e),
+                'operation': 'get_commit_history'
+            }, exc_info=True)
         
         return commits
     

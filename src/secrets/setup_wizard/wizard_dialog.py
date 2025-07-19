@@ -13,7 +13,7 @@ from .create_gpg_page import CreateGpgPage
 from .setup_complete_page import SetupCompletePage
 
 
-@Gtk.Template(resource_path=f'/{APP_ID.replace(".", "/")}/ui/setup/wizard_dialog.ui')
+@Gtk.Template(resource_path="/io/github/tobagin/secrets/ui/setup/wizard_dialog.ui")
 class SetupWizard(Adw.Dialog):
     """
     Main setup wizard dialog that coordinates the setup process.

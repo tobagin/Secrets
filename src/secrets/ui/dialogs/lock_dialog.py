@@ -14,7 +14,7 @@ from ...utils import DialogManager
 _ = get_translation_function()
 
 
-@Gtk.Template(resource_path=f'/{APP_ID.replace(".", "/")}/ui/dialogs/lock_dialog.ui')
+@Gtk.Template(resource_path="/io/github/tobagin/secrets/ui/dialogs/lock_dialog.ui")
 class LockDialog(Adw.Window):
     """Dialog shown when the application is locked."""
     

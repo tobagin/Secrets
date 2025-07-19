@@ -10,11 +10,13 @@ from .password_details_controller import PasswordDetailsController
 from .setup_controller import SetupController
 from .window_state_manager import WindowStateManager
 from .action_controller import ActionController
+from .window_controller import WindowController
 
 __all__ = [
     'PasswordListController',
     'PasswordDetailsController', 
     'SetupController',
     'WindowStateManager',
-    'ActionController'
+    'ActionController',
+    'WindowController'
 ]

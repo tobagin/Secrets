@@ -8,6 +8,7 @@ gi.require_version("Adw", "1")
 
 from gi.repository import Gtk, Adw, GObject, GLib
 import threading
+import logging
 from typing import Optional
 
 from ...app_info import APP_ID
@@ -16,7 +17,7 @@ from ...config import ConfigManager
 from ...managers.toast_manager import ToastManager
 
 
-@Gtk.Template(resource_path=f'/{APP_ID.replace(".", "/")}/ui/dialogs/git_setup_dialog.ui')
+@Gtk.Template(resource_path="/io/github/tobagin/secrets/ui/dialogs/git_setup_dialog.ui")
 class GitSetupDialog(Adw.Window):
     """Dialog for setting up Git repository and remote connections."""
     
@@ -67,7 +68,15 @@ class GitSetupDialog(Adw.Window):
     def _setup_platforms(self):
         """Set up Git platform options."""
         if self.platform_combo is None:
-            print("Warning: platform_combo widget not found in template")
+            logging.warning(
+                "Platform combo widget not found in template",
+                extra={
+                    "component": "GitSetupDialog",
+                    "method": "_setup_platforms",
+                    "widget": "platform_combo",
+                    "ui_context": "git_setup"
+                }
+            )
             return
             
         platforms = Gtk.StringList()

@@ -2,6 +2,7 @@ import gi
 import json
 import csv
 import os
+import threading
 from typing import Dict, List, Tuple, Optional
 
 gi.require_version("Gtk", "4.0")
@@ -12,7 +13,7 @@ from gi.repository import Gtk, Adw, Gio, GLib
 from secrets.app_info import APP_ID
 
 
-@Gtk.Template(resource_path=f'/{APP_ID.replace(".", "/")}/ui/dialogs/import_export_dialog.ui')
+@Gtk.Template(resource_path="/io/github/tobagin/secrets/ui/dialogs/import_export_dialog.ui")
 class ImportExportDialog(Adw.Window):
     """Dialog for importing and exporting password data."""
 
@@ -30,6 +31,7 @@ class ImportExportDialog(Adw.Window):
     import_bitwarden_button = Gtk.Template.Child()
     import_dashlane_button = Gtk.Template.Child()
     import_keepass_button = Gtk.Template.Child()
+    import_protonpass_button = Gtk.Template.Child()
     
     # Browser import buttons
     import_chrome_button = Gtk.Template.Child()
@@ -45,6 +47,10 @@ class ImportExportDialog(Adw.Window):
         self.password_store = password_store
         self.toast_manager = toast_manager
         self.refresh_callback = refresh_callback
+        
+        # Threading for imports
+        self._import_thread = None
+        self._is_importing = False
 
         self._setup_signals()
     
@@ -64,12 +70,64 @@ class ImportExportDialog(Adw.Window):
         self.import_bitwarden_button.connect("clicked", self._on_import_bitwarden)
         self.import_dashlane_button.connect("clicked", self._on_import_dashlane)
         self.import_keepass_button.connect("clicked", self._on_import_keepass)
+        self.import_protonpass_button.connect("clicked", self._on_import_protonpass)
         
         # Connect browser import signals
         self.import_chrome_button.connect("clicked", self._on_import_chrome)
         self.import_firefox_button.connect("clicked", self._on_import_firefox)
         self.import_safari_button.connect("clicked", self._on_import_safari)
         self.import_edge_button.connect("clicked", self._on_import_edge)
+    
+    def _start_import_thread(self, import_func, file_path):
+        """Start an import operation in a background thread."""
+        if self._is_importing:
+            self.toast_manager.show_error("Import already in progress")
+            return
+        
+        self._is_importing = True
+        
+        # Show progress indication
+        self.toast_manager.show_info("Import started...")
+        
+        # Disable all import buttons during import
+        self._set_import_buttons_sensitive(False)
+        
+        # Start the import thread
+        self._import_thread = threading.Thread(
+            target=import_func,
+            args=(file_path,),
+            daemon=True
+        )
+        self._import_thread.start()
+    
+    def _set_import_buttons_sensitive(self, sensitive):
+        """Enable or disable all import buttons."""
+        self.import_json_button.set_sensitive(sensitive)
+        self.import_csv_button.set_sensitive(sensitive)
+        self.import_1password_button.set_sensitive(sensitive)
+        self.import_lastpass_button.set_sensitive(sensitive)
+        self.import_bitwarden_button.set_sensitive(sensitive)
+        self.import_dashlane_button.set_sensitive(sensitive)
+        self.import_keepass_button.set_sensitive(sensitive)
+        self.import_protonpass_button.set_sensitive(sensitive)
+        self.import_chrome_button.set_sensitive(sensitive)
+        self.import_firefox_button.set_sensitive(sensitive)
+        self.import_safari_button.set_sensitive(sensitive)
+        self.import_edge_button.set_sensitive(sensitive)
+    
+    def _import_completed(self, imported_count, skipped_count, error_message=None):
+        """Called when import operation completes (from main thread)."""
+        self._is_importing = False
+        self._set_import_buttons_sensitive(True)
+        
+        if error_message:
+            self.toast_manager.show_error(f"Import failed: {error_message}")
+        else:
+            self.toast_manager.show_success(f"Imported {imported_count} passwords, skipped {skipped_count}")
+            
+            # Refresh the UI to show imported passwords
+            if imported_count > 0:
+                self._refresh_password_list()
     
     def _on_export_json(self, button):
         """Export passwords to JSON format."""
@@ -196,18 +254,20 @@ class ImportExportDialog(Adw.Window):
         try:
             file = dialog.open_finish(result)
             if file:
-                self._import_from_json(file.get_path())
+                self._start_import_thread(self._import_from_json_threaded, file.get_path())
         except Exception as e:
             self.toast_manager.show_error(f"Import cancelled or failed: {e}")
     
-    def _import_from_json(self, file_path: str):
-        """Import passwords from JSON file."""
+    def _import_from_json_threaded(self, file_path: str):
+        """Import passwords from JSON file (runs in background thread)."""
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 import_data = json.load(f)
             
+            total_entries = len(import_data) if isinstance(import_data, list) else 0
             imported_count = 0
             skipped_count = 0
+            processed_count = 0
             
             for entry in import_data:
                 if isinstance(entry, dict) and 'path' in entry:
@@ -234,15 +294,24 @@ class ImportExportDialog(Adw.Window):
                         imported_count += 1
                     else:
                         skipped_count += 1
-            
-            self.toast_manager.show_success(f"Imported {imported_count} passwords, skipped {skipped_count}")
+                
+                processed_count += 1
+                
+                # Update progress every 10 entries for large files
+                if processed_count % 10 == 0 and total_entries > 50:
+                    progress_msg = f"Processing... {processed_count}/{total_entries}"
+                    GLib.idle_add(lambda msg=progress_msg: self.toast_manager.show_info(msg))
 
-            # Refresh the UI to show imported passwords
-            if imported_count > 0:
-                self._refresh_password_list()
+            # Schedule completion callback on main thread
+            GLib.idle_add(self._import_completed, imported_count, skipped_count)
 
         except Exception as e:
-            self.toast_manager.show_error(f"Import failed: {e}")
+            # Schedule error callback on main thread
+            GLib.idle_add(self._import_completed, 0, 0, str(e))
+    
+    def _import_from_json(self, file_path: str):
+        """Import passwords from JSON file (legacy method - for compatibility)."""
+        self._import_from_json_threaded(file_path)
     
     def _on_import_csv(self, button):
         """Import passwords from CSV format."""
@@ -265,15 +334,16 @@ class ImportExportDialog(Adw.Window):
         try:
             file = dialog.open_finish(result)
             if file:
-                self._import_from_csv(file.get_path())
+                self._start_import_thread(self._import_from_csv_threaded, file.get_path())
         except Exception as e:
             self.toast_manager.show_error(f"Import cancelled or failed: {e}")
     
-    def _import_from_csv(self, file_path: str):
-        """Import passwords from CSV file."""
+    def _import_from_csv_threaded(self, file_path: str):
+        """Import passwords from CSV file (runs in background thread)."""
         try:
             imported_count = 0
             skipped_count = 0
+            processed_count = 0
             
             with open(file_path, 'r', encoding='utf-8') as f:
                 reader = csv.DictReader(f)
@@ -284,6 +354,8 @@ class ImportExportDialog(Adw.Window):
                     username = row.get('Username', '').strip()
                     url = row.get('URL', '').strip()
                     notes = row.get('Notes', '').strip()
+                    
+                    processed_count += 1
                     
                     if not path or not password:
                         skipped_count += 1
@@ -306,15 +378,22 @@ class ImportExportDialog(Adw.Window):
                         imported_count += 1
                     else:
                         skipped_count += 1
-            
-            self.toast_manager.show_success(f"Imported {imported_count} passwords, skipped {skipped_count}")
+                    
+                    # Update progress every 25 entries for large files
+                    if processed_count % 25 == 0 and processed_count > 50:
+                        progress_msg = f"Processing... {processed_count} entries"
+                        GLib.idle_add(lambda msg=progress_msg: self.toast_manager.show_info(msg))
 
-            # Refresh the UI to show imported passwords
-            if imported_count > 0:
-                self._refresh_password_list()
+            # Schedule completion callback on main thread
+            GLib.idle_add(self._import_completed, imported_count, skipped_count)
 
         except Exception as e:
-            self.toast_manager.show_error(f"Import failed: {e}")
+            # Schedule error callback on main thread
+            GLib.idle_add(self._import_completed, 0, 0, str(e))
+    
+    def _import_from_csv(self, file_path: str):
+        """Import passwords from CSV file (legacy method - for compatibility)."""
+        self._import_from_csv_threaded(file_path)
 
     def _refresh_password_list(self):
         """Refresh the password list in the main window."""
@@ -1027,6 +1106,127 @@ class ImportExportDialog(Adw.Window):
                 
         except Exception as e:
             self.toast_manager.show_error(f"Edge import failed: {e}")
+    
+    def _on_import_protonpass(self, button):
+        """Import passwords from Proton Pass JSON export."""
+        file_dialog = Gtk.FileDialog()
+        file_dialog.set_title("Import from Proton Pass JSON")
+        
+        json_filter = Gtk.FileFilter()
+        json_filter.set_name("JSON files")
+        json_filter.add_pattern("*.json")
+        
+        filter_list = Gio.ListStore.new(Gtk.FileFilter)
+        filter_list.append(json_filter)
+        file_dialog.set_filters(filter_list)
+        
+        file_dialog.open(self, None, self._on_import_protonpass_response, None)
+    
+    def _on_import_protonpass_response(self, dialog, result, user_data):
+        """Handle Proton Pass JSON import file selection."""
+        try:
+            file = dialog.open_finish(result)
+            if file:
+                self._import_from_protonpass_json(file.get_path())
+        except Exception as e:
+            self.toast_manager.show_error(f"Import cancelled or failed: {e}")
+    
+    def _import_from_protonpass_json(self, file_path: str):
+        """Import passwords from Proton Pass JSON file."""
+        try:
+            imported_count = 0
+            skipped_count = 0
+            
+            with open(file_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            
+            # Proton Pass export has 'vaults' array containing items
+            vaults = data.get('vaults', {})
+            
+            for vault_id, vault_data in vaults.items():
+                vault_name = vault_data.get('name', 'Unknown Vault')
+                items = vault_data.get('items', [])
+                
+                for item in items:
+                    # Skip non-login items
+                    item_type = item.get('data', {}).get('type')
+                    if item_type != 'login':
+                        continue
+                    
+                    metadata = item.get('data', {}).get('metadata', {})
+                    content = item.get('data', {}).get('content', {})
+                    
+                    name = metadata.get('name', '').strip()
+                    note = metadata.get('note', '').strip()
+                    
+                    # Get login data
+                    username = content.get('username', '').strip()
+                    password = content.get('password', '').strip()
+                    
+                    # Get URLs - Proton Pass stores them as an array
+                    urls = content.get('urls', [])
+                    url = urls[0] if urls else ''
+                    
+                    # Get TOTP if available
+                    totp = content.get('totpUri', '').strip()
+                    
+                    if not name or not password:
+                        skipped_count += 1
+                        continue
+                    
+                    # Create path from vault name and item name
+                    if vault_name and vault_name != 'Personal':
+                        path = f"protonpass/{self._sanitize_path(vault_name)}/{self._sanitize_path(name)}"
+                    else:
+                        path = f"protonpass/{self._sanitize_path(name)}"
+                    
+                    # Build content in pass format
+                    content_lines = [password]
+                    if username:
+                        content_lines.append(f"username: {username}")
+                    if url:
+                        content_lines.append(f"url: {url}")
+                    if totp:
+                        # Extract the secret from the TOTP URI
+                        totp_secret = self._extract_totp_secret(totp)
+                        if totp_secret:
+                            content_lines.append(f"totp: {totp_secret}")
+                    if note:
+                        content_lines.append(f"notes: {note}")
+                    
+                    content_text = '\n'.join(content_lines)
+                    
+                    # Try to import
+                    success, message = self.password_store.insert_password(path, content_text, multiline=True, force=False)
+                    if success:
+                        imported_count += 1
+                    else:
+                        skipped_count += 1
+            
+            self.toast_manager.show_success(f"Imported {imported_count} passwords from Proton Pass, skipped {skipped_count}")
+            
+            if imported_count > 0:
+                self._refresh_password_list()
+                
+        except Exception as e:
+            self.toast_manager.show_error(f"Proton Pass import failed: {e}")
+    
+    def _extract_totp_secret(self, totp_uri: str) -> str:
+        """Extract TOTP secret from URI format."""
+        try:
+            from urllib.parse import urlparse, parse_qs
+            
+            # Parse the TOTP URI (otpauth://totp/...)
+            parsed = urlparse(totp_uri)
+            if parsed.scheme != 'otpauth' or parsed.netloc != 'totp':
+                return ''
+            
+            # Extract secret from query parameters
+            params = parse_qs(parsed.query)
+            secret = params.get('secret', [''])[0]
+            return secret
+        except Exception:
+            return ''
     
     def _extract_domain_from_url(self, url: str) -> str:
         """Extract domain name from URL for use as password name."""

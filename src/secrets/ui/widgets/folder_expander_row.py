@@ -11,7 +11,7 @@ from .color_paintable import ColorPaintable
 from ...app_info import APP_ID
 
 
-@Gtk.Template(resource_path=f'/{APP_ID.replace(".", "/")}/ui/widgets/folder_expander_row.ui')
+@Gtk.Template(resource_path='/io/github/tobagin/secrets/ui/widgets/folder_expander_row.ui')
 class FolderExpanderRow(Adw.ExpanderRow):
     """Custom widget for displaying a folder with expandable password list."""
     
@@ -21,12 +21,14 @@ class FolderExpanderRow(Adw.ExpanderRow):
     folder_avatar = Gtk.Template.Child()
     folder_actions_box = Gtk.Template.Child()
     add_password_to_folder_button = Gtk.Template.Child()
+    add_subfolder_button = Gtk.Template.Child()
     edit_folder_button = Gtk.Template.Child()
     remove_folder_button = Gtk.Template.Child()
     
     # Signals
     __gsignals__ = {
         'add-password-to-folder': (GObject.SignalFlags.RUN_FIRST, None, ()),
+        'add-subfolder': (GObject.SignalFlags.RUN_FIRST, None, ()),
         'edit-folder': (GObject.SignalFlags.RUN_FIRST, None, ()),
         'remove-folder': (GObject.SignalFlags.RUN_FIRST, None, ()),
     }
@@ -49,6 +51,7 @@ class FolderExpanderRow(Adw.ExpanderRow):
     def _setup_signals(self):
         """Set up button signal connections."""
         self.add_password_to_folder_button.connect('clicked', self._on_add_password_clicked)
+        self.add_subfolder_button.connect('clicked', self._on_add_subfolder_clicked)
         self.edit_folder_button.connect('clicked', self._on_edit_folder_clicked)
         self.remove_folder_button.connect('clicked', self._on_remove_folder_clicked)
     
@@ -131,6 +134,10 @@ class FolderExpanderRow(Adw.ExpanderRow):
         """Handle add password to folder button click."""
         self.emit('add-password-to-folder')
     
+    def _on_add_subfolder_clicked(self, button):
+        """Handle add subfolder button click."""
+        self.emit('add-subfolder')
+    
     def _on_edit_folder_clicked(self, button):
         """Handle edit folder button click."""
         self.emit('edit-folder')
@@ -147,6 +154,7 @@ class FolderExpanderRow(Adw.ExpanderRow):
             sensitive: Whether the action buttons should be sensitive
         """
         self.add_password_to_folder_button.set_sensitive(sensitive)
+        self.add_subfolder_button.set_sensitive(sensitive)
         self.edit_folder_button.set_sensitive(sensitive)
         self.remove_folder_button.set_sensitive(sensitive)
     

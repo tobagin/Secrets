@@ -9,43 +9,318 @@ app_id = get_variable('project_id', 'io.github.tobagin.secrets')
 
 
 # UI files and CSS - organized structure
-# Main UI files
+# CSS file (only Blueprint compilation targets are now used for UI files)
 install_data(
-  ['ui/main_window.ui', 'ui/shortcuts_window.ui', 'style.css'],
+  ['style.css'],
   install_dir: get_option('datadir') / app_id / 'ui'
 )
 
-# Component UI files
-install_data(
-  ['ui/components/header_bar.ui', 'ui/components/password_list.ui',
-   'ui/components/password_details.ui', 'ui/components/main_menu.ui',
-   'ui/components/password_generator_popover.ui'],
-  install_dir: get_option('datadir') / app_id / 'ui' / 'components'
-)
+# Blueprint files for the new single-window design
+# These need to be compiled to UI files
+blueprint_prog = find_program('blueprint-compiler', required: false)
+if blueprint_prog.found()
+  # Main window blueprint
+  main_window_ui = custom_target(
+    'main_window_ui',
+    input: 'ui/main_window.blp',
+    output: 'main_window.ui',
+    command: [blueprint_prog, 'compile', '--output', '@OUTPUT@', '@INPUT@'],
+    install: true,
+    install_dir: get_option('datadir') / app_id / 'ui'
+  )
+  
+  # Password details dialog blueprint
+  password_details_dialog_ui = custom_target(
+    'password_details_dialog_ui',
+    input: 'ui/dialogs/password_details_dialog.blp',
+    output: 'password_details_dialog.ui',
+    command: [blueprint_prog, 'compile', '--output', '@OUTPUT@', '@INPUT@'],
+    install: true,
+    install_dir: get_option('datadir') / app_id / 'ui' / 'dialogs'
+  )
+  
+  # Password entry row blueprint
+  password_entry_row_ui = custom_target(
+    'password_entry_row_ui',
+    input: 'ui/widgets/password_entry_row.blp',
+    output: 'password_entry_row.ui',
+    command: [blueprint_prog, 'compile', '--output', '@OUTPUT@', '@INPUT@'],
+    install: true,
+    install_dir: get_option('datadir') / app_id / 'ui' / 'widgets'
+  )
+  
+  # Folder expander row blueprint
+  folder_expander_row_ui = custom_target(
+    'folder_expander_row_ui',
+    input: 'ui/widgets/folder_expander_row.blp',
+    output: 'folder_expander_row.ui',
+    command: [blueprint_prog, 'compile', '--output', '@OUTPUT@', '@INPUT@'],
+    install: true,
+    install_dir: get_option('datadir') / app_id / 'ui' / 'widgets'
+  )
+  
+  
+  # Unified password dialog blueprint (replaces add/edit password dialogs)
+  password_dialog_ui = custom_target(
+    'password_dialog_ui',
+    input: 'ui/dialogs/password_dialog.blp',
+    output: 'password_dialog.ui',
+    command: [blueprint_prog, 'compile', '--output', '@OUTPUT@', '@INPUT@'],
+    install: true,
+    install_dir: get_option('datadir') / app_id / 'ui' / 'dialogs'
+  )
+  
+  # Password generator dialog blueprint
+  password_generator_dialog_ui = custom_target(
+    'password_generator_dialog_ui',
+    input: 'ui/dialogs/password_generator_dialog.blp',
+    output: 'password_generator_dialog.ui',
+    command: [blueprint_prog, 'compile', '--output', '@OUTPUT@', '@INPUT@'],
+    install: true,
+    install_dir: get_option('datadir') / app_id / 'ui' / 'dialogs'
+  )
+  
+  # Shortcuts window blueprint
+  shortcuts_window_ui = custom_target(
+    'shortcuts_window_ui',
+    input: 'ui/shortcuts_window.blp',
+    output: 'shortcuts_window.ui',
+    command: [blueprint_prog, 'compile', '--output', '@OUTPUT@', '@INPUT@'],
+    install: true,
+    install_dir: get_option('datadir') / app_id / 'ui'
+  )
+  
+  
+  # Unified folder dialog blueprint (replaces add/edit folder dialogs)
+  folder_dialog_ui = custom_target(
+    'folder_dialog_ui',
+    input: 'ui/dialogs/folder_dialog.blp',
+    output: 'folder_dialog.ui',
+    command: [blueprint_prog, 'compile', '--output', '@OUTPUT@', '@INPUT@'],
+    install: true,
+    install_dir: get_option('datadir') / app_id / 'ui' / 'dialogs'
+  )
+  
+  
+  
+  # Header bar component blueprint
+  header_bar_ui = custom_target(
+    'header_bar_ui',
+    input: 'ui/components/header_bar.blp',
+    output: 'header_bar.ui',
+    command: [blueprint_prog, 'compile', '--output', '@OUTPUT@', '@INPUT@'],
+    install: true,
+    install_dir: get_option('datadir') / app_id / 'ui' / 'components'
+  )
+  
+  # Password list component blueprint
+  password_list_ui = custom_target(
+    'password_list_ui',
+    input: 'ui/components/password_list.blp',
+    output: 'password_list.ui',
+    command: [blueprint_prog, 'compile', '--output', '@OUTPUT@', '@INPUT@'],
+    install: true,
+    install_dir: get_option('datadir') / app_id / 'ui' / 'components'
+  )
+  
+  
+  # Main menu component blueprint
+  main_menu_ui = custom_target(
+    'main_menu_ui',
+    input: 'ui/components/main_menu.blp',
+    output: 'main_menu.ui',
+    command: [blueprint_prog, 'compile', '--output', '@OUTPUT@', '@INPUT@'],
+    install: true,
+    install_dir: get_option('datadir') / app_id / 'ui' / 'components'
+  )
+  
+  # Password generator popover component blueprint
+  password_generator_popover_ui = custom_target(
+    'password_generator_popover_ui',
+    input: 'ui/components/password_generator_popover.blp',
+    output: 'password_generator_popover.ui',
+    command: [blueprint_prog, 'compile', '--output', '@OUTPUT@', '@INPUT@'],
+    install: true,
+    install_dir: get_option('datadir') / app_id / 'ui' / 'components'
+  )
+  
+  # Password generator widget component blueprint
+  password_generator_widget_ui = custom_target(
+    'password_generator_widget_ui',
+    input: 'ui/components/password_generator_widget.blp',
+    output: 'password_generator_widget.ui',
+    command: [blueprint_prog, 'compile', '--output', '@OUTPUT@', '@INPUT@'],
+    install: true,
+    install_dir: get_option('datadir') / app_id / 'ui' / 'components'
+  )
+  
+  # Dialog blueprints
+  import_export_dialog_ui = custom_target(
+    'import_export_dialog_ui',
+    input: 'ui/dialogs/import_export_dialog.blp',
+    output: 'import_export_dialog.ui',
+    command: [blueprint_prog, 'compile', '--output', '@OUTPUT@', '@INPUT@'],
+    install: true,
+    install_dir: get_option('datadir') / app_id / 'ui' / 'dialogs'
+  )
+  
+  lock_dialog_ui = custom_target(
+    'lock_dialog_ui',
+    input: 'ui/dialogs/lock_dialog.blp',
+    output: 'lock_dialog.ui',
+    command: [blueprint_prog, 'compile', '--output', '@OUTPUT@', '@INPUT@'],
+    install: true,
+    install_dir: get_option('datadir') / app_id / 'ui' / 'dialogs'
+  )
+  
+  git_setup_dialog_ui = custom_target(
+    'git_setup_dialog_ui',
+    input: 'ui/dialogs/git_setup_dialog.blp',
+    output: 'git_setup_dialog.ui',
+    command: [blueprint_prog, 'compile', '--output', '@OUTPUT@', '@INPUT@'],
+    install: true,
+    install_dir: get_option('datadir') / app_id / 'ui' / 'dialogs'
+  )
+  
+  git_status_dialog_ui = custom_target(
+    'git_status_dialog_ui',
+    input: 'ui/dialogs/git_status_dialog.blp',
+    output: 'git_status_dialog.ui',
+    command: [blueprint_prog, 'compile', '--output', '@OUTPUT@', '@INPUT@'],
+    install: true,
+    install_dir: get_option('datadir') / app_id / 'ui' / 'dialogs'
+  )
+  
+  # Compliance dashboard dialog blueprint
+  compliance_dashboard_dialog_ui = custom_target(
+    'compliance_dashboard_dialog_ui',
+    input: 'ui/dialogs/compliance_dashboard_dialog.blp',
+    output: 'compliance_dashboard_dialog.ui',
+    command: [blueprint_prog, 'compile', '--output', '@OUTPUT@', '@INPUT@'],
+    install: true,
+    install_dir: get_option('datadir') / app_id / 'ui' / 'dialogs'
+  )
+  
+  # Preferences dialog blueprint
+  preferences_dialog_ui = custom_target(
+    'preferences_dialog_ui',
+    input: 'ui/dialogs/preferences_dialog.blp',
+    output: 'preferences_dialog.ui',
+    command: [blueprint_prog, 'compile', '--output', '@OUTPUT@', '@INPUT@'],
+    install: true,
+    install_dir: get_option('datadir') / app_id / 'ui' / 'dialogs'
+  )
+  
+  # Setup blueprints
+  wizard_dialog_ui = custom_target(
+    'wizard_dialog_ui',
+    input: 'ui/setup/wizard_dialog.blp',
+    output: 'wizard_dialog.ui',
+    command: [blueprint_prog, 'compile', '--output', '@OUTPUT@', '@INPUT@'],
+    install: true,
+    install_dir: get_option('datadir') / app_id / 'ui' / 'setup'
+  )
+  
+  dependencies_page_ui = custom_target(
+    'dependencies_page_ui',
+    input: 'ui/setup/dependencies_page.blp',
+    output: 'dependencies_page.ui',
+    command: [blueprint_prog, 'compile', '--output', '@OUTPUT@', '@INPUT@'],
+    install: true,
+    install_dir: get_option('datadir') / app_id / 'ui' / 'setup'
+  )
+  
+  install_pass_page_ui = custom_target(
+    'install_pass_page_ui',
+    input: 'ui/setup/install_pass_page.blp',
+    output: 'install_pass_page.ui',
+    command: [blueprint_prog, 'compile', '--output', '@OUTPUT@', '@INPUT@'],
+    install: true,
+    install_dir: get_option('datadir') / app_id / 'ui' / 'setup'
+  )
+  
+  create_gpg_page_ui = custom_target(
+    'create_gpg_page_ui',
+    input: 'ui/setup/create_gpg_page.blp',
+    output: 'create_gpg_page.ui',
+    command: [blueprint_prog, 'compile', '--output', '@OUTPUT@', '@INPUT@'],
+    install: true,
+    install_dir: get_option('datadir') / app_id / 'ui' / 'setup'
+  )
+  
+  setup_complete_page_ui = custom_target(
+    'setup_complete_page_ui',
+    input: 'ui/setup/setup_complete_page.blp',
+    output: 'setup_complete_page.ui',
+    command: [blueprint_prog, 'compile', '--output', '@OUTPUT@', '@INPUT@'],
+    install: true,
+    install_dir: get_option('datadir') / app_id / 'ui' / 'setup'
+  )
+  
+  # Setup wizard dialog blueprint
+  setup_wizard_ui = custom_target(
+    'setup_wizard_ui',
+    input: 'ui/setup/setup_wizard.blp',
+    output: 'setup_wizard.ui',
+    command: [blueprint_prog, 'compile', '--output', '@OUTPUT@', '@INPUT@'],
+    install: true,
+    install_dir: get_option('datadir') / app_id / 'ui' / 'setup'
+  )
+  
+  # Main setup window blueprint
+  main_setup_ui = custom_target(
+    'main_setup_ui',
+    input: 'ui/setup/main.blp',
+    output: 'main.ui',
+    command: [blueprint_prog, 'compile', '--output', '@OUTPUT@', '@INPUT@'],
+    install: true,
+    install_dir: get_option('datadir') / app_id / 'ui' / 'setup'
+  )
+  
+  # Make these targets available globally
+  all_blueprint_targets = [
+    main_window_ui,
+    password_details_dialog_ui,
+    password_entry_row_ui,
+    folder_expander_row_ui,
+    password_dialog_ui,
+    password_generator_dialog_ui,
+    shortcuts_window_ui,
+    folder_dialog_ui,
+    header_bar_ui,
+    password_list_ui,
+    main_menu_ui,
+    password_generator_popover_ui,
+    password_generator_widget_ui,
+    import_export_dialog_ui,
+    lock_dialog_ui,
+    git_setup_dialog_ui,
+    git_status_dialog_ui,
+    compliance_dashboard_dialog_ui,
+    preferences_dialog_ui,
+    wizard_dialog_ui,
+    dependencies_page_ui,
+    install_pass_page_ui,
+    create_gpg_page_ui,
+    setup_complete_page_ui,
+    setup_wizard_ui,
+    main_setup_ui,
+  ]
+  
+  set_variable('all_blueprint_targets', all_blueprint_targets)
+endif
 
-# Dialog UI files
-install_data(
-  ['ui/dialogs/add_password_dialog.ui', 'ui/dialogs/edit_password_dialog.ui',
-   'ui/dialogs/add_folder_dialog.ui', 'ui/dialogs/edit_folder_dialog.ui',
-   'ui/dialogs/password_generator_dialog.ui', 'ui/dialogs/import_export_dialog.ui',
-   'ui/dialogs/git_setup_dialog.ui', 'ui/dialogs/git_status_dialog.ui',
-   'ui/dialogs/lock_dialog.ui'],
-  install_dir: get_option('datadir') / app_id / 'ui' / 'dialogs'
-)
+# Component UI files (excluding Blueprint-converted files)
+# All component UI files are now converted to Blueprint
 
-# Widget UI files
-install_data(
-  ['ui/widgets/password_row.ui', 'ui/widgets/folder_expander_row.ui',
-   'ui/widgets/color_picker.ui', 'ui/widgets/icon_picker.ui'],
-  install_dir: get_option('datadir') / app_id / 'ui' / 'widgets'
-)
+# Dialog UI files (excluding Blueprint-converted files)
+# All dialog files are now converted to Blueprint
+
+# Widget UI files (excluding Blueprint-converted files)
+# All widget UI files are now converted to Blueprint
 
 # Setup wizard UI files
-install_data(
-  ['ui/setup/setup_wizard.ui', 'ui/setup/wizard_dialog.ui', 'ui/setup/dependencies_page.ui',
-   'ui/setup/install_pass_page.ui', 'ui/setup/create_gpg_page.ui', 'ui/setup/setup_complete_page.ui'],
-  install_dir: get_option('datadir') / app_id / 'ui' / 'setup'
-)
+# All setup UI files are now converted to Blueprint
 
 # .desktop file
 desktop_file_name = app_id + '.desktop'
@@ -102,41 +377,39 @@ foreach size : icon_sizes
 endforeach
 
 # Custom symbolic icons
-install_data(
-  'icons/scalable/actions/io.github.tobagin.secrets-add-password-symbolic.svg',
-  install_dir: get_option('datadir') / 'icons' / 'hicolor' / 'scalable' / 'actions'
-)
+symbolic_icons = [
+  'io.github.tobagin.secrets-add-password-symbolic.svg',
+  'io.github.tobagin.secrets-add-folder-symbolic.svg',
+  'io.github.tobagin.secrets-banking-symbolic.svg',
+  'io.github.tobagin.secrets-chat-symbolic.svg',
+  'io.github.tobagin.secrets-cloud-download-symbolic.svg',
+  'io.github.tobagin.secrets-cloud-symbolic.svg',
+  'io.github.tobagin.secrets-cloud-upload-symbolic.svg',
+  'io.github.tobagin.secrets-development-symbolic.svg',
+  'io.github.tobagin.secrets-export-symbolic.svg',
+  'io.github.tobagin.secrets-external-link-symbolic.svg',
+  'io.github.tobagin.secrets-gaming-symbolic.svg',
+  'io.github.tobagin.secrets-import-symbolic.svg',
+  'io.github.tobagin.secrets-office-symbolic.svg',
+  'io.github.tobagin.secrets-password-symbolic.svg',
+  'io.github.tobagin.secrets-remove-folder-symbolic.svg',
+  'io.github.tobagin.secrets-remove-password-symbolic.svg',
+  'io.github.tobagin.secrets-shopping-symbolic.svg',
+  'io.github.tobagin.secrets-totp-symbolic.svg',
+  'io.github.tobagin.secrets-trading-symbolic.svg',
+  'io.github.tobagin.secrets-username-symbolic.svg',
+  'io.github.tobagin.secrets-verified-symbolic.svg',
+  'io.github.tobagin.secrets-view-details-symbolic.svg',
+  'io.github.tobagin.secrets-wallet-symbolic.svg',
+  'io.github.tobagin.secrets-website-symbolic.svg'
+]
 
-# Symbolic icons
-install_data(
-  'icons/symbolic/io.github.tobagin.secrets-cloud-download-symbolic.svg',
-  install_dir: get_option('datadir') / 'icons' / 'hicolor' / 'symbolic' / 'apps'
-)
-
-install_data(
-  'icons/symbolic/io.github.tobagin.secrets-cloud-upload-symbolic.svg',
-  install_dir: get_option('datadir') / 'icons' / 'hicolor' / 'symbolic' / 'apps'
-)
-
-install_data(
-  'icons/symbolic/io.github.tobagin.secrets-verified-symbolic.svg',
-  install_dir: get_option('datadir') / 'icons' / 'hicolor' / 'symbolic' / 'apps'
-)
-
-install_data(
-  'icons/symbolic/checkmark-symbolic.svg',
-  install_dir: get_option('datadir') / 'icons' / 'hicolor' / 'symbolic' / 'apps'
-)
-
-install_data(
-  'icons/symbolic/io.github.tobagin.secrets-export-symbolic.svg',
-  install_dir: get_option('datadir') / 'icons' / 'hicolor' / 'symbolic' / 'apps'
-)
-
-install_data(
-  'icons/symbolic/io.github.tobagin.secrets-import-symbolic.svg',
-  install_dir: get_option('datadir') / 'icons' / 'hicolor' / 'symbolic' / 'apps'
-)
+foreach icon : symbolic_icons
+  install_data(
+    'icons/symbolic' / icon,
+    install_dir: get_option('datadir') / 'icons' / 'hicolor' / 'symbolic' / 'apps'
+  )
+endforeach
 
 # GSettings (if you add them later)
 # gsettings_schemas = files('com.example.secrets.gschema.xml') # Placeholder

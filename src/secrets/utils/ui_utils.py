@@ -243,7 +243,6 @@ class AccessibilityHelper:
             widget.update_property([Gtk.AccessibleProperty.LABEL], [value])
         except Exception as e:
             # Fallback: just set the role if accessibility update fails
-            print(f"Warning: Failed to set accessible name: {e}")
             try:
                 widget.set_accessible_role(Gtk.AccessibleRole.GENERIC)
             except:
@@ -259,7 +258,7 @@ class AccessibilityHelper:
             widget.update_property([Gtk.AccessibleProperty.DESCRIPTION], [value])
         except Exception as e:
             # Silently fail if accessibility update fails
-            print(f"Warning: Failed to set accessible description: {e}")
+            pass
 
     @staticmethod
     def mark_as_live_region(widget: Gtk.Widget, politeness: str = "polite"):
@@ -276,4 +275,4 @@ class AccessibilityHelper:
             widget.update_property([Gtk.AccessibleProperty.LIVE], [value])
         except Exception as e:
             # Silently fail if accessibility update fails
-            print(f"Warning: Failed to set live region: {e}")
+            pass

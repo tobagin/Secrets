@@ -4,6 +4,7 @@ Performance optimizations for the Secrets application.
 import time
 import functools
 import threading
+import logging
 from typing import Any, Callable, Dict, Optional, Tuple
 from collections import OrderedDict
 from gi.repository import GLib
@@ -164,7 +165,16 @@ class Debouncer:
         try:
             func(*args, **kwargs)
         except Exception as e:
-            print(f"Error in debounced function: {e}")
+            logging.error(
+                "Error in debounced function",
+                extra={
+                    "component": "performance",
+                    "operation": "debounced_execution",
+                    "error": str(e),
+                    "function": func.__name__ if hasattr(func, '__name__') else str(func)
+                },
+                exc_info=True
+            )
         
         return False  # Don't repeat
 
@@ -333,7 +343,15 @@ def optimize_password_loading():
     def cleanup_caches():
         expired_count = password_cache.cleanup_expired()
         if expired_count > 0:
-            print(f"Cleaned up {expired_count} expired cache entries")
+            logging.debug(
+                "Cleaned up expired cache entries",
+                extra={
+                    "component": "performance",
+                    "operation": "cache_cleanup",
+                    "expired_count": expired_count,
+                    "cache_type": "password"
+                }
+            )
         return True  # Continue periodic cleanup
     
     # Run cleanup every 5 minutes

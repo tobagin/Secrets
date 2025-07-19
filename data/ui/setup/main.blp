@@ -1,1 +1,442 @@
+using Gtk 4.0;
+using Adw 1;
 
+template $SecretsWindow : Adw.ApplicationWindow {
+  default-width: 1200;
+  default-height: 700;
+  title: "Secrets";
+  
+  content: Adw.ToastOverlay toast_overlay {
+    child: Adw.NavigationSplitView split_view {
+      sidebar-width-fraction: 0.3;
+      min-sidebar-width: 280;
+      max-sidebar-width: 400;
+      show-content: true;
+      
+      sidebar: Adw.NavigationPage sidebar_page {
+        title: "Folders";
+        
+        child: Adw.ToolbarView sidebar_toolbar {
+          [top]
+          Adw.HeaderBar sidebar_header {
+            show-title: true;
+            
+            styles [
+              "flat"
+            ]
+          }
+          
+          content: Gtk.Box sidebar_content {
+            orientation: vertical;
+            spacing: 0;
+            
+            Gtk.Box action_buttons_bar {
+              orientation: horizontal;
+              spacing: 6;
+              homogeneous: true;
+              margin-start: 12;
+              margin-end: 12;
+              margin-top: 6;
+              margin-bottom: 6;
+              
+              Gtk.Button add_password_button {
+                icon-name: "list-add-symbolic";
+                tooltip-text: "Add Password";
+                
+                styles [
+                  "flat"
+                ]
+              }
+              
+              Gtk.Button add_folder_button {
+                icon-name: "folder-new-symbolic";
+                tooltip-text: "Add Folder";
+                
+                styles [
+                  "flat"
+                ]
+              }
+              
+              Gtk.ToggleButton search_toggle_button {
+                icon-name: "system-search-symbolic";
+                tooltip-text: "Toggle Search";
+                
+                styles [
+                  "flat"
+                ]
+              }
+            }
+            
+            Adw.Clamp search_clamp {
+              visible: true;
+              margin-start: 12;
+              margin-end: 12;
+              margin-bottom: 6;
+              
+              child: Gtk.SearchEntry search_entry {
+                placeholder-text: "Search passwords...";
+              };
+            }
+            
+            Gtk.ScrolledWindow folders_scrolled {
+              vexpand: true;
+              hscrollbar-policy: never;
+              
+              child: Gtk.ListBox folders_listbox {
+                selection-mode: single;
+                
+                Adw.ExpanderRow folder_1 {
+                  icon-name: "folder-symbolic";
+                  title: "Folder 1";
+                  subtitle: "folder 1 subtitle";
+                  
+                  Adw.ActionRow folder_1_pass_1 {
+                    icon-name: "dialog-password-symbolic";
+                    title: "Password 1";
+                    subtitle: "password 1 subtitle";
+                    
+                    [suffix]
+                    Gtk.Button {
+                      icon-name: "go-next-symbolic";
+                      tooltip-text: "Edit";
+                      valign: center;
+                      
+                      styles [
+                        "flat"
+                      ]
+                    }
+                  }
+                  
+                  Adw.ActionRow folder_1_pass_2 {
+                    icon-name: "dialog-password-symbolic";
+                    title: "Password 2";
+                    subtitle: "password 2 subtitle";
+                    
+                    [suffix]
+                    Gtk.Button {
+                      icon-name: "go-next-symbolic";
+                      tooltip-text: "Edit";
+                      valign: center;
+                      
+                      styles [
+                        "flat"
+                      ]
+                    }
+                  }
+                }
+                
+                Adw.ExpanderRow folder_2 {
+                  icon-name: "folder-symbolic";
+                  title: "Folder 2";
+                  subtitle: "folder 2 subtitle";
+                  
+                  Adw.ActionRow folder_2_pass_1 {
+                    icon-name: "dialog-password-symbolic";
+                    title: "Password 1";
+                    subtitle: "password 1 subtitle";
+                    
+                    [suffix]
+                    Gtk.Button {
+                      icon-name: "go-next-symbolic";
+                      tooltip-text: "Edit";
+                      valign: center;
+                      
+                      styles [
+                        "flat"
+                      ]
+                    }
+                  }
+                  
+                  Adw.ActionRow folder_2_pass_2 {
+                    icon-name: "dialog-password-symbolic";
+                    title: "Password 2";
+                    subtitle: "password 2 subtitle";
+                    
+                    [suffix]
+                    Gtk.Button {
+                      icon-name: "go-next-symbolic";
+                      tooltip-text: "Edit";
+                      valign: center;
+                      
+                      styles [
+                        "flat"
+                      ]
+                    }
+                  }
+                }
+                
+                Adw.ExpanderRow folder_3 {
+                  icon-name: "folder-symbolic";
+                  title: "Folder 3";
+                  subtitle: "folder 3 subtitle";
+                  
+                  Adw.ActionRow folder_3_pass_1 {
+                    icon-name: "dialog-password-symbolic";
+                    title: "Password 1";
+                    subtitle: "password 1 subtitle";
+                    
+                    [suffix]
+                    Gtk.Button {
+                      icon-name: "go-next-symbolic";
+                      tooltip-text: "Edit";
+                      valign: center;
+                      
+                      styles [
+                        "flat"
+                      ]
+                    }
+                  }
+                  
+                  Adw.ActionRow folder_3_pass_2 {
+                    icon-name: "dialog-password-symbolic";
+                    title: "Password 2";
+                    subtitle: "password 2 subtitle";
+                    
+                    [suffix]
+                    Gtk.Button {
+                      icon-name: "go-next-symbolic";
+                      tooltip-text: "Edit";
+                      valign: center;
+                      
+                      styles [
+                        "flat"
+                      ]
+                    }
+                  }
+                }
+                
+                styles [
+                  "navigation-sidebar"
+                ]
+              };
+            }
+          };
+        };
+      };
+      
+      content: Adw.NavigationPage content_page {
+        title: "Password Details";
+        
+        child: Adw.ToolbarView content_toolbar {
+          [top]
+          Adw.HeaderBar content_header {
+            [title]
+            Adw.WindowTitle {
+              title: "Secrets";
+              subtitle: "GUI for pass password manager";
+            }
+            
+            [end]
+            Gtk.MenuButton main_menu_button {
+              icon-name: "open-menu-symbolic";
+              menu-model: main_menu;
+            }
+          }
+          
+          content: Gtk.Stack details_stack {
+            vexpand: true;
+            transition-type: slide_left_right;
+            
+            Gtk.StackPage {
+              name: "placeholder";
+              
+              child: Adw.StatusPage placeholder_page {
+                icon-name: "dialog-password-symbolic";
+                title: _("Select an Item");
+                description: _("Choose a password or folder from the sidebar to view its details");
+                vexpand: true;
+              };
+            }
+            
+            Gtk.StackPage {
+              name: "details";
+              
+              child: Adw.Clamp {
+                margin-top: 12;
+                margin-bottom: 12;
+                margin-start: 24;
+                margin-end: 24;
+                
+                child: Gtk.Box details_page_box {
+                  orientation: vertical;
+                  spacing: 18;
+                  
+                  Adw.ActionRow path_row {
+                    title: _("Path");
+                    subtitle: _("/folder/item");
+                  }
+                  
+                  Adw.ExpanderRow password_expander_row {
+                    title: _("Password");
+                    subtitle: "Hidden";
+                    enable-expansion: false;
+                    show-enable-switch: false;
+                    
+                    Gtk.Box {
+                      orientation: horizontal;
+                      spacing: 6;
+                      
+                      Gtk.Box {
+                        orientation: horizontal;
+                        hexpand: true;
+                        
+                        Gtk.Label password_display_label {
+                          label: "●●●●●●●●";
+                          selectable: true;
+                          ellipsize: end;
+                          xalign: 0;
+                        }
+                      }
+                      
+                      Gtk.ToggleButton show_hide_password_button {
+                        icon-name: "view-reveal-symbolic";
+                        tooltip-text: _("Show/Hide Password");
+                        valign: center;
+                      }
+                    }
+                    
+                    [activatable-widget]
+                    Gtk.Button copy_password_button_in_row {
+                      icon-name: "edit-copy-symbolic";
+                      tooltip-text: _("Copy Password");
+                      valign: center;
+                      
+                      styles [
+                        "flat"
+                      ]
+                    }
+                  }
+                  
+                  Adw.ActionRow username_row {
+                    title: _("Username");
+                    subtitle: _("user@example.com");
+                    subtitle-selectable: true;
+                    
+                    [suffix]
+                    Gtk.Button copy_username_button {
+                      icon-name: "edit-copy-symbolic";
+                      tooltip-text: _("Copy Username");
+                      valign: center;
+                      
+                      styles [
+                        "flat"
+                      ]
+                    }
+                  }
+                  
+                  Adw.ActionRow url_row {
+                    title: _("URL");
+                    subtitle: _("https://example.com");
+                    subtitle-selectable: true;
+                    
+                    [suffix]
+                    Gtk.Button open_url_button {
+                      icon-name: "network-transmit-receive-symbolic";
+                      tooltip-text: _("Open URL");
+                      valign: center;
+                      
+                      styles [
+                        "flat"
+                      ]
+                    }
+                  }
+                  
+                  Adw.PreferencesGroup notes_group {
+                    title: _("Notes");
+                    
+                    Gtk.ScrolledWindow notes_scrolled_window {
+                      hscrollbar-policy: never;
+                      vscrollbar-policy: automatic;
+                      min-content-height: 100;
+                      vexpand: true;
+                      
+                      child: Gtk.Label notes_display_label {
+                        wrap: true;
+                        wrap-mode: word_char;
+                        selectable: true;
+                        xalign: 0;
+                        valign: start;
+                        
+                        styles [
+                          "dim-label"
+                        ]
+                      };
+                    }
+                  }
+                  
+                  Gtk.Box password_actions_box {
+                    orientation: horizontal;
+                    spacing: 12;
+                    halign: center;
+                    margin-top: 12;
+                    
+                    Gtk.Button edit_button {
+                      label: _("_Edit");
+                      use-underline: true;
+                      icon-name: "document-edit-symbolic";
+                      sensitive: false;
+                      
+                      styles [
+                        "pill"
+                      ]
+                    }
+                    
+                    Gtk.Button remove_button {
+                      label: _("_Remove");
+                      use-underline: true;
+                      icon-name: "edit-delete-symbolic";
+                      sensitive: false;
+                      
+                      styles [
+                        "destructive-action",
+                        "pill"
+                      ]
+                    }
+                  }
+                };
+              };
+            }
+          };
+        };
+      };
+    };
+  };
+}
+
+menu main_menu {
+  section {
+    item {
+      label: _("_Preferences");
+      action: "app.preferences";
+    }
+    
+    item {
+      label: _("_Keyboard Shortcuts");
+      action: "win.show-help-overlay";
+    }
+    
+    item {
+      label: _("_About Secrets");
+      action: "app.about";
+    }
+  }
+  
+  section {
+    item {
+      label: _("_Import/Export");
+      action: "win.import-export";
+    }
+    
+    item {
+      label: _("_Generate Password");
+      action: "win.generate-password";
+    }
+  }
+  
+  section {
+    item {
+      label: _("_Quit");
+      action: "app.quit";
+    }
+  }
+}

@@ -8,7 +8,7 @@ from gi.repository import Gtk, Adw
 from secrets.app_info import APP_ID
 
 
-@Gtk.Template(resource_path=f'/{APP_ID.replace(".", "/")}/ui/shortcuts_window.ui')
+@Gtk.Template(resource_path="/io/github/tobagin/secrets/ui/shortcuts_window.ui")
 class ShortcutsWindow(Adw.Window):
     """Keyboard shortcuts help window."""
 

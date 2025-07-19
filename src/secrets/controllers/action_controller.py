@@ -10,6 +10,7 @@ from gi.repository import Gtk, Adw, Gio
 from typing import Callable, Optional, Dict, Any
 
 from ..managers import ToastManager
+from ..logging_system import get_logger, LogCategory
 
 
 class ActionController:
@@ -35,6 +36,7 @@ class ActionController:
         
         self.window = window
         self.toast_manager = toast_manager
+        self.logger = get_logger(LogCategory.UI, "ActionController")
         
         # Store callback functions
         self.callbacks = {
@@ -155,7 +157,7 @@ class ActionController:
         if action:
             action.set_enabled(enabled)
         else:
-            print(f"Warning: Action '{action_name}' not found")
+            self.logger.warning("Action not found", extra={'action_name': action_name})
     
     def get_action(self, action_name: str) -> Optional[Gio.SimpleAction]:
         """Get a specific action by name."""

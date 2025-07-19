@@ -7,6 +7,7 @@ from gi.repository import Adw, Gtk
 from .models import PasswordEntry, AppState
 from .services import PasswordService, ValidationService
 from .managers import ToastManager, ClipboardManager
+from .logging_system import get_logger, LogCategory
 
 
 class Command(ABC):
@@ -266,6 +267,7 @@ class CommandInvoker:
     def __init__(self):
         self._commands: Dict[str, Command] = {}
         self._history: list = []
+        self.logger = get_logger(LogCategory.APPLICATION, "CommandInvoker")
     
     def register_command(self, name: str, command: Command):
         """Register a command with a name."""
@@ -274,12 +276,12 @@ class CommandInvoker:
     def execute_command(self, name: str) -> bool:
         """Execute a command by name."""
         if name not in self._commands:
-            print(f"Command '{name}' not found")
+            self.logger.warning("Command not found", extra={'command_name': name})
             return False
         
         command = self._commands[name]
         if not command.can_execute():
-            print(f"Command '{name}' cannot be executed")
+            self.logger.warning("Command cannot be executed", extra={'command_name': name})
             return False
         
         success = command.execute()

@@ -11,6 +11,7 @@ from .path_validator import PathValidator
 from .environment_setup import EnvironmentSetup, PasswordStoreEnvironment, GPGEnvironment
 from .metadata_handler import MetadataHandler, EntryMetadata, FolderMetadata
 from .url_extractor import URLExtractor, ExtractedURL
+from .password_strength import PasswordStrengthCalculator
 
 # Import security module
 # from ..security import *
@@ -30,4 +31,5 @@ __all__ = [
     'FolderMetadata',
     'URLExtractor',
     'ExtractedURL',
+    'PasswordStrengthCalculator',
 ]

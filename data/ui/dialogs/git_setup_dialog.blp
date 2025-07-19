@@ -1,0 +1,187 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $GitSetupDialog : Adw.Window {
+  title: "Git Repository Setup";
+  default-width: 600;
+  default-height: 500;
+  modal: true;
+
+  content: Gtk.Box main_box {
+    orientation: vertical;
+
+    // Header Bar
+    Adw.HeaderBar header_bar {
+      title-widget: Adw.WindowTitle {
+        title: "Git Setup";
+      };
+    }
+
+    // Content
+    Gtk.ScrolledWindow {
+      hscrollbar-policy: never;
+      vexpand: true;
+
+      Gtk.Box content_box {
+        orientation: vertical;
+        spacing: 18;
+        margin-top: 18;
+        margin-bottom: 18;
+        margin-start: 18;
+        margin-end: 18;
+
+        // Welcome Banner
+        Adw.Banner welcome_banner {
+          title: "Setup Git synchronization to securely backup and sync your passwords across devices";
+          button-label: "Learn More";
+        }
+
+        // Current Status Group
+        Adw.PreferencesGroup status_group {
+          title: "Current Status";
+          description: "Check if Git is already configured";
+
+          Adw.ActionRow status_row {
+            title: "Repository Status";
+            subtitle: "Not configured";
+
+            [suffix]
+            Gtk.Image status_icon {
+              icon-name: "dialog-warning-symbolic";
+            }
+          }
+
+          Adw.ActionRow git_status_row {
+            title: "Git Installation";
+            subtitle: "Checking...";
+
+            [suffix]
+            Gtk.Spinner git_check_spinner {
+              spinning: true;
+            }
+          }
+        }
+
+        // Quick Setup Group
+        Adw.PreferencesGroup quick_setup_group {
+          title: "Quick Setup";
+          description: "Choose a popular Git hosting service for easy setup";
+
+          Adw.ComboRow platform_combo {
+            title: "Git Hosting Service";
+            notify::selected => $_on_platform_changed();
+          }
+        }
+
+        // Repository Setup Group
+        Adw.PreferencesGroup repo_group {
+          title: "Repository Configuration";
+          description: "Configure your Git repository and remote connection";
+
+          // Repository URL
+          Adw.EntryRow remote_url_row {
+            title: "Repository URL";
+            text: "https://";
+            changed => $_on_url_changed();
+          }
+
+          // Repository Name (auto-filled)
+          Adw.EntryRow repo_name_entry {
+            title: "Repository Name";
+            text: "passwords";
+          }
+        }
+
+        // Authentication Group
+        Adw.PreferencesGroup platform_group {
+          title: "Authentication";
+          description: "Enter your credentials for secure access";
+          visible: false;
+
+          // Username
+          Adw.EntryRow username_row {
+            title: "Username";
+          }
+
+          // Token
+          Adw.PasswordEntryRow token_row {
+            title: "Personal Access Token";
+
+            [suffix]
+            Gtk.Button token_help_button {
+              icon-name: "help-contents-symbolic";
+              tooltip-text: "How to create access tokens";
+              valign: center;
+              clicked => $_on_token_help_clicked();
+              
+              styles [
+                "flat"
+              ]
+            }
+          }
+        }
+
+        // Repository Options Group
+        Adw.PreferencesGroup repo_options_group {
+          title: "Repository Options";
+          description: "Configure how your repository will be set up";
+          visible: false;
+
+          Adw.SwitchRow private_repo_switch {
+            title: "Private Repository";
+            active: true;
+          }
+
+          Adw.SwitchRow auto_sync_switch {
+            title: "Automatic Sync";
+            active: true;
+          }
+        }
+
+        // Progress Group
+        Adw.PreferencesGroup progress_group {
+          title: "Setup Progress";
+          visible: false;
+
+          Adw.ActionRow progress_row {
+            title: "Setting up repository...";
+
+            [suffix]
+            Gtk.Spinner progress_spinner {
+              spinning: false;
+            }
+          }
+        }
+
+        // Action Buttons
+        Gtk.Box button_box {
+          orientation: horizontal;
+          spacing: 12;
+          halign: end;
+          margin-top: 18;
+
+          Gtk.Button cancel_button {
+            label: "Cancel";
+            clicked => $_on_cancel_clicked();
+          }
+
+          Gtk.Button test_button {
+            label: "Test Connection";
+            sensitive: false;
+            clicked => $_on_test_connection();
+          }
+
+          Gtk.Button setup_button {
+            label: "Setup Repository";
+            sensitive: false;
+            clicked => $_on_setup_repository();
+            
+            styles [
+              "suggested-action"
+            ]
+          }
+        }
+      }
+    }
+  };
+}

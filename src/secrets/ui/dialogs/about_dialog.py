@@ -4,7 +4,8 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 
 from gi.repository import Gtk, Adw
-from ...app_info import APP_ID, VERSION
+from ...app_info import APP_ID
+from ...version import get_version
 
 
 def create_about_dialog(transient_for=None):
@@ -18,7 +19,7 @@ def create_about_dialog(transient_for=None):
         application_name="Secrets Manager",
         application_icon=APP_ID,
         developer_name="Thiago Fernandes",
-        version=VERSION,
+        version=get_version(),
         website="https://github.com/tobagin/Secrets",
         issue_url="https://github.com/tobagin/Secrets/issues",
         support_url="https://github.com/tobagin/Secrets/discussions",

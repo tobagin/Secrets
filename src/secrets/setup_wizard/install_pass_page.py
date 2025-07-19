@@ -13,7 +13,7 @@ from ..app_info import APP_ID
 from ..utils import SystemSetupHelper
 
 
-@Gtk.Template(resource_path=f'/{APP_ID.replace(".", "/")}/ui/setup/install_pass_page.ui')
+@Gtk.Template(resource_path="/io/github/tobagin/secrets/ui/setup/install_pass_page.ui")
 class InstallPassPage(Adw.NavigationPage):
     """Page for installing Pass and GPG packages."""
     

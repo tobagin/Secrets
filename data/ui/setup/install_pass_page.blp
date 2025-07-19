@@ -1,0 +1,51 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $InstallPassPage : Adw.NavigationPage {
+  title: "Install Pass";
+  
+  child: Adw.ToolbarView {
+    [top]
+    Adw.HeaderBar {
+      title-widget: Adw.WindowTitle {
+        title: "Install Pass";
+        subtitle: "password-store installation";
+      };
+    }
+
+    content: Gtk.Box {
+      orientation: vertical;
+      spacing: 12;
+      margin-top: 18;
+      margin-bottom: 18;
+      margin-start: 18;
+      margin-end: 18;
+
+      Gtk.Label {
+        label: "Install Pass";
+        halign: start;
+        
+        styles [
+          "title-4"
+        ]
+      }
+
+      Gtk.Label {
+        label: "The standard Unix password manager needs to be installed.";
+        halign: start;
+        
+        styles [
+          "dim-label"
+        ]
+      }
+
+      Gtk.Button install_button {
+        label: "Install Pass";
+        
+        styles [
+          "suggested-action"
+        ]
+      }
+    };
+  };
+}
