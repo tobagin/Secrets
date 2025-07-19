@@ -205,86 +205,79 @@ class PreferencesDialog(Adw.PreferencesDialog):
     def _load_current_settings(self):
         """Load current settings from configuration into the UI."""
         # Load general settings
-        theme_setting = self.config.get("general", {}).get("theme", "auto")
+        theme_setting = getattr(self.config.ui, 'theme', 'auto')
         theme_map = {"auto": 0, "light": 1, "dark": 2}
         self.theme_row.set_selected(theme_map.get(theme_setting, 0))
         
-        remember_window = self.config.get("general", {}).get("remember_window_size", True)
+        remember_window = getattr(self.config.ui, 'remember_window_state', True)
         self.remember_window_row.set_active(remember_window)
 
         # Load security settings
-        security = self.config.get("security", {})
+        self.auto_hide_row.set_active(getattr(self.config.security, 'auto_hide_passwords', True))
+        self.auto_hide_timeout_row.set_value(getattr(self.config.security, 'auto_hide_timeout_seconds', 30))
+        self.clipboard_timeout_row.set_value(getattr(self.config.security, 'clear_clipboard_timeout', 45))
+        self.confirm_delete_row.set_active(getattr(self.config.security, 'require_confirmation_for_delete', True))
+        self.require_password_name_row.set_active(getattr(self.config.security, 'require_password_name_for_delete', False))
+        self.lock_on_idle_row.set_active(getattr(self.config.security, 'lock_on_idle', False))
+        self.idle_timeout_row.set_value(getattr(self.config.security, 'idle_timeout_minutes', 15))
+        self.lock_on_screen_lock_row.set_active(getattr(self.config.security, 'lock_on_screen_lock', True))
+        self.master_password_timeout_row.set_value(getattr(self.config.security, 'master_password_timeout_minutes', 60))
+        self.clear_memory_row.set_active(getattr(self.config.security, 'clear_memory_on_lock', False))
+        self.require_master_for_export_row.set_active(getattr(self.config.security, 'require_master_password_for_export', True))
+        self.max_failed_attempts_row.set_value(getattr(self.config.security, 'max_failed_unlock_attempts', 3))
+        self.lockout_duration_row.set_value(getattr(self.config.security, 'lockout_duration_minutes', 5))
         
-        self.auto_hide_row.set_active(security.get("auto_hide_passwords", True))
-        self.auto_hide_timeout_row.set_value(security.get("auto_hide_timeout", 30))
-        self.clipboard_timeout_row.set_value(security.get("clipboard_timeout", 45))
-        self.confirm_delete_row.set_active(security.get("confirm_deletions", True))
-        self.require_password_name_row.set_active(security.get("require_password_name_for_deletion", False))
-        self.lock_on_idle_row.set_active(security.get("lock_on_idle", False))
-        self.idle_timeout_row.set_value(security.get("idle_timeout", 15))
-        self.lock_on_screen_lock_row.set_active(security.get("lock_on_screen_lock", True))
-        self.master_password_timeout_row.set_value(security.get("master_password_timeout", 60))
-        self.clear_memory_row.set_active(security.get("clear_memory_on_lock", False))
-        self.require_master_for_export_row.set_active(security.get("require_master_for_export", True))
-        self.max_failed_attempts_row.set_value(security.get("max_failed_attempts", 3))
-        self.lockout_duration_row.set_value(security.get("lockout_duration", 5))
+        # Password policy settings - using compliance config
+        self.password_complexity_row.set_active(getattr(self.config.compliance, 'password_complexity_enabled', True))
+        self.password_min_length_row.set_value(getattr(self.config.compliance, 'password_min_length', 12))
+        self.password_history_row.set_value(getattr(self.config.compliance, 'password_history_count', 4))
+        self.password_expiry_row.set_value(getattr(self.config.compliance, 'password_expiry_days', 90))
         
-        # Password policy settings
-        policy = security.get("password_policy", {})
-        self.password_complexity_row.set_active(policy.get("enforce_complexity", True))
-        self.password_min_length_row.set_value(policy.get("min_length", 12))
-        self.password_history_row.set_value(policy.get("history_count", 4))
-        self.password_expiry_row.set_value(policy.get("expiry_days", 90))
-        
-        # Audit settings
-        audit = security.get("audit", {})
-        self.audit_enabled_row.set_active(audit.get("enabled", False))
-        self.log_all_access_row.set_active(audit.get("log_all_access", False))
-        self.audit_retention_row.set_value(audit.get("retention_days", 90))
+        # Audit settings - using compliance config
+        self.audit_enabled_row.set_active(getattr(self.config.compliance, 'audit_enabled', False))
+        self.log_all_access_row.set_active(getattr(self.config.compliance, 'log_all_access', False))
+        self.audit_retention_row.set_value(getattr(self.config.compliance, 'audit_retention_days', 90))
 
         # Load search settings
-        search = self.config.get("search", {})
-        self.case_sensitive_row.set_active(search.get("case_sensitive", False))
-        self.search_content_row.set_active(search.get("search_content", True))
-        self.search_filenames_row.set_active(search.get("search_filenames", True))
-        self.max_results_row.set_value(search.get("max_results", 100))
+        self.case_sensitive_row.set_active(getattr(self.config.search, 'case_sensitive', False))
+        self.search_content_row.set_active(getattr(self.config.search, 'search_in_content', True))
+        self.search_filenames_row.set_active(getattr(self.config.search, 'search_in_filenames', True))
+        self.max_results_row.set_value(getattr(self.config.search, 'max_search_results', 100))
 
         # Load Git settings
-        git = self.config.get("git", {})
-        self.auto_pull_row.set_active(git.get("auto_pull", False))
-        self.auto_push_row.set_active(git.get("auto_push", False))
-        self.show_git_status_row.set_active(git.get("show_status", True))
-        self.git_timeout_row.set_value(git.get("timeout", 30))
-        self.auto_commit_row.set_active(git.get("auto_commit", False))
-        self.git_notifications_row.set_active(git.get("notifications", True))
-        self.check_remote_row.set_active(git.get("check_remote_on_startup", False))
-        self.remote_name_row.set_text(git.get("remote_name", "origin"))
-        self.default_branch_row.set_text(git.get("default_branch", "main"))
-        self.commit_template_row.set_text(git.get("commit_template", "Update passwords"))
+        self.auto_pull_row.set_active(getattr(self.config.git, 'auto_pull_on_startup', False))
+        self.auto_push_row.set_active(getattr(self.config.git, 'auto_push_on_changes', False))
+        self.show_git_status_row.set_active(getattr(self.config.git, 'show_git_status', True))
+        self.git_timeout_row.set_value(getattr(self.config.git, 'git_timeout_seconds', 30))
+        self.auto_commit_row.set_active(getattr(self.config.git, 'auto_commit_on_changes', False))
+        self.git_notifications_row.set_active(getattr(self.config.git, 'show_git_notifications', True))
+        self.check_remote_row.set_active(getattr(self.config.git, 'check_remote_on_startup', True))
+        self.remote_name_row.set_text(getattr(self.config.git, 'remote_name', 'origin'))
+        self.default_branch_row.set_text(getattr(self.config.git, 'default_branch', 'main'))
+        self.commit_template_row.set_text(getattr(self.config.git, 'commit_message_template', 'Update passwords'))
 
         # Load logging settings
-        logging_config = self.config.get("logging", {})
-        log_level = logging_config.get("level", "INFO")
+        log_level = getattr(self.config.logging, 'log_level', 'WARNING')
         level_map = {"DEBUG": 0, "INFO": 1, "WARNING": 2, "ERROR": 3, "CRITICAL": 4}
-        self.log_level_row.set_selected(level_map.get(log_level, 1))
+        self.log_level_row.set_selected(level_map.get(log_level, 2))
         
-        self.file_logging_row.set_active(logging_config.get("file_logging", True))
-        self.console_logging_row.set_active(logging_config.get("console_logging", False))
-        self.structured_logging_row.set_active(logging_config.get("structured", False))
+        self.file_logging_row.set_active(getattr(self.config.logging, 'enable_file_logging', True))
+        self.console_logging_row.set_active(getattr(self.config.logging, 'enable_console_logging', True))
+        self.structured_logging_row.set_active(getattr(self.config.logging, 'enable_structured_logging', True))
         
-        rotation = logging_config.get("rotation", {})
-        self.max_log_size_row.set_value(rotation.get("max_size_mb", 10))
-        self.backup_count_row.set_value(rotation.get("backup_count", 5))
-        self.log_retention_row.set_value(rotation.get("retention_days", 30))
-        self.compression_row.set_active(rotation.get("compression", False))
+        # Rotation settings
+        self.max_log_size_row.set_value(getattr(self.config.logging, 'max_log_file_size_mb', 10))
+        self.backup_count_row.set_value(getattr(self.config.logging, 'backup_count', 5))
+        self.log_retention_row.set_value(getattr(self.config.logging, 'log_retention_days', 30))
+        self.compression_row.set_active(getattr(self.config.logging, 'enable_compression', True))
         
-        location = logging_config.get("location", {})
-        self.custom_log_dir_row.set_active(location.get("use_custom_dir", False))
-        self.log_directory_entry.set_text(location.get("custom_path", ""))
-        self.log_permissions_row.set_text(location.get("permissions", "755"))
+        # Location settings
+        self.custom_log_dir_row.set_active(getattr(self.config.logging, 'use_custom_log_directory', False))
+        self.log_directory_entry.set_text(getattr(self.config.logging, 'custom_log_directory', ''))
+        self.log_permissions_row.set_text(getattr(self.config.logging, 'log_directory_permissions', '755'))
         
         # Update current log directory display
-        current_dir = logging_config.get("current_directory", "Default location")
+        current_dir = getattr(self.config.logging, 'custom_log_directory', '') or 'Default location'
         self.current_log_dir_row.set_subtitle(current_dir)
 
     def _setup_dialog_behavior(self):
