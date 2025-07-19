@@ -46,6 +46,10 @@ class PasswordEntryRow(Adw.ActionRow):
         self._password_entry = password_entry
         self._toast_manager = None
         self._clipboard_manager = None
+        self._lazy_url_loader = None
+        self._lazy_url_loader_args = None
+        self._url_loaded = False
+        self._content_checked = False
         self._setup_signals()
         
         if password_entry:
@@ -111,6 +115,74 @@ class PasswordEntryRow(Adw.ActionRow):
         else:
             # Use color and icon paintable
             self._set_color_icon_paintable()
+    
+    def set_lazy_url_loader(self, loader_func, *args):
+        """Set a lazy URL loader function that will be called when the URL is needed."""
+        self._lazy_url_loader = loader_func
+        self._lazy_url_loader_args = args
+        self._url_loaded = False
+    
+    def _load_url_if_needed(self):
+        """Load URL lazily if not already loaded."""
+        if not self._url_loaded and self._lazy_url_loader:
+            try:
+                url = self._lazy_url_loader(*self._lazy_url_loader_args)
+                if url:
+                    self._url = url
+                    # Try to load favicon with the new URL
+                    favicon_manager = get_favicon_manager()
+                    favicon_manager.get_favicon_pixbuf_async(url, self._on_favicon_loaded_with_cache)
+                self._url_loaded = True
+            except Exception as e:
+                # Silently handle URL loading errors
+                self._url_loaded = True
+    
+    def _check_content_if_needed(self):
+        """Check password content lazily for TOTP and URL button visibility."""
+        if self._content_checked or not self._password_entry:
+            return
+        
+        # Get password path for content checking
+        password_path = self._password_entry.path if hasattr(self._password_entry, 'path') else str(self._password_entry)
+        
+        def check_content_background():
+            try:
+                # Import password store to check content
+                from ...password_store import PasswordStore
+                store = PasswordStore()
+                success, content = store.get_password_content(password_path)
+                
+                if success:
+                    lines = content.split('\\n')
+                    has_totp = False
+                    has_url = False
+                    
+                    for line in lines:
+                        line = line.strip().lower()
+                        if line.startswith('totp:') or line.startswith('otp:'):
+                            has_totp = True
+                        if (line.startswith('url:') or line.startswith('website:') or 
+                            line.startswith('http://') or line.startswith('https://')):
+                            has_url = True
+                    
+                    # Update UI on main thread
+                    from gi.repository import GLib
+                    GLib.idle_add(self._update_advanced_buttons, has_totp, has_url)
+                    
+            except Exception as e:
+                # Silently handle content loading errors
+                pass
+        
+        # Load content in background thread
+        import threading
+        threading.Thread(target=check_content_background, daemon=True).start()
+        self._content_checked = True
+    
+    def _update_advanced_buttons(self, has_totp, has_url):
+        \"\"\"Update advanced button visibility based on content analysis.\"\"\"
+        self.copy_totp_button.set_visible(has_totp)
+        self.visit_url_button.set_visible(has_url)
+        return False  # Don't repeat this idle call
 
     def _on_favicon_loaded(self, pixbuf):
         """Handle favicon loading completion."""
@@ -190,12 +262,21 @@ class PasswordEntryRow(Adw.ActionRow):
         
     def _on_copy_totp_clicked(self, button):
         """Handle copy TOTP button click."""
+        # Ensure content is checked before copying TOTP
+        self._check_content_if_needed()
         self.emit("copy-totp")
         
     def _on_visit_url_clicked(self, button):
         """Handle visit URL button click."""
-        if self._password_entry and hasattr(self._password_entry, 'url') and self._password_entry.url:
-            self.emit("visit-url", self._password_entry.url)
+        # Load URL lazily if needed
+        self._load_url_if_needed()
+        
+        if self._url:
+            self.emit("visit-url", self._url)
+        elif self._password_entry:
+            # Try to get URL from password entry if available
+            if hasattr(self._password_entry, 'url') and self._password_entry.url:
+                self.emit("visit-url", self._password_entry.url)
         
     def _on_edit_password_clicked(self, button):
         """Handle edit password button click."""
@@ -217,8 +298,9 @@ class PasswordEntryRow(Adw.ActionRow):
         
     def _on_row_activated(self, row):
         """Handle row activation - ActionRow already emits 'activated' signal."""
+        # Check content when user interacts with the row
+        self._check_content_if_needed()
         # The ActionRow will automatically emit the 'activated' signal
-        pass
     
     def set_sensitive_actions(self, sensitive=True):
         """Set the sensitivity of action buttons."""
@@ -239,43 +321,24 @@ class PasswordEntryRow(Adw.ActionRow):
         self._clipboard_manager = clipboard_manager
     
     def _update_button_visibility(self):
-        """Update button visibility based on available data."""
+        """Update button visibility based on available data (lazy loading)."""
         if not self._password_entry:
             return
         
-        # Get password path for content checking
-        password_path = self._password_entry.path if hasattr(self._password_entry, 'path') else str(self._password_entry)
+        # Start with conservative defaults - show basic buttons, hide advanced ones
+        self.copy_username_button.set_visible(True)
+        self.copy_password_button.set_visible(True)
+        self.copy_totp_button.set_visible(False)  # Hidden until we check content
+        self.visit_url_button.set_visible(False)  # Hidden until we check content
+        self.edit_password_button.set_visible(True)
+        self.view_details_button.set_visible(True)
+        self.remove_password_button.set_visible(True)
         
-        try:
-            # Import password store to check content
-            from ...password_store import PasswordStore
-            store = PasswordStore()
-            success, content = store.get_password_content(password_path)
-            
-            if success:
-                lines = content.split('\n')
-                has_totp = False
-                has_url = False
-                
-                for line in lines:
-                    line = line.strip().lower()
-                    if line.startswith('totp:') or line.startswith('otp:'):
-                        has_totp = True
-                    if (line.startswith('url:') or line.startswith('website:') or 
-                        line.startswith('http://') or line.startswith('https://')):
-                        has_url = True
-                
-                # Show TOTP button if TOTP secret found
-                self.copy_totp_button.set_visible(has_totp)
-                
-                # Show URL button if URL found
-                self.visit_url_button.set_visible(has_url)
-            else:
-                # Hide both buttons if content can't be loaded
-                self.copy_totp_button.set_visible(False)
-                self.visit_url_button.set_visible(False)
-                
-        except Exception as e:
-            # Hide both buttons on error
-            self.copy_totp_button.set_visible(False)
-            self.visit_url_button.set_visible(False)
+        # Mark that we need to check content lazily
+        self._content_checked = False
+    
+    def check_visibility_and_load_content(self):
+        """Check if row is visible and load content if needed. Called when row becomes visible."""
+        # This can be called by the parent controller when the row becomes visible
+        if self.get_visible() and not self._content_checked:
+            self._check_content_if_needed()

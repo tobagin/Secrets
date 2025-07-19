@@ -35,6 +35,13 @@ class DynamicFolderController:
         self._loading_thread = None
         self._is_loading = False
         
+        # Virtual scrolling optimization
+        self._virtual_scrolling_enabled = True
+        self._viewport_size = 20  # Number of items to render at once
+        self._scroll_buffer = 5   # Extra items to render above/below viewport
+        self._virtual_items = []  # All items data (not widgets)
+        self._visible_range = (0, 0)  # (start_index, end_index) of visible items
+        
         # Connect search functionality
         if self.search_entry:
             self.search_entry.connect("search-changed", self._on_search_entry_changed)
@@ -77,17 +84,14 @@ class DynamicFolderController:
             # Get all folders (this might also be slow)
             all_folders = self.password_store.list_folders()
             
-            # Pre-load metadata for all passwords and folders (expensive operations)
+            # Pre-load only basic metadata for passwords and folders (fast operations)
             password_metadata_cache = {}
             folder_metadata_cache = {}
-            password_url_cache = {}
             
-            # Load password metadata and URLs in background
+            # Load only password metadata in background (URLs will be loaded lazily)
             for password_path in raw_password_list:
                 try:
                     password_metadata_cache[password_path] = self.password_store.get_password_metadata(password_path)
-                    # Also extract URL in background
-                    password_url_cache[password_path] = self._extract_url_from_password(password_path)
                 except Exception as e:
                     self.logger.warning(f"Failed to load metadata for {password_path}: {e}")
                     # Provide default metadata
@@ -96,7 +100,6 @@ class DynamicFolderController:
                         "icon": "dialog-password-symbolic",
                         "favicon_data": None
                     }
-                    password_url_cache[password_path] = None
             
             # Load folder metadata in background
             for folder_path in all_folders:
@@ -111,7 +114,7 @@ class DynamicFolderController:
                     }
             
             # Schedule UI updates on main thread with pre-loaded data
-            GLib.idle_add(self._complete_password_loading, raw_password_list, all_folders, expansion_state, password_metadata_cache, folder_metadata_cache, password_url_cache)
+            GLib.idle_add(self._complete_password_loading, raw_password_list, all_folders, expansion_state, password_metadata_cache, folder_metadata_cache)
             
         except Exception as e:
             self.logger.error("Error in background password loading", extra={
@@ -121,7 +124,7 @@ class DynamicFolderController:
             # Schedule error handling on main thread
             GLib.idle_add(self._handle_loading_error, str(e))
 
-    def _complete_password_loading(self, raw_password_list, all_folders, expansion_state, password_metadata_cache, folder_metadata_cache, password_url_cache):
+    def _complete_password_loading(self, raw_password_list, all_folders, expansion_state, password_metadata_cache, folder_metadata_cache):
         """Complete password loading on the main UI thread."""
         try:
             self.logger.debug("Completing password loading on UI thread", extra={
@@ -137,7 +140,7 @@ class DynamicFolderController:
                 return False  # Don't repeat this idle call
 
             # Build dynamic folder structure on UI thread with pre-loaded metadata
-            self._build_dynamic_folder_structure_with_data(raw_password_list, all_folders, password_metadata_cache, folder_metadata_cache, password_url_cache)
+            self._build_dynamic_folder_structure_with_data(raw_password_list, all_folders, password_metadata_cache, folder_metadata_cache)
 
             # Restore expansion state
             self._restore_expansion_state(expansion_state)
@@ -259,12 +262,14 @@ class DynamicFolderController:
         all_folders = self.password_store.list_folders()
         self._build_dynamic_folder_structure_with_data(raw_password_list, all_folders)
 
-    def _build_dynamic_folder_structure_with_data(self, raw_password_list, all_folders, password_metadata_cache=None, folder_metadata_cache=None, password_url_cache=None):
+    def _build_dynamic_folder_structure_with_data(self, raw_password_list, all_folders, password_metadata_cache=None, folder_metadata_cache=None):
         """Build dynamic folder structure from pre-loaded password list and folder data."""
         # Store metadata caches for use by widget creation methods
         self._password_metadata_cache = password_metadata_cache or {}
         self._folder_metadata_cache = folder_metadata_cache or {}
-        self._password_url_cache = password_url_cache or {}
+        
+        # Initialize URL cache for lazy loading
+        self._password_url_cache = {}
         # Group passwords by their immediate parent folder
         folder_structure = {}
         root_passwords = []
@@ -470,25 +475,11 @@ class DynamicFolderController:
             password_icon = "dialog-password-symbolic"
             favicon_data = None
 
-        # Get URL for favicon support (use cached data if available)
-        url = self._get_cached_url_from_password(password_data['path'])
-
-        # Log favicon status
-        if favicon_data:
-            self.logger.debug("Using cached favicon data", extra={
-                'password_name': password_data['name'],
-                'favicon_size': len(favicon_data),
-                'tags': ['favicon', 'cache_hit']
-            })
-        elif url:
-            self.logger.debug("No cached favicon, will download", extra={
-                'password_name': password_data['name'],
-                'url': url,
-                'tags': ['favicon', 'cache_miss']
-            })
-
-        # Set avatar with color, icon, URL, and cached favicon
-        password_row.set_avatar_color_and_icon(password_color, password_icon, url, favicon_data)
+        # Set avatar with color and icon only (URL and favicon loaded lazily)
+        password_row.set_avatar_color_and_icon(password_color, password_icon)
+        
+        # Set up lazy URL and favicon loading for when the password becomes visible
+        password_row.set_lazy_url_loader(self._get_password_url_lazy, password_data['path'])
 
         # Store reference
         password_path = password_data['path']
@@ -529,6 +520,52 @@ class DynamicFolderController:
     def _get_cached_url_from_password(self, password_path):
         """Get URL from password using cached metadata to avoid blocking operations."""
         return getattr(self, '_password_url_cache', {}).get(password_path)
+    
+    def _get_password_url_lazy(self, password_path):
+        """Lazily load password URL when needed (e.g., when password becomes visible)."""
+        # Check if already cached
+        if password_path in self._password_url_cache:
+            return self._password_url_cache[password_path]
+        
+        # Load URL in background thread to avoid blocking UI
+        def load_url_background():
+            try:
+                url = self._extract_url_from_password(password_path)
+                self._password_url_cache[password_path] = url
+                
+                # Update UI on main thread if URL was found
+                if url and password_path in self.password_rows:
+                    GLib.idle_add(self._update_password_favicon, password_path, url)
+                    
+            except Exception as e:
+                self.logger.warning(f"Failed to extract URL for {password_path}: {e}")
+                self._password_url_cache[password_path] = None
+        
+        # Start background thread
+        threading.Thread(target=load_url_background, daemon=True).start()
+        return None  # Return None immediately, URL will be loaded asynchronously
+    
+    def _update_password_favicon(self, password_path, url):
+        """Update password row with favicon after URL is loaded."""
+        if password_path in self.password_rows:
+            password_row = self.password_rows[password_path]
+            
+            # Get current metadata
+            password_metadata = self._password_metadata_cache.get(password_path, {})
+            password_color = password_metadata.get("color", "#3584e4")
+            password_icon = password_metadata.get("icon", "dialog-password-symbolic")
+            favicon_data = password_metadata.get("favicon_data")
+            
+            # Update avatar with URL and favicon
+            password_row.set_avatar_color_and_icon(password_color, password_icon, url, favicon_data)
+            
+            self.logger.debug("Updated password favicon", extra={
+                'password_path': password_path,
+                'url': url,
+                'tags': ['favicon', 'lazy_load']
+            })
+        
+        return False  # Don't repeat this idle call
 
     def _extract_url_from_password(self, password_path):
         """Extract URL from password content."""

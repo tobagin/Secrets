@@ -27,6 +27,99 @@ class PasswordStore:
         # Initialize metadata manager (import locally to avoid circular imports)
         from .managers.metadata_manager import MetadataManager
         self.metadata_manager = MetadataManager(self.store_dir)
+        
+        # Content caching system to avoid redundant decryption
+        self._content_cache = {}  # path -> {'content': str, 'timestamp': float, 'mtime': float}
+        self._cache_timeout = 300  # 5 minutes cache timeout
+        self._max_cache_size = 50  # Maximum number of cached entries
+
+    def _get_file_mtime(self, password_path):
+        """Get the modification time of a password file."""
+        try:
+            full_path = os.path.join(self.store_dir, password_path + ".gpg")
+            return os.path.getmtime(full_path)
+        except (OSError, IOError):
+            return 0
+
+    def _is_cache_valid(self, password_path, cache_entry):
+        """Check if a cache entry is still valid."""
+        import time
+        current_time = time.time()
+        
+        # Check if cache has expired
+        if current_time - cache_entry['timestamp'] > self._cache_timeout:
+            return False
+        
+        # Check if file has been modified
+        current_mtime = self._get_file_mtime(password_path)
+        if current_mtime != cache_entry['mtime']:
+            return False
+        
+        return True
+
+    def _cleanup_cache(self):
+        """Clean up expired cache entries and maintain size limit."""
+        import time
+        current_time = time.time()
+        
+        # Remove expired entries
+        expired_keys = []
+        for path, entry in self._content_cache.items():
+            if current_time - entry['timestamp'] > self._cache_timeout:
+                expired_keys.append(path)
+        
+        for key in expired_keys:
+            del self._content_cache[key]
+        
+        # If still over size limit, remove oldest entries
+        if len(self._content_cache) > self._max_cache_size:
+            # Sort by timestamp and remove oldest
+            sorted_entries = sorted(self._content_cache.items(), key=lambda x: x[1]['timestamp'])
+            entries_to_remove = len(self._content_cache) - self._max_cache_size
+            
+            for i in range(entries_to_remove):
+                path = sorted_entries[i][0]
+                del self._content_cache[path]
+
+    def _cache_content(self, password_path, content):
+        """Cache password content with metadata."""
+        import time
+        
+        # Clean up cache first
+        self._cleanup_cache()
+        
+        # Add new entry
+        self._content_cache[password_path] = {
+            'content': content,
+            'timestamp': time.time(),
+            'mtime': self._get_file_mtime(password_path)
+        }
+
+    def _get_cached_content(self, password_path):
+        """Get cached content if available and valid."""
+        if password_path not in self._content_cache:
+            return None
+        
+        cache_entry = self._content_cache[password_path]
+        
+        if self._is_cache_valid(password_path, cache_entry):
+            self.logger.debug(f"Cache hit for password: {password_path}")
+            return cache_entry['content']
+        else:
+            # Remove invalid cache entry
+            del self._content_cache[password_path]
+            self.logger.debug(f"Cache expired for password: {password_path}")
+            return None
+
+    def invalidate_cache(self, password_path=None):
+        """Invalidate cache for a specific password or all passwords."""
+        if password_path:
+            if password_path in self._content_cache:
+                del self._content_cache[password_path]
+                self.logger.debug(f"Cache invalidated for password: {password_path}")
+        else:
+            self._content_cache.clear()
+            self.logger.debug("All password cache invalidated")
 
     @property
     def is_initialized(self):
@@ -576,6 +669,8 @@ class PasswordStore:
 
             if process.returncode == 0:
                 # `pass rm` might not output much on success
+                # Invalidate cache for this password since it was deleted
+                self.invalidate_cache(path_to_password)
                 return True, f"Successfully deleted '{path_to_password}'."
             else:
                 error_message = process.stderr.strip() if process.stderr.strip() else process.stdout.strip()
@@ -589,12 +684,18 @@ class PasswordStore:
         """
         Retrieves the content of the specified password file using `pass show`.
         Returns a tuple (success_bool, content_or_error_string).
+        Uses caching to avoid redundant decryption operations.
         """
         if not path_to_password:
             return False, "Password path cannot be empty."
 
         if ".." in path_to_password or path_to_password.startswith("/"):
              return False, "Invalid password path."
+
+        # Check cache first
+        cached_content = self._get_cached_content(path_to_password)
+        if cached_content is not None:
+            return True, cached_content
 
         try:
             # Ensure GUI pinentry is configured for Flatpak
@@ -613,7 +714,12 @@ class PasswordStore:
             if process.returncode == 0:
                 # The first line is the password, subsequent lines are extra data.
                 # `pass show` outputs the full content of the decrypted file.
-                return True, process.stdout
+                content = process.stdout
+                
+                # Cache the content for future use
+                self._cache_content(path_to_password, content)
+                
+                return True, content
             else:
                 error_message = process.stderr.strip() if process.stderr.strip() else process.stdout.strip()
                 return False, f"Error showing password '{path_to_password}': {error_message}"
@@ -674,6 +780,8 @@ class PasswordStore:
 
             if process.returncode == 0:
                 # `pass insert` might not output much on success
+                # Invalidate cache for this password since it was modified
+                self.invalidate_cache(path_to_password)
                 return True, f"Successfully saved '{path_to_password}'."
             else:
                 error_message = process.stderr.strip() if process.stderr.strip() else process.stdout.strip()
