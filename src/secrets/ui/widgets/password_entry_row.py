@@ -336,9 +336,20 @@ class PasswordEntryRow(Adw.ActionRow):
         
         # Mark that we need to check content lazily
         self._content_checked = False
+        
+        # Trigger lazy content checking shortly after widget creation
+        # This ensures TOTP/URL buttons appear without blocking startup
+        from gi.repository import GLib
+        GLib.timeout_add(100, self._trigger_lazy_content_check)
     
     def check_visibility_and_load_content(self):
         """Check if row is visible and load content if needed. Called when row becomes visible."""
         # This can be called by the parent controller when the row becomes visible
         if self.get_visible() and not self._content_checked:
             self._check_content_if_needed()
+    
+    def _trigger_lazy_content_check(self):
+        """Trigger lazy content checking after a short delay to avoid blocking startup."""
+        if not self._content_checked:
+            self._check_content_if_needed()
+        return False  # Don't repeat the timeout

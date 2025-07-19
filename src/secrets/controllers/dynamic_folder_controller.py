@@ -84,15 +84,13 @@ class DynamicFolderController:
             # Get all folders (this might also be slow)
             all_folders = self.password_store.list_folders()
             
-            # Use minimal metadata loading for maximum startup performance
+            # Load metadata for all passwords (this is actually fast - it's just file reading)
+            # The real performance issue was URL extraction, not metadata loading
             password_metadata_cache = {}
             folder_metadata_cache = {}
             
-            # Only load metadata for the first batch of passwords (visible on startup)
-            # The rest will be loaded lazily when they become visible
-            visible_batch_size = 20  # Only load first 20 items immediately
-            
-            for i, password_path in enumerate(raw_password_list[:visible_batch_size]):
+            # Load password metadata (this is relatively fast compared to content decryption)
+            for password_path in raw_password_list:
                 try:
                     password_metadata_cache[password_path] = self.password_store.get_password_metadata(password_path)
                 except Exception as e:
@@ -103,14 +101,6 @@ class DynamicFolderController:
                         "icon": "dialog-password-symbolic",
                         "favicon_data": None
                     }
-            
-            # For remaining passwords, use default metadata (will be loaded lazily)
-            for password_path in raw_password_list[visible_batch_size:]:
-                password_metadata_cache[password_path] = {
-                    "color": "#3584e4",  # Default blue
-                    "icon": "dialog-password-symbolic",
-                    "favicon_data": None
-                }
             
             # Load folder metadata in background
             for folder_path in all_folders:
