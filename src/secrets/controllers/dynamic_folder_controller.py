@@ -356,19 +356,19 @@ class DynamicFolderController:
 
         folder_row = self.folder_rows[folder_path]
         
-        # Create the password widget and add it to the folder
-        password_row = self._create_password_widget(password_data, folder_row)
+        # Create the password widget (but don't add it to the folder yet)
+        password_row = self._create_password_widget_standalone(password_data)
         
-        # Update folder subtitle with new password count
-        password_count = folder_row.get_password_count()
-        folder_row.set_subtitle(f"{password_count} password{'s' if password_count != 1 else ''}")
+        # Use the folder's method to properly add the password row
+        folder_row.add_password_row(password_row)
         
         # Enable expansion now that the folder has passwords
+        password_count = folder_row.get_password_count()
         if password_count > 0:
             folder_row.set_enable_expansion(True)
-    
-    def _create_password_widget(self, password_data, parent_folder):
-        """Create a PasswordEntryRow for a password."""
+
+    def _create_password_widget_standalone(self, password_data):
+        """Create a PasswordEntryRow for a password without adding it to a parent."""
         from ..ui.widgets.password_entry_row import PasswordEntryRow
 
         # Create a PasswordEntry object for the row
@@ -418,61 +418,22 @@ class DynamicFolderController:
         password_row.connect("view-details", self._on_view_details_clicked)
         password_row.connect("remove-password", self._on_remove_password_clicked)
 
-        # Add password row to folder
-        parent_folder.add_row(password_row)
+        return password_row
+    
+    def _create_password_widget(self, password_data, parent_folder):
+        """Create a PasswordEntryRow for a password and add it to the parent folder."""
+        # Create the password widget
+        password_row = self._create_password_widget_standalone(password_data)
+        
+        # Add password row to folder using the proper method
+        parent_folder.add_password_row(password_row)
 
         return password_row
 
     def _create_root_password_widget(self, password_data):
         """Create a PasswordEntryRow for a root-level password (not in a folder)."""
-        from ..ui.widgets.password_entry_row import PasswordEntryRow
-
-        # Create a PasswordEntry object for the row
-        password_entry = PasswordEntry(path=password_data['path'], is_folder=False)
-        password_row = PasswordEntryRow(password_entry)
-
-        # Set the password entry path for metadata saving
-        password_row._password_entry = password_data['path']
-
-        # Set avatar color and icon from metadata
-        password_metadata = self.password_store.get_password_metadata(password_data['path'])
-        password_color = password_metadata["color"]
-        password_icon = password_metadata["icon"]
-        favicon_data = password_metadata["favicon_data"]
-
-        # Get URL for favicon support
-        url = self._extract_url_from_password(password_data['path'])
-
-        # Log favicon status
-        if favicon_data:
-            self.logger.debug("Using cached favicon data", extra={
-                'password_name': password_data['name'],
-                'favicon_size': len(favicon_data),
-                'tags': ['favicon', 'cache_hit']
-            })
-        elif url:
-            self.logger.debug("No cached favicon, will download", extra={
-                'password_name': password_data['name'],
-                'url': url,
-                'tags': ['favicon', 'cache_miss']
-            })
-
-        # Set avatar with color, icon, URL, and cached favicon
-        password_row.set_avatar_color_and_icon(password_color, password_icon, url, favicon_data)
-
-        # Store reference
-        password_path = password_data['path']
-        self.password_rows[password_path] = password_row
-
-        # Connect signals
-        password_row.connect("activated", self._on_password_activated, password_path)
-        password_row.connect("copy-username", self._on_copy_username_clicked, password_path)
-        password_row.connect("copy-password", self._on_copy_password_clicked, password_path)
-        password_row.connect("copy-totp", self._on_copy_totp_clicked, password_path)
-        password_row.connect("visit-url", self._on_visit_url_clicked)
-        password_row.connect("edit-password", self._on_edit_password_clicked)
-        password_row.connect("view-details", self._on_view_details_clicked)
-        password_row.connect("remove-password", self._on_remove_password_clicked)
+        # Create the password widget using the standalone method
+        password_row = self._create_password_widget_standalone(password_data)
 
         # Add password row directly to listbox (not to a folder)
         self.folders_listbox.append(password_row)
