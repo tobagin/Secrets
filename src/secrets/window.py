@@ -477,7 +477,7 @@ class SecretsWindow(Adw.ApplicationWindow):
         DialogManager.add_dialog_response(dialog, "delete", "_Delete", "destructive")
         dialog.set_default_response("cancel")
 
-        dialog.connect("response", self._on_delete_confirm_response, password_path)
+        dialog.connect("response", self.on_delete_confirm_response, password_path)
         dialog.present(self)
 
     def _on_add_subfolder_requested(self, folder_path):

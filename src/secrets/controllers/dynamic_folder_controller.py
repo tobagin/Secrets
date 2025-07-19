@@ -476,11 +476,12 @@ class DynamicFolderController:
             password_icon = "dialog-password-symbolic"
             favicon_data = None
 
-        # Set avatar with color and icon only (URL and favicon loaded lazily)
-        password_row.set_avatar_color_and_icon(password_color, password_icon)
+        # Set avatar with color, icon, and cached favicon data (URL loaded lazily if needed)
+        password_row.set_avatar_color_and_icon(password_color, password_icon, None, favicon_data)
         
-        # Set up lazy URL and favicon loading for when the password becomes visible
-        password_row.set_lazy_url_loader(self._get_password_url_lazy, password_data['path'])
+        # Set up lazy URL loading for when the password becomes visible (if no favicon cached)
+        if not favicon_data:
+            password_row.set_lazy_url_loader(self._get_password_url_lazy, password_data['path'])
 
         # Store reference
         password_path = password_data['path']
@@ -807,11 +808,12 @@ class DynamicFolderController:
         dialog.add_response("cancel", "_OK")
         dialog.set_default_response("cancel")
         
-        # Present dialog with parent window
+        # Set as transient for parent window
         if self.parent_window:
+            dialog.set_transient_for(self.parent_window)
             dialog.present(self.parent_window)
         else:
-            # Fallback: show dialog without parent
+            # Fallback: show dialog without parent (shouldn't happen in normal use)
             dialog.present()
 
     def _show_delete_folder_confirmation(self, folder_path, folder_name):
