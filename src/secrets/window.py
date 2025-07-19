@@ -208,6 +208,18 @@ class SecretsWindow(Adw.ApplicationWindow):
         # Set up folder action callbacks
         self.folder_controller.add_subfolder_requested = self._on_add_subfolder_requested
 
+        # Initialize ActionController for menu actions and keyboard shortcuts
+        self.action_controller = ActionController(
+            self,
+            self.toast_manager,
+            on_focus_search=self._on_focus_search,
+            on_clear_search=self._on_clear_search,
+            on_refresh=self._on_refresh,
+            on_generate_password=self._on_generate_password,
+            on_show_help=self._on_show_help_overlay,
+            on_import_export=self._on_import_export
+        )
+
         # Setup validation is now handled by the setup wizard before this window is shown
         # Just verify that setup is complete and load passwords
         # Use GLib.idle_add to ensure this happens after the window is fully initialized
@@ -773,7 +785,7 @@ class SecretsWindow(Adw.ApplicationWindow):
         """Show password generator dialog."""
         from .ui.dialogs import PasswordGeneratorDialog
 
-        generator_dialog = PasswordGeneratorDialog(parent_window=self)
+        generator_dialog = PasswordGeneratorDialog(transient_for=self)
         generator_dialog.connect("password-generated", self._on_password_generated)
         generator_dialog.present()
 
@@ -794,7 +806,7 @@ class SecretsWindow(Adw.ApplicationWindow):
         """Show keyboard shortcuts help overlay."""
         from .shortcuts_window import ShortcutsWindow
 
-        shortcuts_window = ShortcutsWindow(parent_window=self)
+        shortcuts_window = ShortcutsWindow(self)
         shortcuts_window.present()
 
     def _on_import_export(self, action=None, param=None):
@@ -818,6 +830,24 @@ class SecretsWindow(Adw.ApplicationWindow):
             config_manager=self.config_manager
         )
         compliance_dashboard_dialog.present()
+
+    def _on_focus_search(self, action=None, param=None):
+        """Focus the search entry."""
+        if hasattr(self, 'search_entry') and self.search_entry:
+            self.search_entry.grab_focus()
+
+    def _on_clear_search(self, action=None, param=None):
+        """Clear the search entry and show all items."""
+        if hasattr(self, 'search_entry') and self.search_entry:
+            self.search_entry.set_text("")
+        if hasattr(self, 'folder_controller') and self.folder_controller:
+            self.folder_controller.clear_search()
+
+    def _on_refresh(self, action=None, param=None):
+        """Refresh the password list."""
+        if hasattr(self, 'folder_controller') and self.folder_controller:
+            self.folder_controller.load_passwords()
+            self.toast_manager.show_success("Password list refreshed")
 
     def _refresh_password_list_after_import(self):
         """Refresh the password list after import operations."""

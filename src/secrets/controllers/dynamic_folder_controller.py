@@ -77,8 +77,41 @@ class DynamicFolderController:
             # Get all folders (this might also be slow)
             all_folders = self.password_store.list_folders()
             
-            # Schedule UI updates on main thread
-            GLib.idle_add(self._complete_password_loading, raw_password_list, all_folders, expansion_state)
+            # Pre-load metadata for all passwords and folders (expensive operations)
+            password_metadata_cache = {}
+            folder_metadata_cache = {}
+            password_url_cache = {}
+            
+            # Load password metadata and URLs in background
+            for password_path in raw_password_list:
+                try:
+                    password_metadata_cache[password_path] = self.password_store.get_password_metadata(password_path)
+                    # Also extract URL in background
+                    password_url_cache[password_path] = self._extract_url_from_password(password_path)
+                except Exception as e:
+                    self.logger.warning(f"Failed to load metadata for {password_path}: {e}")
+                    # Provide default metadata
+                    password_metadata_cache[password_path] = {
+                        "color": "#3584e4",  # Default blue
+                        "icon": "dialog-password-symbolic",
+                        "favicon_data": None
+                    }
+                    password_url_cache[password_path] = None
+            
+            # Load folder metadata in background
+            for folder_path in all_folders:
+                try:
+                    folder_metadata_cache[folder_path] = self.password_store.get_folder_metadata(folder_path)
+                except Exception as e:
+                    self.logger.warning(f"Failed to load folder metadata for {folder_path}: {e}")
+                    # Provide default metadata
+                    folder_metadata_cache[folder_path] = {
+                        "color": "#f66151",  # Default red
+                        "icon": "folder-symbolic"
+                    }
+            
+            # Schedule UI updates on main thread with pre-loaded data
+            GLib.idle_add(self._complete_password_loading, raw_password_list, all_folders, expansion_state, password_metadata_cache, folder_metadata_cache, password_url_cache)
             
         except Exception as e:
             self.logger.error("Error in background password loading", extra={
@@ -88,7 +121,7 @@ class DynamicFolderController:
             # Schedule error handling on main thread
             GLib.idle_add(self._handle_loading_error, str(e))
 
-    def _complete_password_loading(self, raw_password_list, all_folders, expansion_state):
+    def _complete_password_loading(self, raw_password_list, all_folders, expansion_state, password_metadata_cache, folder_metadata_cache, password_url_cache):
         """Complete password loading on the main UI thread."""
         try:
             self.logger.debug("Completing password loading on UI thread", extra={
@@ -103,8 +136,8 @@ class DynamicFolderController:
                 self._handle_empty_password_list()
                 return False  # Don't repeat this idle call
 
-            # Build dynamic folder structure on UI thread
-            self._build_dynamic_folder_structure_with_data(raw_password_list, all_folders)
+            # Build dynamic folder structure on UI thread with pre-loaded metadata
+            self._build_dynamic_folder_structure_with_data(raw_password_list, all_folders, password_metadata_cache, folder_metadata_cache, password_url_cache)
 
             # Restore expansion state
             self._restore_expansion_state(expansion_state)
@@ -226,8 +259,12 @@ class DynamicFolderController:
         all_folders = self.password_store.list_folders()
         self._build_dynamic_folder_structure_with_data(raw_password_list, all_folders)
 
-    def _build_dynamic_folder_structure_with_data(self, raw_password_list, all_folders):
+    def _build_dynamic_folder_structure_with_data(self, raw_password_list, all_folders, password_metadata_cache=None, folder_metadata_cache=None, password_url_cache=None):
         """Build dynamic folder structure from pre-loaded password list and folder data."""
+        # Store metadata caches for use by widget creation methods
+        self._password_metadata_cache = password_metadata_cache or {}
+        self._folder_metadata_cache = folder_metadata_cache or {}
+        self._password_url_cache = password_url_cache or {}
         # Group passwords by their immediate parent folder
         folder_structure = {}
         root_passwords = []
@@ -264,15 +301,48 @@ class DynamicFolderController:
         for folder_path in sorted(folder_structure.keys()):
             self._create_empty_folder_widget(folder_path)
 
-        # Step 2: Add passwords to their respective folders
+        # Step 2: Add passwords to their respective folders (in batches to avoid UI freeze)
+        self._add_passwords_in_batches(folder_structure, root_passwords)
+
+    def _add_passwords_in_batches(self, folder_structure, root_passwords):
+        """Add passwords to folders in batches to avoid UI freezing."""
+        # Prepare all password additions as a queue
+        password_queue = []
+        
+        # Add folder passwords to queue
         for folder_path in sorted(folder_structure.keys()):
             passwords = folder_structure[folder_path]
             for password_data in passwords:
-                self._add_password_to_folder(password_data, folder_path)
-
-        # Step 3: Create individual password rows for root passwords (after all folders)
+                password_queue.append(('folder', password_data, folder_path))
+        
+        # Add root passwords to queue
         for password_data in root_passwords:
-            self._create_root_password_widget(password_data)
+            password_queue.append(('root', password_data, None))
+        
+        # Process passwords in small batches using idle callbacks
+        self._process_password_batch(password_queue, 0)
+
+    def _process_password_batch(self, password_queue, start_index, batch_size=5):
+        """Process a batch of passwords on the UI thread."""
+        end_index = min(start_index + batch_size, len(password_queue))
+        
+        # Process this batch
+        for i in range(start_index, end_index):
+            password_type, password_data, folder_path = password_queue[i]
+            
+            if password_type == 'folder':
+                self._add_password_to_folder(password_data, folder_path)
+            elif password_type == 'root':
+                self._create_root_password_widget(password_data)
+        
+        # Schedule next batch if there are more passwords
+        if end_index < len(password_queue):
+            GLib.idle_add(self._process_password_batch, password_queue, end_index, batch_size)
+            return False  # Don't repeat this specific call
+        else:
+            # All passwords processed
+            self.logger.debug("All passwords added to UI")
+            return False
     
     def _create_folder_widget(self, folder_path, passwords):
         """Create a FolderExpanderRow for a folder with its passwords."""
@@ -287,10 +357,15 @@ class DynamicFolderController:
         folder_row.set_title(folder_display_name)
         folder_row.set_subtitle(f"{len(passwords)} password{'s' if len(passwords) != 1 else ''}")
 
-        # Set avatar color and icon from metadata
-        folder_metadata = self.password_store.get_folder_metadata(folder_path)
-        folder_color = folder_metadata["color"]
-        folder_icon = folder_metadata["icon"]
+        # Set avatar color and icon from cached metadata
+        folder_metadata = getattr(self, '_folder_metadata_cache', {}).get(folder_path)
+        if folder_metadata:
+            folder_color = folder_metadata["color"]
+            folder_icon = folder_metadata["icon"]
+        else:
+            # Fallback to default values if cache miss
+            folder_color = "#f66151"  # Default red
+            folder_icon = "folder-symbolic"
         folder_row.set_avatar_color_and_icon(folder_color, folder_icon)
 
         self.folder_rows[folder_path] = folder_row
@@ -326,10 +401,15 @@ class DynamicFolderController:
         folder_row.set_title(folder_display_name)
         folder_row.set_subtitle("0 passwords")  # Will be updated when passwords are added
 
-        # Set avatar color and icon from metadata
-        folder_metadata = self.password_store.get_folder_metadata(folder_path)
-        folder_color = folder_metadata["color"]
-        folder_icon = folder_metadata["icon"]
+        # Set avatar color and icon from cached metadata
+        folder_metadata = getattr(self, '_folder_metadata_cache', {}).get(folder_path)
+        if folder_metadata:
+            folder_color = folder_metadata["color"]
+            folder_icon = folder_metadata["icon"]
+        else:
+            # Fallback to default values if cache miss
+            folder_color = "#f66151"  # Default red
+            folder_icon = "folder-symbolic"
         folder_row.set_avatar_color_and_icon(folder_color, folder_icon)
 
         self.folder_rows[folder_path] = folder_row
@@ -378,14 +458,20 @@ class DynamicFolderController:
         # Set the password entry path for metadata saving
         password_row._password_entry = password_data['path']  # Keep for compatibility with favicon saving
 
-        # Set avatar color and icon from metadata
-        password_metadata = self.password_store.get_password_metadata(password_data['path'])
-        password_color = password_metadata["color"]
-        password_icon = password_metadata["icon"]
-        favicon_data = password_metadata["favicon_data"]
+        # Set avatar color and icon from cached metadata
+        password_metadata = getattr(self, '_password_metadata_cache', {}).get(password_data['path'])
+        if password_metadata:
+            password_color = password_metadata["color"]
+            password_icon = password_metadata["icon"]
+            favicon_data = password_metadata["favicon_data"]
+        else:
+            # Fallback to default values if cache miss
+            password_color = "#3584e4"  # Default blue
+            password_icon = "dialog-password-symbolic"
+            favicon_data = None
 
-        # Get URL for favicon support
-        url = self._extract_url_from_password(password_data['path'])
+        # Get URL for favicon support (use cached data if available)
+        url = self._get_cached_url_from_password(password_data['path'])
 
         # Log favicon status
         if favicon_data:
@@ -440,7 +526,9 @@ class DynamicFolderController:
 
         return password_row
 
-
+    def _get_cached_url_from_password(self, password_path):
+        """Get URL from password using cached metadata to avoid blocking operations."""
+        return getattr(self, '_password_url_cache', {}).get(password_path)
 
     def _extract_url_from_password(self, password_path):
         """Extract URL from password content."""

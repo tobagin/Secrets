@@ -108,6 +108,7 @@ class PreferencesDialog(Adw.PreferencesDialog):
         super().__init__(**kwargs)
 
         self.parent_window = parent_window
+        self.config_manager = config_manager
 
         # Set up accessibility
         AccessibilityHelper.set_accessible_name(self, "Preferences dialog")
@@ -120,9 +121,8 @@ class PreferencesDialog(Adw.PreferencesDialog):
         else:
             super().present()
 
-        self.config_manager = config_manager
-        self.theme_manager = ThemeManager(config_manager)
-        self.config = config_manager.get_config()
+        self.theme_manager = ThemeManager(self.config_manager)
+        self.config = self.config_manager.get_config()
 
         self._setup_ui()
         self._load_current_settings()
