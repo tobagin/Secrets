@@ -37,10 +37,16 @@ class ClipboardManager:
 
     def copy_password(self, password: str) -> bool:
         """Copy password to clipboard with auto-clear."""
+        if not password:
+            self.toast_manager.show_warning("No password to copy")
+            return False
         return self.copy_text(password, "Password", auto_clear=True)
 
     def copy_username(self, username: str) -> bool:
         """Copy username to clipboard."""
+        if not username:
+            self.toast_manager.show_warning("No username to copy")
+            return False
         return self.copy_text(username, "Username")
 
     def _setup_auto_clear(self, original_text: str):

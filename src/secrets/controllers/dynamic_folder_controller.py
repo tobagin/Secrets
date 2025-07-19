@@ -4,6 +4,7 @@ This controller dynamically creates folder and password rows based on the passwo
 """
 
 import os
+import threading
 from gi.repository import Gtk, Adw, GLib, Gdk, GdkPixbuf
 from ..models import PasswordEntry
 from ..ui.widgets import FolderExpanderRow
@@ -30,34 +31,115 @@ class DynamicFolderController:
         self.password_rows = {}  # password_path -> AdwActionRow
         self.current_selection = None
         
+        # Threading for password loading
+        self._loading_thread = None
+        self._is_loading = False
+        
         # Connect search functionality
         if self.search_entry:
             self.search_entry.connect("search-changed", self._on_search_entry_changed)
     
     def load_passwords(self):
-        """Load and display passwords in the dynamic folder structure."""
-        print(f"DEBUG: load_passwords called, store_dir={self.password_store.store_dir}")
+        """Load and display passwords in the dynamic folder structure using threading."""
+        # Cancel any existing loading thread
+        if self._loading_thread and self._loading_thread.is_alive():
+            self.logger.debug("Cancelling existing password loading thread")
+            return  # Don't start a new load if one is already running
+        
+        # Set loading state
+        self._is_loading = True
         
         # Save current expansion state before clearing
         expansion_state = self._save_expansion_state()
 
-        # Clear existing widgets
+        # Clear existing widgets immediately on UI thread
         self._clear_all_widgets()
+        
+        # Show loading indicator if available
+        self._show_loading_state()
 
-        # Get password list from store
-        raw_password_list = self.password_store.list_passwords()
-        print(f"DEBUG: Found {len(raw_password_list)} passwords: {raw_password_list[:3]}")
+        # Start background thread for password loading
+        self._loading_thread = threading.Thread(
+            target=self._load_passwords_background,
+            args=(expansion_state,),
+            daemon=True
+        )
+        self._loading_thread.start()
 
-        if not raw_password_list:
-            print("DEBUG: No passwords found, handling empty list")
-            self._handle_empty_password_list()
-            return
+    def _load_passwords_background(self, expansion_state):
+        """Background thread function for loading passwords."""
+        try:
+            self.logger.debug("Starting background password loading")
+            
+            # Get password list from store (this might be slow)
+            raw_password_list = self.password_store.list_passwords()
+            
+            # Get all folders (this might also be slow)
+            all_folders = self.password_store.list_folders()
+            
+            # Schedule UI updates on main thread
+            GLib.idle_add(self._complete_password_loading, raw_password_list, all_folders, expansion_state)
+            
+        except Exception as e:
+            self.logger.error("Error in background password loading", extra={
+                'error': str(e),
+                'tags': ['threading', 'password_loading']
+            })
+            # Schedule error handling on main thread
+            GLib.idle_add(self._handle_loading_error, str(e))
 
-        # Build dynamic folder structure
-        self._build_dynamic_folder_structure(raw_password_list)
+    def _complete_password_loading(self, raw_password_list, all_folders, expansion_state):
+        """Complete password loading on the main UI thread."""
+        try:
+            self.logger.debug("Completing password loading on UI thread", extra={
+                'password_count': len(raw_password_list),
+                'folder_count': len(all_folders)
+            })
+            
+            # Hide loading indicator
+            self._hide_loading_state()
+            
+            if not raw_password_list:
+                self._handle_empty_password_list()
+                return False  # Don't repeat this idle call
 
-        # Restore expansion state
-        self._restore_expansion_state(expansion_state)
+            # Build dynamic folder structure on UI thread
+            self._build_dynamic_folder_structure_with_data(raw_password_list, all_folders)
+
+            # Restore expansion state
+            self._restore_expansion_state(expansion_state)
+            
+            self._is_loading = False
+            self.logger.debug("Password loading completed successfully")
+            
+        except Exception as e:
+            self.logger.error("Error completing password loading", extra={
+                'error': str(e),
+                'tags': ['ui_thread', 'password_loading']
+            })
+            self._handle_loading_error(str(e))
+        
+        return False  # Don't repeat this idle call
+
+    def _show_loading_state(self):
+        """Show loading indicator while passwords are being loaded."""
+        # You could add a spinner or loading message here
+        # For now, we'll just log the loading state
+        self.logger.debug("Password loading started")
+
+    def _hide_loading_state(self):
+        """Hide loading indicator after passwords are loaded."""
+        self.logger.debug("Password loading UI updates completed")
+
+    def _handle_loading_error(self, error_message):
+        """Handle errors that occur during password loading."""
+        self._is_loading = False
+        self.logger.error("Password loading failed", extra={'error': error_message})
+        
+        if self.toast_manager:
+            self.toast_manager.show_error(f"Failed to load passwords: {error_message}")
+        
+        return False  # Don't repeat this idle call
 
     def refresh_password_display(self, password_path):
         """Refresh the display of a specific password after metadata changes."""
@@ -140,6 +222,12 @@ class DynamicFolderController:
     
     def _build_dynamic_folder_structure(self, raw_password_list):
         """Build dynamic folder structure from password list and include empty folders."""
+        # Get all folders from password store (this will be called on UI thread)
+        all_folders = self.password_store.list_folders()
+        self._build_dynamic_folder_structure_with_data(raw_password_list, all_folders)
+
+    def _build_dynamic_folder_structure_with_data(self, raw_password_list, all_folders):
+        """Build dynamic folder structure from pre-loaded password list and folder data."""
         # Group passwords by their immediate parent folder
         folder_structure = {}
         root_passwords = []
@@ -168,17 +256,21 @@ class DynamicFolderController:
                 })
 
         # Add all existing folders (both empty and with passwords)
-        all_folders = self.password_store.list_folders()
         for folder_path in all_folders:
             if folder_path not in folder_structure:
                 folder_structure[folder_path] = []  # Empty folder
 
-        # Create folder widgets for all folders (sorted to ensure proper ordering)
+        # Step 1: Create all folder widgets first (without passwords)
+        for folder_path in sorted(folder_structure.keys()):
+            self._create_empty_folder_widget(folder_path)
+
+        # Step 2: Add passwords to their respective folders
         for folder_path in sorted(folder_structure.keys()):
             passwords = folder_structure[folder_path]
-            self._create_folder_widget(folder_path, passwords)
+            for password_data in passwords:
+                self._add_password_to_folder(password_data, folder_path)
 
-        # Create individual password rows for root passwords (after all folders)
+        # Step 3: Create individual password rows for root passwords (after all folders)
         for password_data in root_passwords:
             self._create_root_password_widget(password_data)
     
@@ -220,6 +312,60 @@ class DynamicFolderController:
 
         # Add folder to listbox
         self.folders_listbox.append(folder_row)
+
+    def _create_empty_folder_widget(self, folder_path):
+        """Create a FolderExpanderRow for a folder without passwords initially."""
+        # For subfolders, show the full path; for top-level folders, show just the name
+        if '/' in folder_path:
+            folder_display_name = folder_path  # Show full path like "websites/social"
+        else:
+            folder_display_name = folder_path  # Show just the name like "websites"
+
+        # Create folder expander row using the custom widget
+        folder_row = FolderExpanderRow(folder_path=folder_path)
+        folder_row.set_title(folder_display_name)
+        folder_row.set_subtitle("0 passwords")  # Will be updated when passwords are added
+
+        # Set avatar color and icon from metadata
+        folder_metadata = self.password_store.get_folder_metadata(folder_path)
+        folder_color = folder_metadata["color"]
+        folder_icon = folder_metadata["icon"]
+        folder_row.set_avatar_color_and_icon(folder_color, folder_icon)
+
+        self.folder_rows[folder_path] = folder_row
+
+        # Connect folder signals
+        folder_row.connect("activate", self._on_folder_activated, folder_path)
+        folder_row.connect("add-password-to-folder", self._on_add_password_to_folder_clicked, folder_path)
+        folder_row.connect("add-subfolder", self._on_add_subfolder_clicked, folder_path)
+        folder_row.connect("edit-folder", self._on_folder_edit_clicked, folder_path, folder_display_name)
+        folder_row.connect("remove-folder", self._on_folder_delete_clicked, folder_path, folder_display_name)
+
+        # Start with expansion disabled (will be enabled if passwords are added)
+        folder_row.set_enable_expansion(False)
+
+        # Add folder to listbox
+        self.folders_listbox.append(folder_row)
+
+    def _add_password_to_folder(self, password_data, folder_path):
+        """Add a password to an existing folder."""
+        # Get the folder row
+        if folder_path not in self.folder_rows:
+            self.logger.warning(f"Folder {folder_path} not found when adding password {password_data['path']}")
+            return
+
+        folder_row = self.folder_rows[folder_path]
+        
+        # Create the password widget and add it to the folder
+        password_row = self._create_password_widget(password_data, folder_row)
+        
+        # Update folder subtitle with new password count
+        password_count = folder_row.get_password_count()
+        folder_row.set_subtitle(f"{password_count} password{'s' if password_count != 1 else ''}")
+        
+        # Enable expansion now that the folder has passwords
+        if password_count > 0:
+            folder_row.set_enable_expansion(True)
     
     def _create_password_widget(self, password_data, parent_folder):
         """Create a PasswordEntryRow for a password."""

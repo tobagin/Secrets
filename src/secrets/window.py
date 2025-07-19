@@ -196,8 +196,17 @@ class SecretsWindow(Adw.ApplicationWindow):
         
         # Set up password action callbacks
         self.folder_controller.set_action_callbacks(
-            edit_password=self._on_edit_password_requested
+            copy_username=self._on_copy_username_requested,
+            copy_password=self._on_copy_password_requested,
+            copy_totp=self._on_copy_totp_requested,
+            visit_url=self._on_visit_url_requested,
+            edit_password=self._on_edit_password_requested,
+            view_details=self._on_view_details_requested,
+            remove_password=self._on_remove_password_requested
         )
+        
+        # Set up folder action callbacks
+        self.folder_controller.add_subfolder_requested = self._on_add_subfolder_requested
 
         # Setup validation is now handled by the setup wizard before this window is shown
         # Just verify that setup is complete and load passwords
@@ -334,6 +343,137 @@ class SecretsWindow(Adw.ApplicationWindow):
         dialog = FolderDialog(
             transient_for_window=self,
             suggested_parent_path=suggested_parent
+        )
+        dialog.connect("folder-create-requested", self.on_add_folder_dialog_create_requested)
+        dialog.present()
+
+    def _on_copy_username_requested(self, password_path):
+        """Handle copy username request from password row."""
+        success, content_or_error = self.password_store.get_password_content(password_path)
+        if success:
+            from .services.password_content_parser import parse_password_content
+            password_data = parse_password_content(content_or_error)
+            if password_data.username:
+                self.clipboard_manager.copy_username(password_data.username)
+            else:
+                self.toast_manager.show_warning("No username found in this password entry")
+        else:
+            self.toast_manager.show_error(f"Error reading password: {content_or_error}")
+
+    def _on_copy_password_requested(self, password_path):
+        """Handle copy password request from password row."""
+        success, content_or_error = self.password_store.get_password_content(password_path)
+        if success:
+            from .services.password_content_parser import parse_password_content
+            password_data = parse_password_content(content_or_error)
+            if password_data.password:
+                self.clipboard_manager.copy_password(password_data.password)
+            else:
+                self.toast_manager.show_warning("No password found in this entry")
+        else:
+            self.toast_manager.show_error(f"Error reading password: {content_or_error}")
+
+    def _on_copy_totp_requested(self, password_path):
+        """Handle copy TOTP request from password row."""
+        success, content_or_error = self.password_store.get_password_content(password_path)
+        if success:
+            from .services.password_content_parser import parse_password_content
+            password_data = parse_password_content(content_or_error)
+            
+            if password_data.totp:
+                try:
+                    import pyotp
+                    import re
+                    
+                    # Normalize the TOTP secret (remove spaces, make uppercase)
+                    normalized_secret = re.sub(r'[^A-Z2-7]', '', password_data.totp.upper())
+                    
+                    totp = pyotp.TOTP(normalized_secret)
+                    current_totp = totp.now()
+                    self.clipboard_manager.copy_text(current_totp, "TOTP code")
+                except Exception as e:
+                    self.toast_manager.show_error(f"Error generating TOTP: {str(e)}")
+            else:
+                self.toast_manager.show_warning("No TOTP secret found in this password entry")
+        else:
+            self.toast_manager.show_error(f"Error reading password: {content_or_error}")
+
+    def _on_visit_url_requested(self, url):
+        """Handle visit URL request from password row."""
+        try:
+            import subprocess
+            subprocess.run(['xdg-open', url], check=True)
+            self.toast_manager.show_success(f"Opening {url}")
+        except Exception as e:
+            self.toast_manager.show_error(f"Error opening URL: {str(e)}")
+
+    def _on_view_details_requested(self, password_path):
+        """Handle view details request from password row."""
+        # Get password content and parse it
+        success, content_or_error = self.password_store.get_password_content(password_path)
+        if not success:
+            self.toast_manager.show_error(f"Error reading password: {content_or_error}")
+            return
+        
+        # Parse the password content into a PasswordEntry
+        from .services.password_content_parser import parse_password_content
+        from .models import PasswordEntry
+        
+        password_data = parse_password_content(content_or_error)
+        password_entry = PasswordEntry(
+            path=password_path,
+            password=password_data.password,
+            username=password_data.username,
+            url=password_data.url,
+            notes=password_data.notes,
+            totp=password_data.totp,
+            recovery_codes=password_data.recovery_codes,
+            is_folder=False
+        )
+        
+        # Create and show the password details dialog
+        from .ui.dialogs.password_details_dialog import PasswordDetailsDialog
+        
+        details_dialog = PasswordDetailsDialog(password_entry)
+        details_dialog.set_clipboard_manager(self.clipboard_manager)
+        details_dialog.set_toast_manager(self.toast_manager)
+        
+        # Connect signals
+        details_dialog.connect("visit-url", self._on_visit_url_from_dialog)
+        
+        # Present the dialog
+        details_dialog.present(self)
+
+    def _on_visit_url_from_dialog(self, dialog, url):
+        """Handle visit URL signal from password details dialog."""
+        self._open_url(url)
+
+    def _on_remove_password_requested(self, password_path):
+        """Handle remove password request from password row."""
+        from .utils import DialogManager, UIConstants
+        
+        dialog = DialogManager.create_message_dialog(
+            parent=self,
+            heading=f"Delete '{os.path.basename(password_path)}'?",
+            body=f"Are you sure you want to permanently delete the password entry for '{password_path}'?",
+            dialog_type="question",
+            default_size=UIConstants.SMALL_DIALOG
+        )
+
+        # Add response buttons
+        DialogManager.add_dialog_response(dialog, "cancel", "_Cancel", "default")
+        DialogManager.add_dialog_response(dialog, "delete", "_Delete", "destructive")
+        dialog.set_default_response("cancel")
+
+        dialog.connect("response", self._on_delete_confirm_response, password_path)
+        dialog.present(self)
+
+    def _on_add_subfolder_requested(self, folder_path):
+        """Handle add subfolder request from folder expander row."""
+        dialog = FolderDialog(
+            mode="add",
+            transient_for_window=self,
+            suggested_parent_path=folder_path
         )
         dialog.connect("folder-create-requested", self.on_add_folder_dialog_create_requested)
         dialog.present()
