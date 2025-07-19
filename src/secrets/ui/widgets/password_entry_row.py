@@ -153,7 +153,7 @@ class PasswordEntryRow(Adw.ActionRow):
                 success, content = store.get_password_content(password_path)
                 
                 if success:
-                    lines = content.split('\\n')
+                    lines = content.split('\n')
                     has_totp = False
                     has_url = False
                     
@@ -179,7 +179,7 @@ class PasswordEntryRow(Adw.ActionRow):
         self._content_checked = True
     
     def _update_advanced_buttons(self, has_totp, has_url):
-        \"\"\"Update advanced button visibility based on content analysis.\"\"\"
+        """Update advanced button visibility based on content analysis."""
         self.copy_totp_button.set_visible(has_totp)
         self.visit_url_button.set_visible(has_url)
         return False  # Don't repeat this idle call
