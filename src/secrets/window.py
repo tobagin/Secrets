@@ -79,6 +79,7 @@ class SecretsWindow(Adw.ApplicationWindow):
     search_entry = Gtk.Template.Child()
     password_list_scrolled = Gtk.Template.Child()
     password_list_box = Gtk.Template.Child()
+    welcome_status_page = Gtk.Template.Child()
 
     def __init__(self, config_manager=None, **kwargs):
         super().__init__(**kwargs)
@@ -182,7 +183,10 @@ class SecretsWindow(Adw.ApplicationWindow):
             self.toast_manager,
             self.password_list_box,  # Use simple password list box
             self.search_entry,
-            on_selection_changed=self._on_selection_changed
+            on_selection_changed=self._on_selection_changed,
+            parent_window=self,
+            password_list_scrolled=self.password_list_scrolled,
+            welcome_status_page=self.welcome_status_page
         )
 
         # Set up folder edit callback

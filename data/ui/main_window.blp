@@ -68,6 +68,7 @@ template $SecretsWindow : Adw.ApplicationWindow {
       Gtk.Box main_content {
         orientation: vertical;
         spacing: 0;
+        valign: start;
 
         Adw.Clamp search_clamp {
           visible: false;
@@ -82,16 +83,53 @@ template $SecretsWindow : Adw.ApplicationWindow {
         }
 
         ScrolledWindow password_list_scrolled {
-          vexpand: true;
           hscrollbar-policy: never;
           vscrollbar-policy: automatic;
           margin-start: 12;
           margin-end: 12;
           margin-bottom: 12;
+          propagate-natural-height: true;
           
           child: ListBox password_list_box {
             selection-mode: none;
             styles ["boxed-list"]
+          };
+        }
+
+        Adw.StatusPage welcome_status_page {
+          visible: false;
+          icon-name: "io.github.tobagin.secrets-password-symbolic";
+          title: _("Welcome to Secrets");
+          description: _("Your password manager is ready to secure your passwords. Get started by creating your first password or folder, or import from your previous password manager.");
+
+          child: Gtk.Box {
+            orientation: vertical;
+            spacing: 12;
+            halign: center;
+            margin-top: 24;
+
+            Gtk.Button create_first_password_button {
+              label: _("Create First Password");
+              styles ["pill", "suggested-action"]
+              action-name: "win.add-password";
+            }
+
+            Gtk.Button create_first_folder_button {
+              label: _("Create First Folder");
+              styles ["pill"]
+              action-name: "win.add-folder";
+            }
+
+            Gtk.Separator {
+              margin-top: 12;
+              margin-bottom: 12;
+            }
+
+            Gtk.Button import_passwords_button {
+              label: _("Import from Password Manager");
+              styles ["pill"]
+              action-name: "win.import-export";
+            }
           };
         }
       }

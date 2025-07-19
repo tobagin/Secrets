@@ -15,7 +15,7 @@ from ..logging_system import get_logger, LogCategory
 class DynamicFolderController:
     """Controller for managing dynamically created folder structure in the sidebar."""
     
-    def __init__(self, password_store, toast_manager, folders_listbox, search_entry, on_selection_changed=None, parent_window=None):
+    def __init__(self, password_store, toast_manager, folders_listbox, search_entry, on_selection_changed=None, parent_window=None, password_list_scrolled=None, welcome_status_page=None):
         # Initialize logger for this controller
         self.logger = get_logger(LogCategory.UI, "DynamicFolderController")
         
@@ -25,6 +25,8 @@ class DynamicFolderController:
         self.search_entry = search_entry
         self.on_selection_changed = on_selection_changed
         self.parent_window = parent_window
+        self.password_list_scrolled = password_list_scrolled
+        self.welcome_status_page = welcome_status_page
         
         # Store references to created widgets
         self.folder_rows = {}  # folder_path -> AdwExpanderRow
@@ -136,12 +138,16 @@ class DynamicFolderController:
             # Hide loading indicator
             self._hide_loading_state()
             
-            if not raw_password_list:
-                self._handle_empty_password_list()
-                return False  # Don't repeat this idle call
-
             # Build dynamic folder structure on UI thread with pre-loaded metadata
+            # Always build folder structure even if there are no passwords, to show empty folders
             self._build_dynamic_folder_structure_with_data(raw_password_list, all_folders, password_metadata_cache, folder_metadata_cache)
+            
+            # Manage visibility of password list vs welcome status page
+            if not raw_password_list and not all_folders:
+                self._show_welcome_status_page()
+                return False  # Don't repeat this idle call
+            else:
+                self._show_password_list()
 
             # Restore expansion state
             self._restore_expansion_state(expansion_state)
@@ -242,9 +248,17 @@ class DynamicFolderController:
         self.password_rows.clear()
         self.current_selection = None
     
-    def _handle_empty_password_list(self):
-        """Handle the case when no passwords are found."""
-        # Check if there are .gpg files that couldn't be listed
+    def _show_welcome_status_page(self):
+        """Show the welcome status page and hide the password list."""
+        # Hide the password list
+        if self.password_list_scrolled:
+            self.password_list_scrolled.set_visible(False)
+        
+        # Show the welcome status page
+        if self.welcome_status_page:
+            self.welcome_status_page.set_visible(True)
+        
+        # Check if there are .gpg files that couldn't be listed (for error handling)
         gpg_files_exist = False
         if self.password_store.store_dir and os.path.isdir(self.password_store.store_dir):
             for root, dirs, files in os.walk(self.password_store.store_dir):
@@ -254,8 +268,16 @@ class DynamicFolderController:
 
         if gpg_files_exist:
             self.toast_manager.show_error("Password files exist but cannot be accessed. Check GPG setup.")
-        else:
-            self.toast_manager.show_info("No passwords found. Click '+' to add your first password.")
+    
+    def _show_password_list(self):
+        """Show the password list and hide the welcome status page."""
+        # Show the password list
+        if self.password_list_scrolled:
+            self.password_list_scrolled.set_visible(True)
+        
+        # Hide the welcome status page
+        if self.welcome_status_page:
+            self.welcome_status_page.set_visible(False)
     
     def _build_dynamic_folder_structure(self, raw_password_list):
         """Build dynamic folder structure from password list and include empty folders."""
