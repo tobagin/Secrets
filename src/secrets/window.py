@@ -193,6 +193,11 @@ class SecretsWindow(Adw.ApplicationWindow):
 
         # Connect folder deletion dialog handling
         self.folder_controller.delete_folder_requested = self._on_delete_folder_dialog_requested
+        
+        # Set up password action callbacks
+        self.folder_controller.set_action_callbacks(
+            edit_password=self._on_edit_password_requested
+        )
 
         # Setup validation is now handled by the setup wizard before this window is shown
         # Just verify that setup is complete and load passwords
@@ -332,6 +337,33 @@ class SecretsWindow(Adw.ApplicationWindow):
         )
         dialog.connect("folder-create-requested", self.on_add_folder_dialog_create_requested)
         dialog.present()
+
+    def _on_edit_password_requested(self, password_path):
+        """Handle edit password request from password row."""
+        success, content_or_error = self.password_store.get_password_content(password_path)
+        if success:
+            current_content = content_or_error
+
+            # Load current color and icon from metadata
+            password_metadata = self.password_store.get_password_metadata(password_path)
+            current_color = password_metadata["color"]
+            current_icon = password_metadata["icon"]
+
+            # Create and show the edit dialog
+            dialog = PasswordDialog(
+                mode="edit",
+                password_path=password_path,
+                password_content=current_content,
+                transient_for=self,
+                password_store=self.password_store,
+                current_color=current_color,
+                current_icon=current_icon
+            )
+            dialog.connect("password-edit-requested", self.on_edit_dialog_save_requested)
+            dialog.present()
+        else:
+            # content_or_error is the error message here
+            self.toast_manager.show_error(f"Error fetching content: {content_or_error}")
 
     def on_search_toggle_clicked(self, widget):
         """Handle search toggle button click."""

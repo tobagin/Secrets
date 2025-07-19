@@ -100,8 +100,8 @@ class PasswordDialog(Adw.Window):
             if self.password_content:
                 self._populate_from_content()
         else:  # add mode
-            title = "Add Password"
-            button_label = "Add"
+            title = "Create Password"
+            button_label = "Create"
             # Set suggested folder for add mode
             if self.suggested_folder:
                 self.folder_row.set_subtitle(self.suggested_folder)
