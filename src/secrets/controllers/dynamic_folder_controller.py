@@ -37,6 +37,11 @@ class DynamicFolderController:
         self._loading_thread = None
         self._is_loading = False
         
+        # Bulk content processing
+        self._bulk_processing_thread = None
+        self._bulk_processing_active = False
+        self._bulk_processing_results = {}
+        
         # Virtual scrolling optimization
         self._virtual_scrolling_enabled = True
         self._viewport_size = 20  # Number of items to render at once
@@ -154,6 +159,10 @@ class DynamicFolderController:
             
             self._is_loading = False
             self.logger.debug("Password loading completed successfully")
+            
+            # Start bulk content processing after UI is ready
+            if raw_password_list:
+                GLib.timeout_add(2000, self._start_bulk_content_processing, raw_password_list)
             
         except Exception as e:
             self.logger.error("Error completing password loading", extra={
@@ -1068,3 +1077,144 @@ class DynamicFolderController:
         self.edit_password_callback = edit_password
         self.view_details_callback = view_details
         self.remove_password_callback = remove_password
+    
+    def _start_bulk_content_processing(self, password_list):
+        """Start bulk processing of all password content to detect TOTP and URLs with single passphrase."""
+        if self._bulk_processing_active:
+            return False  # Already processing
+        
+        self._bulk_processing_active = True
+        self.logger.info(f"Starting bulk content processing for {len(password_list)} passwords")
+        
+        # Show a toast to inform user
+        self.toast_manager.show_info("Processing password content for TOTP and URL detection...")
+        
+        # Start background thread for bulk processing
+        self._bulk_processing_thread = threading.Thread(
+            target=self._bulk_process_password_content,
+            args=(password_list,),
+            daemon=True
+        )
+        self._bulk_processing_thread.start()
+        
+        return False  # Don't repeat this timeout
+    
+    def _bulk_process_password_content(self, password_list):
+        """Process all password content in bulk to detect TOTP and URLs."""
+        try:
+            self.logger.debug("Starting bulk password content processing")
+            total_passwords = len(password_list)
+            processed_count = 0
+            
+            for password_path in password_list:
+                try:
+                    # Get password content (this will prompt for passphrase on first decrypt)
+                    success, content = self.password_store.get_password_content(password_path)
+                    
+                    if success:
+                        # Analyze content for TOTP and URLs
+                        has_totp = False
+                        has_url = False
+                        url = None
+                        
+                        lines = content.split('\n')
+                        for line in lines:
+                            line_stripped = line.strip()
+                            line_lower = line_stripped.lower()
+                            
+                            # Check for TOTP
+                            if line_lower.startswith('totp:') or line_lower.startswith('otp:'):
+                                has_totp = True
+                            
+                            # Check for URL
+                            if (line_lower.startswith('url:') or line_lower.startswith('website:') or 
+                                line_stripped.startswith('http://') or line_stripped.startswith('https://')):
+                                has_url = True
+                                # Extract the actual URL
+                                if line_lower.startswith('url:'):
+                                    url = line_stripped[4:].strip()
+                                elif line_lower.startswith('website:'):
+                                    url = line_stripped[8:].strip()
+                                elif line_stripped.startswith(('http://', 'https://')):
+                                    url = line_stripped
+                        
+                        # Store results
+                        self._bulk_processing_results[password_path] = {
+                            'has_totp': has_totp,
+                            'has_url': has_url,
+                            'url': url
+                        }
+                        
+                        processed_count += 1
+                        
+                        # Update UI every 20 passwords to show progress
+                        if processed_count % 20 == 0:
+                            progress = (processed_count / total_passwords) * 100
+                            GLib.idle_add(self._update_bulk_processing_progress, processed_count, total_passwords, progress)
+                    
+                except Exception as e:
+                    self.logger.warning(f"Failed to process password {password_path}: {e}")
+                    # Continue with other passwords even if one fails
+                    continue
+            
+            # Bulk processing completed, update UI
+            GLib.idle_add(self._complete_bulk_processing, processed_count, total_passwords)
+            
+        except Exception as e:
+            self.logger.error(f"Bulk processing failed: {e}")
+            GLib.idle_add(self._complete_bulk_processing, 0, total_passwords, str(e))
+    
+    def _update_bulk_processing_progress(self, processed, total, progress):
+        """Update progress during bulk processing."""
+        self.toast_manager.show_info(f"Processing... {processed}/{total} ({progress:.0f}%)")
+        return False
+    
+    def _complete_bulk_processing(self, processed_count, total_count, error=None):
+        """Complete bulk processing and update all password rows."""
+        try:
+            if error:
+                self.toast_manager.show_error(f"Bulk processing failed: {error}")
+                return False
+            
+            self.logger.info(f"Bulk processing completed: {processed_count}/{total_count} passwords processed")
+            
+            # Update all password rows with the processed results
+            updated_count = 0
+            for password_path, result in self._bulk_processing_results.items():
+                if password_path in self.password_rows:
+                    password_row = self.password_rows[password_path]
+                    
+                    # Update TOTP and URL button visibility using the new bulk processing method
+                    if hasattr(password_row, 'set_bulk_processing_results'):
+                        password_row.set_bulk_processing_results(result['has_totp'], result['has_url'])
+                    
+                    # Update favicon if URL found
+                    if result['url'] and result['url'].startswith(('http://', 'https://')):
+                        # Use the existing favicon loading mechanism
+                        favicon_manager = get_favicon_manager()
+                        favicon_manager.get_favicon_pixbuf_async(result['url'], 
+                            lambda pixbuf, path=password_path: self._update_password_favicon_from_bulk(path, pixbuf))
+                    
+                    updated_count += 1
+            
+            # Show completion message
+            if updated_count > 0:
+                self.toast_manager.show_success(f"Content processing complete! Updated {updated_count} passwords with TOTP/URL buttons.")
+            else:
+                self.toast_manager.show_info("Content processing complete!")
+            
+        except Exception as e:
+            self.logger.error(f"Error completing bulk processing: {e}")
+            self.toast_manager.show_error(f"Failed to update password rows: {e}")
+        
+        finally:
+            self._bulk_processing_active = False
+        
+        return False
+    
+    def _update_password_favicon_from_bulk(self, password_path, pixbuf):
+        """Update password row favicon from bulk processing results."""
+        if password_path in self.password_rows:
+            password_row = self.password_rows[password_path]
+            if hasattr(password_row, '_on_favicon_loaded') and pixbuf:
+                GLib.idle_add(password_row._on_favicon_loaded, pixbuf)

@@ -298,8 +298,9 @@ class PasswordEntryRow(Adw.ActionRow):
         
     def _on_row_activated(self, row):
         """Handle row activation - ActionRow already emits 'activated' signal."""
-        # Check content when user interacts with the row
-        self._check_content_if_needed()
+        # Check content if user specifically clicks on this row (indicates interest)
+        if self.get_visible() and not self._content_checked:
+            self._check_content_if_needed()
         # The ActionRow will automatically emit the 'activated' signal
     
     def set_sensitive_actions(self, sensitive=True):
@@ -337,19 +338,48 @@ class PasswordEntryRow(Adw.ActionRow):
         # Mark that we need to check content lazily
         self._content_checked = False
         
-        # Trigger lazy content checking shortly after widget creation
-        # This ensures TOTP/URL buttons appear without blocking startup
-        from gi.repository import GLib
-        GLib.timeout_add(100, self._trigger_lazy_content_check)
+        # Content will be processed in bulk by the controller to avoid multiple passphrase prompts
+        # Individual password rows no longer need to check content automatically
     
     def check_visibility_and_load_content(self):
         """Check if row is visible and load content if needed. Called when row becomes visible."""
         # This can be called by the parent controller when the row becomes visible
-        if self.get_visible() and not self._content_checked:
-            self._check_content_if_needed()
+        if self.get_visible():
+            if not self._content_checked:
+                self._check_content_if_needed()
+            # Also load favicon when row becomes visible (viewport-based loading)
+            if not self._url_loaded and self._lazy_url_loader:
+                # Add a small delay to avoid overwhelming the graphics system
+                GLib.timeout_add(100, self._trigger_favicon_loading)
     
     def _trigger_lazy_content_check(self):
         """Trigger lazy content checking after a short delay to avoid blocking startup."""
         if not self._content_checked:
             self._check_content_if_needed()
         return False  # Don't repeat the timeout
+    
+    def _should_load_favicon_eagerly(self):
+        """Determine if this password should load its favicon eagerly to avoid memory issues."""
+        if not self._password_entry or not hasattr(self._password_entry, 'path'):
+            return False
+        
+        path_lower = str(self._password_entry.path).lower()
+        
+        # Load favicons eagerly for commonly used services
+        priority_domains = ['google', 'microsoft', 'amazon', 'github', 'facebook', 'twitter', 
+                           'apple', 'dropbox', 'netflix', 'youtube', 'gmail', 'outlook',
+                           'paypal', 'linkedin', 'instagram', 'reddit', 'discord', 'slack']
+        
+        # Only load favicon eagerly if it's a well-known service or has cached favicon data
+        return any(domain in path_lower for domain in priority_domains)
+    
+    def _trigger_favicon_loading(self):
+        """Trigger favicon loading for better visual experience."""
+        if not self._url_loaded and self._lazy_url_loader:
+            self._load_url_if_needed()
+        return False  # Don't repeat the timeout
+    
+    def set_bulk_processing_results(self, has_totp, has_url):
+        """Set the results from bulk content processing."""
+        self._update_advanced_buttons(has_totp, has_url)
+        self._content_checked = True  # Mark as processed
