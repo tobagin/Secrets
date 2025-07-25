@@ -30,8 +30,28 @@ class PasswordStore:
         
         # Content caching system to avoid redundant decryption
         self._content_cache = {}  # path -> {'content': str, 'timestamp': float, 'mtime': float}
-        self._cache_timeout = 300  # 5 minutes cache timeout
-        self._max_cache_size = 50  # Maximum number of cached entries
+        self._cache_timeout = 3600  # 1 hour cache timeout for bulk processing
+        self._max_cache_size = 1000  # Increased cache size for bulk operations
+        
+        # Bulk processing optimization
+        self._bulk_processing_mode = False
+        self._bulk_cache_timeout = 7200  # 2 hours during bulk processing
+
+    def enable_bulk_processing_mode(self):
+        """Enable bulk processing mode for better caching."""
+        self._bulk_processing_mode = True
+        self.logger.info("Enabled bulk processing mode with enhanced caching")
+
+    def disable_bulk_processing_mode(self):
+        """Disable bulk processing mode and clean up cache."""
+        self._bulk_processing_mode = False
+        # Optionally clean up cache when exiting bulk mode
+        self._cleanup_cache()
+        self.logger.info("Disabled bulk processing mode")
+
+    def _get_effective_cache_timeout(self):
+        """Get the effective cache timeout based on processing mode."""
+        return self._bulk_cache_timeout if self._bulk_processing_mode else self._cache_timeout
 
     def _get_file_mtime(self, password_path):
         """Get the modification time of a password file."""
@@ -46,8 +66,9 @@ class PasswordStore:
         import time
         current_time = time.time()
         
-        # Check if cache has expired
-        if current_time - cache_entry['timestamp'] > self._cache_timeout:
+        # Check if cache has expired using effective timeout
+        effective_timeout = self._get_effective_cache_timeout()
+        if current_time - cache_entry['timestamp'] > effective_timeout:
             return False
         
         # Check if file has been modified
@@ -62,10 +83,11 @@ class PasswordStore:
         import time
         current_time = time.time()
         
-        # Remove expired entries
+        # Remove expired entries using effective timeout
+        effective_timeout = self._get_effective_cache_timeout()
         expired_keys = []
         for path, entry in self._content_cache.items():
-            if current_time - entry['timestamp'] > self._cache_timeout:
+            if current_time - entry['timestamp'] > effective_timeout:
                 expired_keys.append(path)
         
         for key in expired_keys:
@@ -765,6 +787,104 @@ class PasswordStore:
             return False, "The 'pass' command was not found. Is it installed and in your PATH?"
         except Exception as e:
             return False, f"An unexpected error occurred while showing password: {e}"
+
+    def get_bulk_password_contents(self, password_paths, max_workers=8):
+        """
+        Retrieve multiple password contents efficiently using threading and caching.
+        Uses bulk processing mode to extend cache timeouts.
+        Implements sequential processing for first few passwords to establish GPG session.
+        
+        Args:
+            password_paths: List of password paths to retrieve
+            max_workers: Maximum number of worker threads
+            
+        Returns:
+            Dict mapping password_path -> (success, content_or_error)
+        """
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        import time
+        
+        # Enable bulk processing mode for better caching
+        self.enable_bulk_processing_mode()
+        
+        # Pre-warm GPG agent to establish session before bulk processing
+        from .utils.gpg_utils import GPGSetupHelper
+        warm_success, warm_message = GPGSetupHelper.warm_gpg_agent()
+        if warm_success:
+            self.logger.info(f"GPG agent pre-warmed: {warm_message}")
+        else:
+            self.logger.warning(f"GPG agent warming failed: {warm_message}")
+        
+        results = {}
+        cached_results = {}
+        uncached_paths = []
+        
+        # First, check which passwords are already cached
+        for path in password_paths:
+            cached_content = self._get_cached_content(path)
+            if cached_content is not None:
+                cached_results[path] = (True, cached_content)
+            else:
+                uncached_paths.append(path)
+        
+        self.logger.info(f"Bulk processing: {len(cached_results)} cached, {len(uncached_paths)} need decryption")
+        
+        if uncached_paths:
+            # Process first 3 passwords sequentially to establish GPG session and cache passphrase
+            sequential_paths = uncached_paths[:3]
+            parallel_paths = uncached_paths[3:]
+            
+            self.logger.info(f"Processing {len(sequential_paths)} passwords sequentially to establish GPG session")
+            
+            # Sequential processing for session establishment
+            for path in sequential_paths:
+                try:
+                    success, content = self.get_password_content(path)
+                    results[path] = (success, content)
+                    if success:
+                        self.logger.debug(f"Successfully established GPG session with {path}")
+                    else:
+                        self.logger.warning(f"Failed to establish GPG session with {path}: {content}")
+                    
+                    # Small delay between sequential operations to let GPG agent stabilize
+                    time.sleep(0.1)
+                    
+                except Exception as e:
+                    self.logger.warning(f"Failed to process password {path} sequentially: {e}")
+                    results[path] = (False, f"Processing failed: {e}")
+            
+            # Now process remaining passwords in parallel with very limited concurrency
+            if parallel_paths:
+                self.logger.info(f"Processing remaining {len(parallel_paths)} passwords in parallel")
+                # Use very conservative concurrency to avoid overwhelming GPG agent
+                max_parallel_workers = min(2, max_workers, len(parallel_paths))
+                
+                with ThreadPoolExecutor(max_workers=max_parallel_workers) as executor:
+                    # Submit remaining password retrieval tasks
+                    future_to_path = {
+                        executor.submit(self.get_password_content, path): path 
+                        for path in parallel_paths
+                    }
+                    
+                    # Collect results as they complete
+                    for future in as_completed(future_to_path):
+                        path = future_to_path[future]
+                        try:
+                            success, content = future.result(timeout=45)  # Longer timeout for parallel processing
+                            results[path] = (success, content)
+                        except Exception as e:
+                            self.logger.warning(f"Failed to process password {path}: {e}")
+                            results[path] = (False, f"Processing failed: {e}")
+        
+        # Combine cached and newly retrieved results
+        results.update(cached_results)
+        
+        self.logger.info(f"Bulk processing complete: {len(results)} total passwords processed")
+        
+        # Keep bulk processing mode enabled for the session
+        # It will be disabled when the controller is done with bulk operations
+        
+        return results
 
     def get_password_path_and_content(self, path_to_password):
         """

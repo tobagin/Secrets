@@ -160,9 +160,10 @@ class DynamicFolderController:
             self._is_loading = False
             self.logger.debug("Password loading completed successfully")
             
-            # Start bulk content processing after UI is ready
+            # Start simple fast bulk processing for ALL passwords
             if raw_password_list:
-                GLib.timeout_add(2000, self._start_bulk_content_processing, raw_password_list)
+                self.logger.info(f"Starting fast parallel TOTP/URL processing for {len(raw_password_list)} passwords")
+                GLib.timeout_add(500, self._start_fast_bulk_processing, raw_password_list)
             
         except Exception as e:
             self.logger.error("Error completing password loading", extra={
@@ -1077,6 +1078,151 @@ class DynamicFolderController:
         self.edit_password_callback = edit_password
         self.view_details_callback = view_details
         self.remove_password_callback = remove_password
+
+    # ========== Simple Fast Bulk Processing ==========
+
+    def _start_fast_bulk_processing(self, password_list):
+        """Start efficient bulk processing of ALL passwords using optimized caching."""
+        
+        self.logger.info(f"Starting optimized bulk processing of {len(password_list)} passwords")
+        self.toast_manager.show_info("Processing passwords with enhanced caching...")
+        
+        def run_bulk_processing():
+            """Run bulk processing in background thread."""
+            try:
+                # Use the new optimized bulk processing method with reduced concurrency
+                bulk_results = self.password_store.get_bulk_password_contents(password_list, max_workers=2)
+                
+                # Process results to extract TOTP/URL information
+                results = {}
+                processed = 0
+                total = len(password_list)
+                
+                for password_path, (success, content) in bulk_results.items():
+                    try:
+                        if success and content:
+                            # Simple TOTP detection
+                            content_lower = content.lower()
+                            has_totp = any(keyword in content_lower for keyword in [
+                                'otpauth://', 'totp:', 'otp:', 'secret:', 'authenticator', '2fa'
+                            ])
+                            
+                            # Simple URL detection
+                            has_url = False
+                            url = None
+                            for line in content.split('\n'):
+                                line = line.strip()
+                                if line.startswith(('http://', 'https://')):
+                                    has_url = True
+                                    url = line
+                                    break
+                                elif any(line.lower().startswith(prefix) for prefix in ['url:', 'website:', 'site:']):
+                                    has_url = True
+                                    # Extract URL after the prefix
+                                    for prefix in ['url:', 'website:', 'site:']:
+                                        if line.lower().startswith(prefix):
+                                            url = line[len(prefix):].strip()
+                                            if url and not url.startswith(('http://', 'https://')):
+                                                if '.' in url and ' ' not in url:
+                                                    url = f"https://{url}"
+                                            break
+                                    break
+                            
+                            results[password_path] = {
+                                'has_totp': has_totp, 
+                                'has_url': has_url, 
+                                'url': url
+                            }
+                        else:
+                            results[password_path] = {'has_totp': False, 'has_url': False, 'url': None}
+                        
+                        processed += 1
+                        
+                        # Update progress every 50 passwords for better performance
+                        if processed % 50 == 0 or processed == total:
+                            progress = (processed / total) * 100
+                            GLib.idle_add(self._update_processing_progress, processed, total, progress)
+                            
+                    except Exception as e:
+                        self.logger.warning(f"Error analyzing content for {password_path}: {e}")
+                        results[password_path] = {'has_totp': False, 'has_url': False, 'url': None}
+                        processed += 1
+                
+                # Update UI with all results
+                GLib.idle_add(self._complete_fast_processing, results, processed)
+                
+            except Exception as e:
+                self.logger.error(f"Bulk processing failed: {e}")
+                GLib.idle_add(self._complete_fast_processing, {}, 0)
+        
+        # Start processing in background thread
+        import threading
+        threading.Thread(target=run_bulk_processing, daemon=True).start()
+        
+        return False  # Don't repeat timeout
+    
+    def _update_processing_progress(self, processed, total, progress):
+        """Update processing progress."""
+        self.logger.info(f"Fast processing: {processed}/{total} ({progress:.1f}%)")
+        if processed % 100 == 0:  # Show toast every 100 passwords
+            self.toast_manager.show_info(f"Processing... {processed}/{total} passwords")
+        return False
+    
+    def _complete_fast_processing(self, results, processed_count):
+        """Complete fast processing and update password rows."""
+        try:
+            if not results:
+                self.toast_manager.show_info("Processing completed!")
+                return False
+            
+            # Count features found
+            totp_count = sum(1 for r in results.values() if r.get('has_totp', False))
+            url_count = sum(1 for r in results.values() if r.get('has_url', False))
+            updated_count = 0
+            
+            # Update password rows with results
+            for password_path, result in results.items():
+                if password_path in self.password_rows:
+                    password_row = self.password_rows[password_path]
+                    
+                    # Update TOTP and URL button visibility
+                    if hasattr(password_row, 'set_bulk_processing_results'):
+                        password_row.set_bulk_processing_results(result['has_totp'], result['has_url'])
+                        updated_count += 1
+                    
+                    # Load favicon if URL found
+                    if result['url'] and result['url'].startswith(('http://', 'https://')):
+                        from ..managers import get_favicon_manager
+                        favicon_manager = get_favicon_manager()
+                        favicon_manager.get_favicon_pixbuf_async(result['url'], 
+                            lambda pixbuf, path=password_path: self._update_password_favicon(path, pixbuf))
+            
+            # Show comprehensive completion message
+            features = []
+            if totp_count > 0:
+                features.append(f"{totp_count} TOTP")
+            if url_count > 0:
+                features.append(f"{url_count} URL")
+            
+            if features:
+                feature_text = " and ".join(features)
+                self.toast_manager.show_success(f"Fast processing complete! Found {feature_text} features in {processed_count} passwords.")
+            else:
+                self.toast_manager.show_success(f"Fast processing complete! Analyzed {processed_count} passwords.")
+            
+            self.logger.info(f"Fast processing completed: {totp_count} TOTP, {url_count} URL features found in {processed_count} passwords")
+            
+        except Exception as e:
+            self.logger.error(f"Error completing fast processing: {e}")
+            self.toast_manager.show_error("Processing completed with errors")
+        
+        return False
+    
+    def _update_password_favicon(self, password_path, pixbuf):
+        """Update password row favicon after bulk processing."""
+        if password_path in self.password_rows and pixbuf:
+            password_row = self.password_rows[password_path]
+            if hasattr(password_row, '_on_favicon_loaded'):
     
     def _start_bulk_content_processing(self, password_list):
         """Start bulk processing of all password content to detect TOTP and URLs with single passphrase."""
