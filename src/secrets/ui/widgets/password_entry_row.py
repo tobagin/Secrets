@@ -356,7 +356,7 @@ class PasswordEntryRow(Adw.ActionRow):
         """Trigger lazy content checking after a short delay to avoid blocking startup."""
         if not self._content_checked:
             self._check_content_if_needed()
-        return False  # Don't repeat the timeout
+        return False  # Don't repeat the timeout=
     
     def _should_load_favicon_eagerly(self):
         """Determine if this password should load its favicon eagerly to avoid memory issues."""
@@ -382,4 +382,4 @@ class PasswordEntryRow(Adw.ActionRow):
     def set_bulk_processing_results(self, has_totp, has_url):
         """Set the results from bulk content processing."""
         self._update_advanced_buttons(has_totp, has_url)
-        self._content_checked = True  # Mark as processed
+        self._content_checked = True  # Mark as processed=
