@@ -89,16 +89,25 @@ class ImportExportDialog(Adw.Window):
         # Show progress indication
         self.toast_manager.show_info("Import started...")
         
-        # Disable all import buttons during import
-        self._set_import_buttons_sensitive(False)
+        # Close the import dialog since processing has started
+        self.close()
         
         # Start the import thread
         self._import_thread = threading.Thread(
-            target=import_func,
-            args=(file_path,),
+            target=self._import_wrapper,
+            args=(import_func, file_path),
             daemon=True
         )
         self._import_thread.start()
+    
+    def _import_wrapper(self, import_func, file_path):
+        """Wrapper to run import functions in thread and handle completion."""
+        try:
+            # Run the import function 
+            import_func(file_path)
+        except Exception as e:
+            # If the import function doesn't handle its own errors, handle them here
+            GLib.idle_add(self._import_completed, 0, 0, str(e))
     
     def _set_import_buttons_sensitive(self, sensitive):
         """Enable or disable all import buttons."""
@@ -422,7 +431,7 @@ class ImportExportDialog(Adw.Window):
         try:
             file = dialog.open_finish(result)
             if file:
-                self._import_from_1password_csv(file.get_path())
+                self._start_import_thread(self._import_from_1password_csv, file.get_path())
         except Exception as e:
             self.toast_manager.show_error(f"Import cancelled or failed: {e}")
     
@@ -468,13 +477,12 @@ class ImportExportDialog(Adw.Window):
                     else:
                         skipped_count += 1
             
-            self.toast_manager.show_success(f"Imported {imported_count} passwords from 1Password, skipped {skipped_count}")
-            
-            if imported_count > 0:
-                self._refresh_password_list()
+            # Schedule completion callback on main thread
+            GLib.idle_add(self._import_completed, imported_count, skipped_count)
                 
         except Exception as e:
-            self.toast_manager.show_error(f"1Password import failed: {e}")
+            # Schedule error callback on main thread  
+            GLib.idle_add(self._import_completed, 0, 0, str(e))
     
     def _on_import_lastpass(self, button):
         """Import passwords from LastPass CSV export."""
@@ -496,7 +504,7 @@ class ImportExportDialog(Adw.Window):
         try:
             file = dialog.open_finish(result)
             if file:
-                self._import_from_lastpass_csv(file.get_path())
+                self._start_import_thread(self._import_from_lastpass_csv, file.get_path())
         except Exception as e:
             self.toast_manager.show_error(f"Import cancelled or failed: {e}")
     
@@ -546,13 +554,12 @@ class ImportExportDialog(Adw.Window):
                     else:
                         skipped_count += 1
             
-            self.toast_manager.show_success(f"Imported {imported_count} passwords from LastPass, skipped {skipped_count}")
-            
-            if imported_count > 0:
-                self._refresh_password_list()
+            # Schedule completion callback on main thread
+            GLib.idle_add(self._import_completed, imported_count, skipped_count)
                 
         except Exception as e:
-            self.toast_manager.show_error(f"LastPass import failed: {e}")
+            # Schedule error callback on main thread
+            GLib.idle_add(self._import_completed, 0, 0, str(e))
     
     def _on_import_bitwarden(self, button):
         """Import passwords from Bitwarden JSON export."""
@@ -574,7 +581,7 @@ class ImportExportDialog(Adw.Window):
         try:
             file = dialog.open_finish(result)
             if file:
-                self._import_from_bitwarden_json(file.get_path())
+                self._start_import_thread(self._import_from_bitwarden_json, file.get_path())
         except Exception as e:
             self.toast_manager.show_error(f"Import cancelled or failed: {e}")
     
@@ -636,13 +643,12 @@ class ImportExportDialog(Adw.Window):
                 else:
                     skipped_count += 1
             
-            self.toast_manager.show_success(f"Imported {imported_count} passwords from Bitwarden, skipped {skipped_count}")
-            
-            if imported_count > 0:
-                self._refresh_password_list()
+            # Schedule completion callback on main thread
+            GLib.idle_add(self._import_completed, imported_count, skipped_count)
                 
         except Exception as e:
-            self.toast_manager.show_error(f"Bitwarden import failed: {e}")
+            # Schedule error callback on main thread
+            GLib.idle_add(self._import_completed, 0, 0, str(e))
     
     def _on_import_dashlane(self, button):
         """Import passwords from Dashlane CSV export."""
@@ -664,7 +670,7 @@ class ImportExportDialog(Adw.Window):
         try:
             file = dialog.open_finish(result)
             if file:
-                self._import_from_dashlane_csv(file.get_path())
+                self._start_import_thread(self._import_from_dashlane_csv, file.get_path())
         except Exception as e:
             self.toast_manager.show_error(f"Import cancelled or failed: {e}")
     
@@ -714,13 +720,12 @@ class ImportExportDialog(Adw.Window):
                     else:
                         skipped_count += 1
             
-            self.toast_manager.show_success(f"Imported {imported_count} passwords from Dashlane, skipped {skipped_count}")
-            
-            if imported_count > 0:
-                self._refresh_password_list()
+            # Schedule completion callback on main thread
+            GLib.idle_add(self._import_completed, imported_count, skipped_count)
                 
         except Exception as e:
-            self.toast_manager.show_error(f"Dashlane import failed: {e}")
+            # Schedule error callback on main thread
+            GLib.idle_add(self._import_completed, 0, 0, str(e))
     
     def _on_import_keepass(self, button):
         """Import passwords from KeePass CSV export."""
@@ -742,7 +747,7 @@ class ImportExportDialog(Adw.Window):
         try:
             file = dialog.open_finish(result)
             if file:
-                self._import_from_keepass_csv(file.get_path())
+                self._start_import_thread(self._import_from_keepass_csv, file.get_path())
         except Exception as e:
             self.toast_manager.show_error(f"Import cancelled or failed: {e}")
     
@@ -792,13 +797,12 @@ class ImportExportDialog(Adw.Window):
                     else:
                         skipped_count += 1
             
-            self.toast_manager.show_success(f"Imported {imported_count} passwords from KeePass, skipped {skipped_count}")
-            
-            if imported_count > 0:
-                self._refresh_password_list()
+            # Schedule completion callback on main thread
+            GLib.idle_add(self._import_completed, imported_count, skipped_count)
                 
         except Exception as e:
-            self.toast_manager.show_error(f"KeePass import failed: {e}")
+            # Schedule error callback on main thread
+            GLib.idle_add(self._import_completed, 0, 0, str(e))
     
     # Browser Import Methods
     
@@ -822,7 +826,7 @@ class ImportExportDialog(Adw.Window):
         try:
             file = dialog.open_finish(result)
             if file:
-                self._import_from_chrome_csv(file.get_path())
+                self._start_import_thread(self._import_from_chrome_csv, file.get_path())
         except Exception as e:
             self.toast_manager.show_error(f"Import cancelled or failed: {e}")
     
@@ -869,13 +873,12 @@ class ImportExportDialog(Adw.Window):
                     else:
                         skipped_count += 1
             
-            self.toast_manager.show_success(f"Imported {imported_count} passwords from Chrome, skipped {skipped_count}")
-            
-            if imported_count > 0:
-                self._refresh_password_list()
+            # Schedule completion callback on main thread
+            GLib.idle_add(self._import_completed, imported_count, skipped_count)
                 
         except Exception as e:
-            self.toast_manager.show_error(f"Chrome import failed: {e}")
+            # Schedule error callback on main thread
+            GLib.idle_add(self._import_completed, 0, 0, str(e))
     
     def _on_import_firefox(self, button):
         """Import passwords from Firefox CSV export."""
@@ -897,7 +900,7 @@ class ImportExportDialog(Adw.Window):
         try:
             file = dialog.open_finish(result)
             if file:
-                self._import_from_firefox_csv(file.get_path())
+                self._start_import_thread(self._import_from_firefox_csv, file.get_path())
         except Exception as e:
             self.toast_manager.show_error(f"Import cancelled or failed: {e}")
     
@@ -942,13 +945,12 @@ class ImportExportDialog(Adw.Window):
                     else:
                         skipped_count += 1
             
-            self.toast_manager.show_success(f"Imported {imported_count} passwords from Firefox, skipped {skipped_count}")
-            
-            if imported_count > 0:
-                self._refresh_password_list()
+            # Schedule completion callback on main thread
+            GLib.idle_add(self._import_completed, imported_count, skipped_count)
                 
         except Exception as e:
-            self.toast_manager.show_error(f"Firefox import failed: {e}")
+            # Schedule error callback on main thread
+            GLib.idle_add(self._import_completed, 0, 0, str(e))
     
     def _on_import_safari(self, button):
         """Import passwords from Safari CSV export."""
@@ -970,7 +972,7 @@ class ImportExportDialog(Adw.Window):
         try:
             file = dialog.open_finish(result)
             if file:
-                self._import_from_safari_csv(file.get_path())
+                self._start_import_thread(self._import_from_safari_csv, file.get_path())
         except Exception as e:
             self.toast_manager.show_error(f"Import cancelled or failed: {e}")
     
@@ -1024,13 +1026,12 @@ class ImportExportDialog(Adw.Window):
                     else:
                         skipped_count += 1
             
-            self.toast_manager.show_success(f"Imported {imported_count} passwords from Safari, skipped {skipped_count}")
-            
-            if imported_count > 0:
-                self._refresh_password_list()
+            # Schedule completion callback on main thread
+            GLib.idle_add(self._import_completed, imported_count, skipped_count)
                 
         except Exception as e:
-            self.toast_manager.show_error(f"Safari import failed: {e}")
+            # Schedule error callback on main thread
+            GLib.idle_add(self._import_completed, 0, 0, str(e))
     
     def _on_import_edge(self, button):
         """Import passwords from Edge CSV export."""
@@ -1052,7 +1053,7 @@ class ImportExportDialog(Adw.Window):
         try:
             file = dialog.open_finish(result)
             if file:
-                self._import_from_edge_csv(file.get_path())
+                self._start_import_thread(self._import_from_edge_csv, file.get_path())
         except Exception as e:
             self.toast_manager.show_error(f"Import cancelled or failed: {e}")
     
@@ -1099,13 +1100,12 @@ class ImportExportDialog(Adw.Window):
                     else:
                         skipped_count += 1
             
-            self.toast_manager.show_success(f"Imported {imported_count} passwords from Edge, skipped {skipped_count}")
-            
-            if imported_count > 0:
-                self._refresh_password_list()
+            # Schedule completion callback on main thread
+            GLib.idle_add(self._import_completed, imported_count, skipped_count)
                 
         except Exception as e:
-            self.toast_manager.show_error(f"Edge import failed: {e}")
+            # Schedule error callback on main thread
+            GLib.idle_add(self._import_completed, 0, 0, str(e))
     
     def _on_import_protonpass(self, button):
         """Import passwords from Proton Pass JSON export."""
@@ -1127,7 +1127,7 @@ class ImportExportDialog(Adw.Window):
         try:
             file = dialog.open_finish(result)
             if file:
-                self._import_from_protonpass_json(file.get_path())
+                self._start_import_thread(self._import_from_protonpass_json, file.get_path())
         except Exception as e:
             self.toast_manager.show_error(f"Import cancelled or failed: {e}")
     
@@ -1203,13 +1203,12 @@ class ImportExportDialog(Adw.Window):
                     else:
                         skipped_count += 1
             
-            self.toast_manager.show_success(f"Imported {imported_count} passwords from Proton Pass, skipped {skipped_count}")
-            
-            if imported_count > 0:
-                self._refresh_password_list()
+            # Schedule completion callback on main thread
+            GLib.idle_add(self._import_completed, imported_count, skipped_count)
                 
         except Exception as e:
-            self.toast_manager.show_error(f"Proton Pass import failed: {e}")
+            # Schedule error callback on main thread
+            GLib.idle_add(self._import_completed, 0, 0, str(e))
     
     def _extract_totp_secret(self, totp_uri: str) -> str:
         """Extract TOTP secret from URI format."""

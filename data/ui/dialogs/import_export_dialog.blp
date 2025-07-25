@@ -30,36 +30,6 @@ template $ImportExportDialog : Adw.Window {
         margin-start: 12;
         margin-end: 12;
 
-        // Export section
-        Adw.PreferencesGroup {
-          title: "Export";
-          description: "Export your passwords to various formats";
-
-          Adw.ActionRow {
-            title: "Export to JSON";
-            subtitle: "Export all passwords in JSON format";
-
-            [suffix]
-            Gtk.Button export_json_button {
-              icon-name: "io.github.tobagin.secrets-export-symbolic";
-              valign: center;
-              tooltip-text: "Export to JSON";
-            }
-          }
-
-          Adw.ActionRow {
-            title: "Export to CSV";
-            subtitle: "Export passwords in CSV format (compatible with many password managers)";
-
-            [suffix]
-            Gtk.Button export_csv_button {
-              icon-name: "io.github.tobagin.secrets-export-symbolic";
-              valign: center;
-              tooltip-text: "Export to CSV";
-            }
-          }
-        }
-
         // Import section
         Adw.PreferencesGroup {
           title: "Import from Password Managers";
@@ -229,6 +199,36 @@ template $ImportExportDialog : Adw.Window {
           Adw.ActionRow {
             title: "⚠️ Important Security Notice";
             subtitle: "Exported files contain unencrypted passwords. Store them securely and delete after use.";
+          }
+        }
+
+        // Export section
+        Adw.PreferencesGroup {
+          title: "Export";
+          description: "Export your passwords to various formats";
+
+          Adw.ActionRow {
+            title: "Export to JSON";
+            subtitle: "Export all passwords in JSON format";
+
+            [suffix]
+            Gtk.Button export_json_button {
+              icon-name: "io.github.tobagin.secrets-export-symbolic";
+              valign: center;
+              tooltip-text: "Export to JSON";
+            }
+          }
+
+          Adw.ActionRow {
+            title: "Export to CSV";
+            subtitle: "Export passwords in CSV format (compatible with many password managers)";
+
+            [suffix]
+            Gtk.Button export_csv_button {
+              icon-name: "io.github.tobagin.secrets-export-symbolic";
+              valign: center;
+              tooltip-text: "Export to CSV";
+            }
           }
         }
       }

@@ -143,6 +143,40 @@ class PasswordStore:
             self._content_cache.clear()
             self.logger.debug("All password cache invalidated")
 
+    def _preserve_empty_folder_after_deletion(self, deleted_password_path):
+        """
+        Preserve empty folders after password deletion by creating .gitkeep files.
+        This prevents pass/git from removing empty directories.
+        """
+        if "/" not in deleted_password_path:
+            # Password was in root directory, no folder to preserve
+            return
+        
+        # Get the parent folder path
+        folder_path = "/".join(deleted_password_path.split("/")[:-1])
+        folder_full_path = os.path.join(self.store_dir, folder_path)
+        
+        # Check if the folder still exists and is empty
+        if os.path.exists(folder_full_path):
+            try:
+                # List contents of the folder (excluding hidden files)
+                contents = [f for f in os.listdir(folder_full_path) 
+                           if not f.startswith('.') and f.endswith('.gpg')]
+                
+                # If folder is empty of password files, create a .gitkeep file to preserve it
+                if not contents:
+                    gitkeep_path = os.path.join(folder_full_path, ".gitkeep")
+                    if not os.path.exists(gitkeep_path):
+                        try:
+                            with open(gitkeep_path, 'w') as f:
+                                f.write("# This file preserves the empty folder in the password store\n")
+                            self.logger.debug(f"Created .gitkeep to preserve empty folder: {folder_path}")
+                        except (OSError, IOError) as e:
+                            self.logger.warning(f"Failed to create .gitkeep in {folder_path}: {e}")
+                            
+            except (OSError, IOError) as e:
+                self.logger.warning(f"Failed to check folder contents for {folder_path}: {e}")
+
     @property
     def is_initialized(self):
         """Check if the password store is properly initialized with a .gpg-id file."""
@@ -693,6 +727,10 @@ class PasswordStore:
                 # `pass rm` might not output much on success
                 # Invalidate cache for this password since it was deleted
                 self.invalidate_cache(path_to_password)
+                
+                # Check if the parent folder still exists and preserve it if it became empty
+                self._preserve_empty_folder_after_deletion(path_to_password)
+                
                 return True, f"Successfully deleted '{path_to_password}'."
             else:
                 error_message = process.stderr.strip() if process.stderr.strip() else process.stdout.strip()
