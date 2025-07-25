@@ -330,19 +330,18 @@ Expire-Date: 0
         if pinentry_program:
             config_lines.append(f'pinentry-program {pinentry_program}')
 
-        # Add other useful settings
+        # Add other useful settings optimized for bulk processing
         config_lines.extend([
-            'default-cache-ttl 28800',  # 8 hours
-            'max-cache-ttl 86400',      # 24 hours
+            'default-cache-ttl 43200',  # 12 hours for bulk processing sessions
+            'max-cache-ttl 86400',      # 24 hours maximum
             'allow-loopback-pinentry',
             'enable-ssh-support',
             'no-grab',  # Don't grab keyboard/mouse in Flatpak
-            'no-allow-external-cache',  # Security in sandboxed environment
             'disable-scdaemon',  # Disable smartcard daemon in Flatpak
             'log-file ~/.gnupg/gpg-agent.log',  # Enable logging for debugging
-            'debug-level basic',  # Basic debug level
             'keep-tty',  # Keep TTY for better compatibility
-            'ignore-cache-for-signing'  # Force pinentry for signing operations
+            # Remove 'ignore-cache-for-signing' to allow better caching
+            # Remove 'no-allow-external-cache' to allow better session caching
         ])
 
         # Write configuration
@@ -554,6 +553,62 @@ Expire-Date: 0
             return False, "GPG operation timed out - agent may not be running"
         except Exception as e:
             return False, f"GPG test failed: {e}"
+
+    @staticmethod
+    def warm_gpg_agent() -> Tuple[bool, str]:
+        """
+        Pre-warm the GPG agent by running a simple operation to establish the session.
+        This helps ensure the passphrase is cached before bulk operations.
+        
+        Returns:
+            Tuple of (success, message)
+        """
+        try:
+            # Set up environment
+            env = GPGSetupHelper.setup_gpg_environment()
+
+            # Ensure GPG agent is properly configured and running
+            GPGSetupHelper.ensure_gui_pinentry()
+            
+            # Try a simple GPG operation that might require passphrase (if keys exist)
+            result = subprocess.run(
+                ['gpg', '--batch', '--list-secret-keys'],
+                capture_output=True,
+                text=True,
+                timeout=10,
+                env=env
+            )
+
+            if result.returncode == 0:
+                # If we have secret keys, try to use one to warm the cache
+                if result.stdout.strip():
+                    # Try to sign something simple to warm the agent
+                    try:
+                        test_data = "test"
+                        sign_result = subprocess.run(
+                            ['gpg', '--batch', '--armor', '--detach-sign'],
+                            input=test_data,
+                            capture_output=True,
+                            text=True,
+                            timeout=15,
+                            env=env
+                        )
+                        if sign_result.returncode == 0:
+                            return True, "GPG agent warmed with signing operation"
+                        else:
+                            # Signing failed, but that's okay - agent might still be warmed
+                            return True, "GPG agent accessible (signing test failed but that's expected)"
+                    except subprocess.TimeoutExpired:
+                        return True, "GPG agent accessible (signing test timed out but that's expected)"
+                else:
+                    return True, "GPG agent accessible (no secret keys found)"
+            else:
+                return False, f"GPG agent not responding: {result.stderr.strip() if result.stderr else 'Unknown error'}"
+
+        except subprocess.TimeoutExpired:
+            return False, "GPG agent warming timed out"
+        except Exception as e:
+            return False, f"GPG agent warming failed: {e}"
 
     @staticmethod
     def test_gpg_operation() -> Tuple[bool, str]:

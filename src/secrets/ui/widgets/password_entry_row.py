@@ -353,3 +353,10 @@ class PasswordEntryRow(Adw.ActionRow):
         if not self._content_checked:
             self._check_content_if_needed()
         return False  # Don't repeat the timeout
+
+    def set_bulk_processing_results(self, has_totp, has_url):
+        """Set TOTP and URL button visibility from bulk processing results."""
+        self.copy_totp_button.set_visible(has_totp)
+        self.visit_url_button.set_visible(has_url)
+        # Mark content as checked to avoid redundant processing
+        self._content_checked = True
